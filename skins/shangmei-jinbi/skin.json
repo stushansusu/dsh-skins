@@ -1,0 +1,47 @@
+{
+  "$schema": "https://schemas.linxin666.org/dsh-skin/v2.json",
+  "skinManifestVersion": 2,
+  "id": "shangmei-jinbi",
+  "name": "金碧重彩",
+  "nameEn": "Gold & Mineral",
+  "version": "1.0.0",
+  "author": "stushansusu",
+  "tagline": "赭石泥金 · 土红平涂 · 重彩描金 · 靛蓝夜色",
+  "description": "重彩的一路，上美影的单线平涂：一笔墨线勾轮廓，里面填平色，面上不铺渐变，只有主按钮留一道金属斜光。浅色坐在绢本赭石上，土红作可点的主色、泥金作提醒；夜色换成靛蓝压底，泥金在深底上才真的像金。首屏只覆写一层径向光。用户自己说的话套一圈朱砂（朱批）。硬投影比常规厚一格（3px），因为金碧的线本来就重，投影薄了会被线吃掉。",
+  "tags": [
+    "chinese",
+    "guofeng",
+    "shanghai-animation",
+    "gold",
+    "mineral",
+    "dunhuang",
+    "cel",
+    "seal",
+    "dual-theme"
+  ],
+  "accent": "#A8462A",
+  "order": 45,
+  "license": "CC BY-NC-SA 4.0",
+  "licenseUrl": "https://creativecommons.org/licenses/by-nc-sa/4.0/",
+  "attribution": "皮肤工程与 assets/ 中的 12 张 WebP 装饰素材均为作者 stushansusu 原创，按 CC BY-NC-SA 4.0 发布。",
+  "preview": {
+    "light": "preview/light.jpg",
+    "dark": "preview/dark.jpg"
+  },
+  "contributes": {
+    "stylesheet": "skin.css",
+    "patches": "patches.css",
+    "backgroundMedia": {
+      "light": {
+        "type": "image",
+        "src": "assets/sym-light.webp",
+        "scrim": "linear-gradient(104deg, rgba(253,243,224,0.48) 0%, rgba(253,243,224,0.28) 28%, rgba(253,243,224,0.08) 60%, rgba(253,243,224,0) 100%), linear-gradient(0deg, rgba(253,243,224,0.26) 0%, rgba(253,243,224,0) 32%)"
+      },
+      "dark": {
+        "type": "image",
+        "src": "assets/sym-dark.webp",
+        "scrim": "linear-gradient(104deg, rgba(7,16,42,0.52) 0%, rgba(7,16,42,0.3) 28%, rgba(7,16,42,0.09) 60%, rgba(7,16,42,0) 100%), linear-gradient(0deg, rgba(7,16,42,0.32) 0%, rgba(7,16,42,0) 32%)"
+      }
+    }
+  }
+}
