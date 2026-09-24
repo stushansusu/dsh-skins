@@ -340,6 +340,9 @@ h3 {
   border-radius: 3px;
 }
 
+/* 代码块：宿主 0.1.7 的模块类名是 <hash>_<local>（本轮实测为 md-code-block），
+   老的 _markdown-code-block / _codeBlock 已经不存在，两代都写。 */
+[class*='md-code-block'],
 [class*='_markdown-code-block'],
 [class*='_codeBlock'] {
   border-radius: 2px;
@@ -384,16 +387,35 @@ h3 {
   filter: none;
 }
 
-/* brandIdentity 与 brandName 都写死了 24px，而 .brand 又是 overflow:hidden，
-   所以底线的 4px 会被直接裁掉 —— 必须先把这两个高度放开。 */
+/* 宿主 0.1.7 把名称位渲染成一个**纵向** flex 列（.localBuildBrand：名称 + 版本号两行），
+   并且 .brandIdentity / .brandName / .localBuildBrand 都钉死 24px、外层 .brand 与
+   .logoRow 都是 overflow:hidden。标题那一行在这里被换成 16px 的字标（原字归零），
+   两行加起来约 30px —— 装不进 24px，被 .brand 裁掉上缘。
+   所以链路上一路放开：列 → 品牌行 → 身份行 → 按钮，任何一层留着 24px 都会重新裁。 */
 [class*='_brandIdentity'] {
-  height: auto;
+  height: auto !important;
+  min-height: 24px;
+  overflow: visible !important;
+}
+
+[class*='_localBuildBrand'] {
+  height: auto !important;
+  min-height: 24px;
+  overflow: visible !important;
+}
+
+button:has([data-slot='sidebar.brand.name']) {
+  height: auto !important;
+  min-height: 24px;
+  overflow: visible !important;
 }
 
 /* 字标坐落在一条描金细线上——主题里"托"的做法（输入卡、工作区匾额同源）。
    高度放开，让底线贴着文字；alignment 交给父级的 align-items: center。 */
 [class*='_brandName'] {
-  height: auto;
+  height: auto !important;
+  min-height: 24px;
+  overflow: visible !important;
   padding-bottom: 3px;
   border-bottom: 1px solid rgba(201, 171, 110, 0.42);
 }
@@ -524,3 +546,45 @@ h3 {
 html {
   color-scheme: dark !important;
 }
+
+
+/* ══ 设备适配 ══════════════════════════════════════════════════════════════
+   这套皮的家具全是 viewport 级的固定层（body::after 的画布 + 金箔、body::before 的鎏金画框），窄屏要处理的是尺度与离屏模糊的代价。
+
+   目标壳：桌面浏览器 / exe 桌面端（WebView2）/ macOS 桌面（WKWebView）/
+   手机·平板（iOS Safari、Android Chrome）。
+
+   壳自己已经在 ≤768px 把中栏拉满、把侧栏收成浮层轨道（[data-sidebar-collapsed]），
+   dsh-remote-web-ui 的竖屏层再压一轮，所以版式、点击区与安全区不必皮肤操心。
+   皮肤要守的三条：
+     ① 视口高度用 dvh 兜住 iOS 地址栏；
+     ② 窄屏把 viewport 级的大件家具降一档尺度，别让 460px 的角花盖住 390px 的屏；
+     ③ 弱设备与系统无障碍设置下降档（动效 / 半透明 / 一整屏离屏模糊）。
+   ═══════════════════════════════════════════════════════════════════════ */
+
+@supports (height: 100dvh) {
+  [data-dsh-frame] {
+    height: 100dvh;
+    min-height: 100dvh;
+  }
+}
+
+@media (max-width: 768px) {
+  /* 画布层带 filter: blur(1.7px)（用来羽化立绘剪影的硬边）。那是一整屏的离屏
+     模糊，手机上最贵；立绘本身是带 alpha 的 PNG，不模糊也不会露出硬边。 */
+  body::after {
+    filter: none;
+  }
+
+  /* 四角角花 76px 画在 390 宽的屏上要占五分之一，连同顶部回纹带一起收到 48 / 12。 */
+  body::before {
+    background-size: 48px 48px, 48px 48px, 48px 48px, 48px 48px, 12px 10px;
+  }
+}
+
+@media (prefers-reduced-transparency: reduce) {
+  body::after {
+    filter: none;
+  }
+}
+
