@@ -1,0 +1,691 @@
+/**
+ * 桂影月华 (Osmanthus Moonlight) — L3 atmosphere layer.
+ *
+ * Pure CSS, no hooks. The loader force-scopes every selector under
+ * html[data-dsh-skin="mid-autumn"], so rules here are written unscoped on purpose.
+ *
+ * Every hook below is one the shell actually emits, verified against the
+ * installed shell and the loader's own surface registry — not guessed:
+ *   · canvas      body::after              the theme's ground
+ *   · sidebar     [data-slot="sidebar"], [data-dsh-surface="sidebar"],
+ *                 [data-pane="sidebar"], aside
+ *   · details     [data-slot="details"], [data-dsh-surface="details"]
+ *   · conversation [data-conversation-scroll], [data-chat-flow]
+ *   · rows        [data-chat-flow-kind="user" | "assistant-step" | ...]
+ *   · composer    [data-composer-card], [data-input-scroll],
+ *                 [data-composer-placeholder]
+ *   · hero        [data-phase="hero"]
+ *
+ * Deliberately NOT touched: html[data-dsh-wallpaper-active] and
+ * html[data-dsh-backdrop-active]. The loader owns those — it neutralises scene
+ * backgrounds behind a wallpaper and re-blurs the composer card itself — so the
+ * canvas rule below steps aside instead of fighting it.
+ */
+
+/* ── custom properties, per mode ─────────────────────────────────────────── */
+
+body {
+  --sk-ground: #09090C;
+  --sk-pane: radial-gradient(120% 90% at 74% 18%, #e7b44e24 0%, transparent 56%),radial-gradient(90% 70% at 12% 96%, #6bc6b01a 0%, transparent 62%);
+  --sk-wall: #1F1F26;
+  --sk-wall-edge: #33333d52;
+  --sk-card-top: #141419b8;
+  --sk-composer-ring: 0 0 0 3px #e7b44e24;
+  --sk-bubble: #15151a;
+  --sk-bubble-edge: #e7b44e38;
+  --sk-approval-edge: #e8705f73;
+}
+
+body {
+  --sk-ground: #09090C;
+  --sk-pane: radial-gradient(120% 90% at 74% 18%, #e7b44e24 0%, transparent 56%),radial-gradient(90% 70% at 12% 96%, #6bc6b01a 0%, transparent 62%);
+  --sk-wall: #1F1F26;
+  --sk-wall-edge: #33333d5c;
+  --sk-card-top: #33333d4d;
+  --sk-composer-ring: 0 0 0 3px #e7b44e33;
+  --sk-bubble: #15151a;
+  --sk-bubble-edge: #e7b44e47;
+  --sk-approval-edge: #e8705f80;
+}
+
+/* ── canvas: the theme's ground ──────────────────────────────────────────── */
+
+body::after {
+  content: '';
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background-color: var(--sk-ground);
+  background-image: var(--sk-pane);
+  background-repeat: no-repeat;
+  background-size: 100% 100%;
+}
+
+/* When the user runs a wallpaper, the ground layer must disappear entirely,
+   or it paints over the wallpaper. The loader sets these flags itself.
+   Must be written body[...]::after, NOT html[...] body::after: the loader force-scopes
+   every selector as a descendant of html[data-dsh-skin], so the html form becomes
+   html[data-dsh-skin] html[...] body::after and can never match (html is not a
+   descendant of itself). The rule was dead and the canvas painted over the user's
+   wallpaper. The crystal engine was fixed first (see the note further down); the
+   material and anime engines still carried the dead form, which is also why
+   verify() rejected all eleven of them and no theme could be rebuilt. */
+body[data-dsh-wallpaper-active]::after,
+body[data-dsh-backdrop-active]::after {
+  background-color: transparent;
+  background-image: none;
+}
+
+/* ── sidebar: the theme's material as a wall, not a fill ─────────────────── */
+
+/* [data-slot="sidebar"] is the renderer's slot anchor and carries
+   display:contents, so it has no box of its own — the painted element is its
+   child (the sidebar's .root column, a flex container). Style the narrow slot
+   variant for plugin-provided sidebars too. */
+[data-slot='sidebar'] > *,
+[data-dsh-surface='sidebar'],
+[data-pane='sidebar'] {
+  background-color: var(--sk-wall) !important;
+  background-image: linear-gradient(180deg, #0b0a0c1a 0%, #0b0a0c42 100%);background-repeat: no-repeat;background-size: 100% 100%;background-position: 0 0;background-color: #0b0a0c24 !important;
+  box-shadow: inset -1px 0 0 var(--sk-wall-edge);
+}
+
+body [data-slot='sidebar'] > *,
+body [data-dsh-surface='sidebar'],
+body [data-pane='sidebar'] {
+  background-image: linear-gradient(180deg, #0b0a0c1a 0%, #0b0a0c42 100%);background-repeat: no-repeat;background-size: 100% 100%;background-position: 0 0;background-color: #0b0a0c24 !important;
+}
+
+/* the sidebar's own workspace list keeps the wall colour, not a raised card */
+[data-slot='sidebar.workspaces'] {
+  background-color: transparent !important;
+}
+
+/* ── details pane ────────────────────────────────────────────────────────── */
+
+[data-slot='details'],
+[data-slot='details'] > *,
+[data-dsh-surface='details'],
+[data-pane='details'] {
+  background-color: #09090cdb !important;
+}
+
+body [data-slot='details'],
+body [data-slot='details'] > *,
+body [data-dsh-surface='details'],
+body [data-pane='details'] {
+  background-color: #09090cdb !important;
+}
+
+/* ── hero: the empty-session screen ──────────────────────────────────────── */
+
+[data-phase='hero'] {
+  position: relative;
+  background-image: radial-gradient(34% 30% at 21% 11%, #f7efdc4d 0%, transparent 68%), radial-gradient(64% 52% at 78% 24%, #e7b44e1a 0%, transparent 74%);
+  background-repeat: no-repeat;
+  background-size: 100% 100%;
+}
+
+body [data-phase='hero'] {
+  background-image: radial-gradient(34% 30% at 21% 11%, #f7efdc4d 0%, transparent 68%), radial-gradient(64% 52% at 78% 24%, #e7b44e1a 0%, transparent 74%);
+}
+
+/* ── composer: the theme's object ────────────────────────────────────────── */
+
+[data-composer-card] {
+  border-radius: 14px;
+  box-shadow: var(--sk-composer-ring), inset 0 1px 0 var(--sk-card-top);
+}
+
+body [data-composer-card] {
+  box-shadow: var(--sk-composer-ring), inset 0 1px 0 var(--sk-card-top);
+}
+
+/* the editable surface itself stays transparent so the card reads as one piece */
+[data-input-scroll] {
+  background-color: transparent;
+}
+
+[data-composer-placeholder] {
+  color: #CFC2A6;
+}
+
+body [data-composer-placeholder] {
+  color: #CFC2A6;
+}
+
+/* ── conversation rows: the material edge ────────────────────────────────── */
+
+/* the user's own turn gets the metal; the assistant stays quiet so the reading
+   column does not turn into a stripe of colour */
+[data-chat-flow-kind='user'] {
+  box-shadow: inset 3px 0 0 var(--sk-bubble-edge);
+}
+
+[data-chat-flow-kind='assistant-step'] {
+  background-color: transparent;
+}
+
+/* tool / context rows are furniture: give them the paper's edge, not the ink's */
+[data-chat-flow-kind='tool-call'],
+[data-chat-flow-kind='context'] {
+  border-radius: 10px;
+  background-color: #1f1f2680;
+}
+
+body [data-chat-flow-kind='tool-call'],
+body [data-chat-flow-kind='context'] {
+  background-color: #1f1f2680;
+}
+
+/* ── selection carries the metal ─────────────────────────────────────────── */
+
+::selection {
+  background-color: #e7b44e40;
+}
+
+body ::selection {
+  background-color: #e7b44e52;
+}
+
+/* ── approvals: the one place the warning ramp is allowed to shout ───────── */
+
+[data-approval-key],
+[data-question-key],
+[data-plan-review-key] {
+  border-radius: 12px;
+  box-shadow: inset 0 0 0 1px var(--sk-approval-edge), var(--dsw-shadow-lv2);
+}
+
+/* ── links keep the theme's metal rather than the shell's blue ───────────── */
+
+a {
+  color: #E7B44E;
+}
+
+body a {
+  color: #E7B44E;
+}
+
+/* ── scrollbars ──────────────────────────────────────────────────────────── */
+
+* {
+  scrollbar-color: #cfc2a659 transparent;
+}
+
+body * {
+  scrollbar-color: #cfc2a666 transparent;
+}
+
+/* ── 暗色专用：钉死原生配色方案（材质引擎本来没有这条，anime 引擎有）────────
+   必须写 :root 而不是 html：作用域转换把每条选择器当成 skin root 的后代加前缀，
+   html { … } 会变成 html[data-dsh-skin] html { … }，永远匹配不上；
+   :root 被特判成 html[data-dsh-skin="<id>"] 本身，正好落在 html 元素上 ——
+   这正是 color-scheme 需要的位置（它必须作用在根元素上才管得住原生控件）。 */
+
+:root {
+  color-scheme: dark !important;
+}
+
+
+/* ── per-theme extra chrome ────────────────────────────────────────────────
+   A theme may append its own rules here — the frame, the workspace plaque, the
+   new-session plate. Kept as a *function* so it derives colours from the same
+   palette through the same alpha()/mix() helpers instead of hard-coding hexes.
+   verify() scans the result for the fragility patterns (hashed class names,
+   :global, nested :has, backticks, unresolved interpolation). */
+/* ══ 中秋 · 桂影月华 · 机壳 ═══════════════════════════════════════════════ */
+
+/* 进了会话才补的「阅读纱」。首屏是一张空画，文字只有标题与输入卡，**不需要压暗**；
+   真会话里正文与代码块直接压在画的亮部上，次要文字会掉到 2:1。
+   判据用 data-content-phase 的取值（首屏是 hero，会话里是 active），而不是给整个
+   滚动容器永久加纱 —— 那样首屏也会被一起压暗。
+   **别用 :has()**：真壳里那条规则整条没生效（实测 getComputedStyle 上还是 none），
+   而它不会报错。换成直接命中 content 元素本身，用 background-attachment: fixed
+   把纱钉在视口上，滚动时不会跟着内容走。 */
+[data-conversation-content]:not([data-content-phase='hero']) {
+  background-image: linear-gradient(180deg, #0b0a0c66 0%, #0b0a0c85 100%);
+  background-repeat: no-repeat;
+  background-size: 100% 100%;
+  background-position: 0 0;
+  background-attachment: fixed;
+}
+
+/* · 代码块与工具行：引擎给的是半透明底（raised 的一半），压在亮画上会翻白 ——
+   实测代码块里的次要文字只有 2.17:1。这里按「不透明面板」那一档重给。 */
+[data-chat-flow-kind='tool-call'],
+[data-chat-flow-kind='context'] {
+  background-color: #0b0a0c85 !important;
+}
+
+/* · 三张「卡片」的底走的是 shell 的**静态**中性色，不吃 --dsw-alias-* 那 95 支：
+     ChangedFiles 卡头   --changes-fill: var(--dsw-static-neutral-50) -> #FAFAFA
+     Deliverables 交付卡 --deliverable-fill 同一支
+     PlanPreview 计划卡  --plan-card-fill 同一支
+   static 色阶在明暗两套里**值是一样的**，各组件只靠自己的 body
+   孪生规则把它们换成 -850 / -800。本皮是 darkOnly，只重映射 alias 层，碰不到 static ——
+   于是明亮主题下这三块是纯白（真壳实测 rgb(250,250,250)，整屏最亮的斑），
+   米白字压上去约 1.1:1，几乎读不出来。这里把六支变量直接钉成暗色主题那一对值，
+   明暗两个主题就此逐像素一致 —— 这正是 darkOnly 的定义。
+
+   选择器全用 data 钩子（哈希类名每次构建都变）：卡头 [data-changed-files]（它就是
+   .card 本身）、交付卡 [data-presented-file]、计划卡 [data-plan-card]；行容器
+   [data-presented-files-row] 一起写上兜底。
+   !important 是必须的：这六支变量就声明在**同一个元素**上（.card / .file 自己），
+   从祖先继承来的值永远输给它自己那条声明 —— 只有重要性压得住。
+
+   量它的坑：button.header 带 transition: background-color .12s。切主题后立刻读
+   getComputedStyle 会拿到**上一帧的插值**（暗色下读到明亮主题的白），必须等过渡走完。 */
+[data-changed-files],
+[data-presented-files-row],
+[data-presented-file],
+[data-plan-card] {
+  --changes-fill: #212123 !important;
+  --changes-hover: #292929 !important;
+  --deliverable-fill: #212123 !important;
+  --deliverable-hover: #292929 !important;
+  --plan-card-fill: #212123 !important;
+  --plan-card-hover: #292929 !important;
+}
+
+/* · 侧栏：右缘「靛在外、金在内」双线，再补一道极淡的金晕。
+   tab 的花纹与底色由 ATMOSPHERE 给（那是引擎规则里的 background-image，
+   这里只补它没设的 box-shadow）。 */
+[data-slot='sidebar'] > *,
+[data-dsh-surface='sidebar'],
+[data-pane='sidebar'] {
+  box-shadow:
+    inset -1px 0 0 #0b0a0cc7,
+    inset -2px 0 0 #e7b44e73,
+    inset -6px 0 0 #e7b44e1a;
+}
+
+/* · 左上角面板（用户 9-26 给了 left-bg.png）。引擎自带那张线稿 SVG 要藏掉，
+   否则会和底图叠成两张图。选择器是量出来的：pane > 0x0 的 slot 戳 > root > masthead。
+
+   那张图我按行量过：**左半边几乎全黑（亮度 10-16）**，月亮在右侧 x52-92%（峰值 235）。
+   安全宽度——上半 141px、下半 176-186px。所以文字全压左半边，再叠一层从左往右的暗纱，
+   把安全边界从 56% 推到约 70%，好让 8 个字的名字一行放得下（16px 约 137px）。
+   纱在暗处是看不见的（0.8*12+0.2*6≈7），只压得住月亮那一段。 */
+[data-pane='sidebar'] > * > * > :first-child {
+  background-image:
+    linear-gradient(100deg, #0b0a0ce0 0%, #0b0a0cc7 30%, #0b0a0c80 48%, #0b0a0c29 62%, #0b0a0c00 76%),
+    url(assets/zq-masthead.webp) !important;
+  background-repeat: no-repeat, no-repeat !important;
+  background-size: 100% 100%, 100% 100% !important;
+  background-position: 0 0, 0 0 !important;
+  background-color: transparent !important;
+  position: relative;
+  border-radius: 12px;
+  margin: 0 2px 8px;
+  overflow: hidden;
+  box-shadow: inset 0 0 0 1px #e7b44e57, 0 6px 20px #0b0a0c80;
+  color: #F5EBD5 !important;
+}
+
+[data-slot='sidebar.brand.mark'] svg,
+[data-pane='sidebar'] > * > * > :first-child > svg:first-child {
+  display: none !important;
+}
+
+/* 顶栏三行入口（新会话 / 任务看板 / 用量）压在插画上，字色与柔光都要按暗底色重给。 */
+[data-dsh-part='new-session'],
+[data-dsh-part='sidebar-entry'],
+[data-dsh-usage-foot-card],
+[data-dsh-part='foot-card'],
+[data-pane='sidebar'] > * > *:has(> nav) > nav > * {
+  color: #F5EBD5 !important;
+  border-radius: 10px;
+}
+[data-dsh-part='sidebar-entry'] span,
+[data-dsh-part='new-session'] span,
+[data-dsh-usage-foot-card] span,
+[data-dsh-part='foot-card'] span,
+[data-pane='sidebar'] > * > *:has(> nav) > nav > * span {
+  text-shadow: 0 1px 2px #0b0a0cb8;
+}
+/* 三行入口 = **同一套盒子**。它们原本根本不是一个东西（真壳实测）：
+     新会话   高 38  margin 0 8px(下 12)  padding 8/16/8/8   标签左缘 63
+     任务看板 高 36  margin 0 8px(下 0)   padding 7px 8px     标签左缘 64
+     插件     高 36  margin 0 2px        padding 7px 8px     标签左缘 48
+                ↑ 而且它在隔壁的 nav 里，是被负 margin 拉进面板的
+   高矮、缩进、行距三样都不一样，所以看着又没对齐、间距也不匀。
+   这里统一成：36 高 / 外边距 0 8px 4px / 内边距 0 8px / 三行**全透明**。
+   用户 9-26 要求：新会话不要那圈金桂胶囊，和另外两行一样透明。 */
+[data-dsh-part='new-session'],
+[data-dsh-part='sidebar-entry'],
+[data-pane='sidebar'] > * > * > nav > * {
+  height: 36px !important;
+  min-height: 36px !important;
+  max-height: 36px !important;
+  margin: 0 8px 4px !important;
+  padding: 0 8px !important;
+  gap: 0 !important;
+  align-items: center !important;
+  justify-content: flex-start !important;
+  box-sizing: border-box !important;
+  border-radius: 10px;
+  /* 新会话原本带 1px solid line 的边框（主题色 #33333D）。它不只是显形，
+     还把内边距推到 9px、图标比另外两行**右偏 1px**。三行一起清零。 */
+  border: 0 !important;
+  background-color: transparent !important;
+  background-image: none !important;
+  box-shadow: none !important;
+  color: #F5EBD5 !important;
+}
+/* 悬停三行给同一个反馈 */
+[data-dsh-part='new-session']:hover,
+[data-dsh-part='sidebar-entry']:hover,
+[data-pane='sidebar'] > * > * > nav > *:hover {
+  background-color: #e7b44e21 !important;
+}
+
+/* 插件行是 masthead 的**兄弟**（nav.panelList），不是子节点；
+   masthead 现在是 position:relative + overflow:hidden，会把它盖住（连点击一起）。
+   抬高一层并给面板补出等高的下内边距，等于把两行一起圈进插画里。 */
+[data-pane='sidebar'] > * > *:has(> nav) > :first-child {
+  padding-bottom: 40px;
+  margin-bottom: -40px;
+}
+[data-pane='sidebar'] > * > *:has(> nav > :nth-child(2)) > :first-child {
+  padding-bottom: 80px;
+  margin-bottom: -80px;
+}
+[data-pane='sidebar'] > * > *:has(> nav > :nth-child(3)) > :first-child {
+  padding-bottom: 120px;
+  margin-bottom: -120px;
+}
+[data-pane='sidebar'] > * > *:has(> nav) > nav {
+  position: relative;
+  z-index: 1;
+  /* 2px 很关键：masthead 自己也是 margin 0 2px，nav 不补这 2px 就会比它左移两格，
+     里面的行跟着偏 2px，「插件」的左缘就对不上另外两行。 */
+  margin: 0 2px 8px;
+}
+
+/* · 工作区分组行：灯谜签（整幅拉伸，不用 border-image，免得改 border-width 挪内容）。 */
+[data-pane='sidebar'] [role='treeitem'][aria-expanded] {
+  background-image: url(assets/zq-row-tag.svg);
+  background-repeat: no-repeat;
+  background-size: 100% 100%;
+  background-position: 0 0;
+  border-radius: 8px;
+  color: #E7B44E;
+  position: relative;
+}
+
+/* 名字居中画在签面上。**pointer-events: none 是必须的** —— 这一层是横向铺满的
+   定位元素，会盖住右侧那两颗 16x16 的静态按钮（⋮ 与「+」），按加号就变成折叠行。
+   名字本身不需要交互：拖拽与悬停卡都挂在行上。 */
+[data-pane='sidebar'] [role='treeitem'][aria-expanded] > span:nth-child(3) > span {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  text-align: center;
+  pointer-events: none;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+/* · 工作区分组行的图标：文件夹 → 月饼。
+   图标是行内**第一个 span** 里的 16x16 SVG（viewBox 0 0 16 16，stroke: currentColor）；
+   把 SVG 藏掉，让那个 span 自己画一张图。
+   **必须把 span 的盒子钉死**：它原本的 16px 宽是被里面的 svg 撑出来的，svg 一藏就塌成
+   0 宽，行里的文字与右侧两颗按钮会跟着挪位（实测 span 是 16x20 的 flex）。
+   钩子优先用 data-row-key 前缀（工作区行 = workspace:），再补一条树状行的回退，
+   并且用 :not() 把会话行排除掉 —— 会话行的图标不是文件夹，不该跟着变。 */
+[data-pane='sidebar'] [data-row-key^='workspace:'] > span:first-child,
+[data-pane='sidebar'] [role='treeitem'][aria-expanded]:not([data-row-key^='session:']) > span:first-child {
+  display: block;
+  width: 16px;
+  height: 16px;
+  flex: 0 0 16px;
+  align-self: center;
+  background-image: url(assets/zq-folder-mooncake.png);
+  background-repeat: no-repeat;
+  background-position: 50% 50%;
+  background-size: 16px 16px;
+}
+[data-pane='sidebar'] [data-row-key^='workspace:'] > span:first-child > svg,
+[data-pane='sidebar'] [role='treeitem'][aria-expanded]:not([data-row-key^='session:']) > span:first-child > svg {
+  display: none !important;
+}
+
+/* · 首屏：两层柔光。原来还铺了一层 zq-branch.svg（左下角「桂影玉兔」）——
+   用户 9-26 要摘：那一层真正看得见的只有两点，一只灰兔剪影和一根 1.6px 的
+   青玉色茎线（画在暗湖面上就成了一根「淡蓝色的线」），剩下的叶与花只有
+   0.16-0.42 的透明度，压在图里根本读不出来。整层摘掉，枝叶一并没了。
+   四条 background-* 必须**一起**写全：只写 background-image 的话，
+   引擎的 background-size: 100% 100% 还在，420px 的瓦片会被拉成一整屏光斑。
+   曾经加过一层「中央柔光晕」，后来撤了：那一版量到标题只有 1.53:1，
+   以为要压暗，结果那团亮粉是**桌宠插件**的悬浮层（position:fixed + z-index 2147483000），
+   根本不是底图。把宠物藏掉再量，标题本来就是 12:1 —— 白压一块黑反而更丑。
+   教训：量皮肤之前先确认画面里没有别人的层。 */
+[data-phase='hero'] {
+  background-image:
+    radial-gradient(34% 30% at 21% 11%, #f5ebd542 0%, transparent 68%),
+    radial-gradient(70% 56% at 80% 20%, #e7b44e1a 0%, transparent 74%) !important;
+  background-repeat: no-repeat, no-repeat !important;
+  background-size: 100% 100%, 100% 100% !important;
+  background-position: 0 0, 0 0 !important;
+}
+
+[data-phase='hero'] [role='heading'],
+[data-phase='hero'] h1, [data-phase='hero'] h2, [data-phase='hero'] h3 {
+  font-family: 'Noto Serif SC', 'Source Han Serif SC', 'Songti SC', 'STSong', 'STZhongsong', 'SimSun', 'Georgia', serif !important;
+  letter-spacing: 0.05em;
+  text-shadow: 0 1px 4px #0b0a0cd9;
+}
+
+/* · 输入卡：夜色玻璃 + 一圈金桂键线。
+   装饰画框已摘（用户不要）—— 位图九宫格四角再收也会压到正文，
+   note：18px 的框压过第一个字 4px（正文从左边 14px 起排）。键线只用 box-shadow。 */
+[data-composer-card] {
+  position: relative;
+  border-radius: 14px;
+  background-color: #14141994 !important;
+  background-image: linear-gradient(180deg, #0b0a0c42 0%, #0b0a0c75 100%) !important;
+  background-repeat: no-repeat !important;
+  background-size: 100% 100% !important;
+  background-position: 0 0 !important;
+  box-shadow:
+    0 0 0 1px #e7b44e75,
+    0 0 0 5px #e7b44e12,
+    0 12px 34px #0b0a0c94 !important;
+  --dsw-alias-label-secondary: #D8CCB2;
+  --dsw-alias-label-caption: #D8CCB2;
+}
+/* 状态行（tokens / 轮次 / 百分比）在输入卡**下面**，不吃卡片的底，只吃整屏 scrim；
+   底图下缘又是亮部，所以这里把三支标签变量一起提亮。 */
+[data-dsh-surface='composer'],
+[data-composer-stats] {
+  --dsw-alias-label-secondary: #DCD2BA;
+  --dsw-alias-label-caption: #D8CDB4;
+  --dsw-alias-label-tertiary: #D2C7AE;
+}
+
+[data-composer-placeholder] {
+  color: #f5ebd5a8 !important;
+}
+
+/* · 会话头部：夜色玻璃 + 底缘一道金线。
+   原来这里铺的是 zq-header-band.svg（云头 + 桂花 + 金线），用户不要花瓣树叶，摘了。
+   那条底缘金线是画在瓦片里的，摘图会一起没；改用一层 background 渐变补回来 ——
+   不用 border-bottom 是因为引擎那条 border 宽度量出来是 0，改它会动 1px 布局。 */
+[data-slot='conversation.header'] > header,
+[data-slot='conversation.session.header'] > header,
+[data-dsh-responsive-part='conversation-header'] {
+  background-color: #0b0a0c9e !important;
+  background-image: linear-gradient(to top, #e7b44e57 0, #e7b44e57 1px, transparent 1px) !important;
+  background-repeat: no-repeat !important;
+  background-position: 0 0 !important;
+  background-size: 100% 100% !important;
+  --dsw-alias-label-secondary: #D8CCB2;
+  --dsw-alias-label-tertiary: #f5ebd5b8;
+  --dsw-alias-state-business-primary: #E7B44E;
+}
+
+/* · 朱批：中秋不兴朱砂，用「金桂在外、青玉在内」的一圈。 */
+[data-chat-flow-kind='user'] {
+  border-radius: 8px;
+  box-shadow:
+    0 0 0 1px #e7b44e80,
+    inset 0 0 0 1px #6bc6b042,
+    0 8px 22px #0b0a0c6b !important;
+}
+
+/* · 审批 / 提问 / 计划卡：同一圈描金。 */
+[data-approval-key],
+[data-question-key],
+[data-plan-review-key] {
+  border-radius: 12px;
+  box-shadow:
+    0 0 0 1px #e7b44e8a,
+    inset 0 0 0 1px #6bc6b038 !important;
+}
+
+/* · 左上角品牌区（用户 9-26）：① 换名字 ② 去掉版本号 ③ 重新排版。
+   真壳结构（实测）：
+     button.brand > span.brandIdentity > [ span.brandMark(0x0) , span.brandName ]
+       span.brandName > div[data-slot=sidebar.brand.name](display:contents)
+         > span(flex column, height:24px) > span(localBuildTitle) + span(buildVersion)
+   原作是**两行**挤在 24px 里（标题 12px + 版本号 6px）。这里两行都藏掉，改成
+   「鲸鱼娘 / 云涧月盈」两行 —— 内容是注入的，不碰 React 的树，宿主改版最多是
+   回到原名，不会崩。
+   **为什么断成两行**：一行 8 个字约 137px，右端会伸到 x70% 撞上月亮（实测那一段
+   底色 #C6B99A，对比只剩 1.64:1）。按「·」断开后最长一行 65px，整个落在纯黑区。
+   font-size 必须写在伪元素**自己身上**：父级被压成 0 才能绕开宿主定死的 18px/24px。
+   列方向下 ::before 在上面 —— 所以名字走 ::before、小字走 ::after。 */
+[data-slot='sidebar.brand.name'] > * > * {
+  display: none !important;
+}
+[data-slot='sidebar.brand.name'] > * {
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: flex-start !important;
+  justify-content: center;
+  gap: 3px;
+  height: auto !important;
+  min-height: 24px;
+  max-height: none !important;
+  overflow: visible !important;
+  font-size: 0;
+}
+[data-slot='sidebar.brand.name'] > *::before {
+  content: '鲸鱼娘';
+  font-family: 'Noto Serif SC', 'Source Han Serif SC', 'Songti SC', 'STSong', 'STZhongsong', 'SimSun', 'Georgia', serif !important;
+  font-size: 17px;
+  font-weight: 600;
+  line-height: 1.3;
+  letter-spacing: 0.10em;
+  color: #F5EBD5;
+  white-space: nowrap;
+  text-shadow: 0 1px 5px #0b0a0cf2, 0 0 16px #e7b44e38;
+}
+[data-slot='sidebar.brand.name'] > *::after {
+  content: '云涧月盈';
+  font-family: 'Noto Serif SC', 'Source Han Serif SC', 'Songti SC', 'STSong', 'STZhongsong', 'SimSun', 'Georgia', serif !important;
+  font-size: 13px;
+  font-weight: 500;
+  line-height: 1.3;
+  letter-spacing: 0.34em;
+  color: #e7b44ef0;
+  white-space: nowrap;
+}
+
+/* 宿主把 brand / brandIdentity 都钉了 24px 高 + overflow:hidden，名字会被裁掉；
+   还要把方向让开，否则注入的两行会挤在一行里。 */
+span:has(> [data-slot='sidebar.brand.name']),
+[data-slot='sidebar.brand.name'] {
+  color: #F5EBD5 !important;
+  font-family: 'Noto Serif SC', 'Source Han Serif SC', 'Songti SC', 'STSong', 'STZhongsong', 'SimSun', 'Georgia', serif !important;
+  flex-direction: column !important;
+  align-items: flex-start !important;
+  height: auto !important;
+  min-height: 24px !important;
+  max-height: none !important;
+  overflow: visible !important;
+}
+
+/* 品牌行：64px 高让两行居中透气，底缘一道描金细线把品牌与三行入口分开。
+   细线用 box-shadow 而不是 border —— border 会多占 1px，把下面三行整体推下去。
+   padding-left 12 让内容左缘落在面板内 16px，和下面三行的图标同一个左缘。 */
+[data-pane='sidebar'] > * > * > :first-child > :first-child {
+  height: 64px !important;
+  min-height: 64px !important;
+  align-items: center !important;
+  overflow: visible !important;
+  box-shadow: inset 0 -1px 0 #e7b44e33;
+}
+[data-pane='sidebar'] > * > * > :first-child > :first-child > button:first-child {
+  overflow: visible !important;
+  padding-left: 12px;
+}
+/* 两列网格：**图标列**在面板内 16px（16px 宽），**文字列**在 42px。
+   品牌名、新会话、任务看板、插件四行共用它 —— 三行入口原本的图标分别是 14/16/另一个
+   宽度，标签左缘落在 51/54/48，参差不齐。
+   品牌位那个 0x0 的空槽正好拿来放一枚描金月点，把图标列补满。 */
+span:has(> [data-slot='sidebar.brand.mark']) {
+  width: 16px !important;
+  height: 16px !important;
+  flex: 0 0 16px !important;
+  margin-right: 8px !important;
+  border-radius: 50%;
+  background-image: radial-gradient(circle at 34% 32%, #FFF7DF 0%, #E7B44E 58%, #A9761F 100%);
+  box-shadow: 0 0 10px #e7b44e8c, inset 0 0 0 1px #f5ebd538;
+}
+/* 名字列的起点由月点的 margin 定，所以 brandIdentity 自己的 gap 要收掉。
+   注意不能写 span:has(> [data-slot=...]) —— 那命中的是 brandMark 自己，
+   要多下两层：logoRow > button.brand > span:first-child(=brandIdentity)。 */
+[data-pane='sidebar'] > * > * > :first-child > :first-child > button:first-child > span:first-child {
+  gap: 0 !important;
+}
+[data-dsh-part='new-session'] > svg,
+[data-dsh-part='sidebar-entry'] > span:first-child,
+[data-pane='sidebar'] > * > * > nav > * > span:first-child {
+  width: 16px !important;
+  height: 16px !important;
+  flex: 0 0 16px !important;
+  margin-right: 8px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+}
+/* 标签自己也可能带 margin，一并收掉 */
+[data-dsh-part='new-session'] > span,
+[data-dsh-part='sidebar-entry'] > span:last-child,
+[data-pane='sidebar'] > * > * > nav > * > span:last-child {
+  margin: 0 !important;
+}
+
+/* 折叠按钮正好悬在月亮上，给一枚深色圆底，否则白色图标压在月盘上看不见。 */
+[data-pane='sidebar'] > * > * > :first-child > :first-child > button:last-child {
+  border-radius: 50%;
+  background-color: #0b0a0c8c !important;
+  box-shadow: inset 0 0 0 1px #e7b44e42;
+  color: #F5EBD5 !important;
+}
+::selection {
+  background-color: #e7b44e57;
+}
+body *,
+* {
+  scrollbar-color: #e7b44e66 transparent;
+}
+
+/* ══ 设备适配 ══════════════════════════════════════════════════════════════
+   首屏按比例画的桂枝位图（620x300，2.07:1）在手机上会被压扁。
+   ═══════════════════════════════════════════════════════════════════════ */
+@media (max-width: 768px) {
+  [data-phase='hero'] {
+    background-size: auto 20%, 260px 260px, 100% 100%, 100% 100%;
+  }
+  [data-conversation-scroll] {
+    background-size: 100% 100%, 260px 260px;
+  }
+}
+

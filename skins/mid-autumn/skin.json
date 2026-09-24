@@ -1,0 +1,45 @@
+{
+  "$schema": "https://schemas.linxin666.org/dsh-skin/v2.json",
+  "skinManifestVersion": 2,
+  "id": "mid-autumn",
+  "name": "桂影月华",
+  "nameEn": "Osmanthus Moonlight",
+  "version": "1.0.0",
+  "author": "stushansusu",
+  "tagline": "金桂浮光 · 靛夜悬月 · 玉兔衔枝 · 花灯千盏",
+  "description": "中秋的一路：底图是用户给的那张月夜图（右半暖金、左半靛蓝），明暗两个主题都走它，所以整套皮肤没有浅色版。界面全部改成夜色玻璃给画让路，再补一圈中秋家具——侧栏右缘「靛在外金在内」双线；首屏左上压一团月华柔光；顶栏是一整幅插画（月上桂梢、云头、三盏孔明灯、回纹边）；输入卡只留一圈金桂键线；会话头部只留夜色玻璃与一道底缘金线；工作区分组行做成灯谜签。朱批不用朱砂：金桂在外、青玉在内。强调色是金桂 #E7B44E，辅色青玉 #6BC6B0。",
+  "tags": [
+    "chinese",
+    "mid-autumn",
+    "mooncake",
+    "osmanthus",
+    "moon",
+    "jade-rabbit",
+    "lantern",
+    "night",
+    "dark",
+    "dark-only"
+  ],
+  "accent": "#E7B44E",
+  "order": 46,
+  "preview": {
+    "light": "preview/light.jpg",
+    "dark": "preview/dark.jpg"
+  },
+  "contributes": {
+    "stylesheet": "skin.css",
+    "patches": "patches.css",
+    "backgroundMedia": {
+      "light": {
+        "type": "image",
+        "src": "assets/zq-bg.webp",
+        "scrim": "linear-gradient(180deg, rgba(6,6,8,0.36) 0%, rgba(6,6,8,0.04) 20%, rgba(6,6,8,0.04) 58%, rgba(6,6,8,0.40) 100%), radial-gradient(58% 54% at 72% 54%, rgba(6,6,8,0.44) 0%, rgba(6,6,8,0) 82%), radial-gradient(92% 74% at 16% 4%, rgba(6,6,8,0.10) 0%, rgba(6,6,8,0) 62%)"
+      },
+      "dark": {
+        "type": "image",
+        "src": "assets/zq-bg.webp",
+        "scrim": "linear-gradient(180deg, rgba(6,6,8,0.36) 0%, rgba(6,6,8,0.04) 20%, rgba(6,6,8,0.04) 58%, rgba(6,6,8,0.40) 100%), radial-gradient(58% 54% at 72% 54%, rgba(6,6,8,0.44) 0%, rgba(6,6,8,0) 82%), radial-gradient(92% 74% at 16% 4%, rgba(6,6,8,0.10) 0%, rgba(6,6,8,0) 62%)"
+      }
+    }
+  }
+}
