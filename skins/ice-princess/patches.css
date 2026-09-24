@@ -218,9 +218,29 @@ span:has(> [data-slot='sidebar.brand.mark']) {
    brandIdentity 带 aria-hidden="true"，是纯装饰位，所以注入不涉及可访问性。
    宽版会渲染 fallbackBrandName 或 localBuildBrand（带版本号），结构不同但都挂在
    name slot 下，所以用 > * 兜住两种情况。 */
+/* 宿主 0.1.7 把这个位置渲染成一个**纵向** flex 列（.localBuildBrand，两行：
+   名称 + 版本号），高度钉死 24px；而那两个子 span 的字号写在 shell 的模块类上，
+   不会跟着父级归零。皮肤注入的是一行两段字标，只把父级字号归零是不够的：
+   两段伪元素会竖着叠起来、原文还在，4 行共 80 多像素挤在 24px 的框里 ——
+   上面那两行会被挤出框外压到导航栏、下面那两行压到「新会话」。
+   所以：掰回横排 + 收起原来那两行 + 放开高度与溢出。 */
 [data-slot='sidebar.brand.name'] > * {
+  flex-direction: row !important;      /* 关键：宿主默认是 column */
+  align-items: center !important;
+  justify-content: flex-start !important;
+  gap: 0 !important;
+  height: auto !important;
+  min-height: 24px;
+  max-height: none !important;
+  overflow: visible !important;
+  white-space: nowrap;
   font-size: 0;
   letter-spacing: 0;
+}
+
+/* 原来那两行整个撤掉。 */
+[data-slot='sidebar.brand.name'] > * > * {
+  display: none !important;
 }
 
 /* 两段式字标，不是一串同号的字符：
@@ -369,8 +389,15 @@ button:has([data-slot='sidebar.brand.name']) {
   box-shadow: inset 0 0 0 1px #d6e4f533;
 }
 
-/* ── 会话头：一道冰檐 ────────────────────────────────────────────────────── */
+/* ── 会话头：一道冰檐 ──────────────────────────────────────────────────────
+   宿主 0.1.7 把 data-dsh-surface='session-header' 打在**插槽出口**上（0x0 的
+   display:contents 包装），面上的背景与底缘阴影在那里一律不绘制 —— 真盒子是
+   出口下面那个 <header>，它挂在 [data-slot='conversation.header'] 里。所以
+   真正的锚点是插槽 > header；旧宿主那条 > header 的写法一并保留。 */
 
+[data-slot='conversation.header'] > header,
+[data-slot='conversation.session.header'] > header,
+[data-dsh-surface='session-header'] > header,
 [data-dsh-surface='session-header'] {
   position: relative;
   background-image: linear-gradient(180deg, #d6e4f50f, #d6e4f500);
@@ -787,3 +814,48 @@ a {
 :root {
   color-scheme: dark !important;
 }
+
+
+/* ══ 设备适配 ══════════════════════════════════════════════════════════════
+   家具是 viewport 级的霜底（body::after，含六枚固定位置霜点 + 两团极光）、四角霜棱角花（body::before）与一层 46s 的极光风动。
+
+   目标壳：桌面浏览器 / exe 桌面端（WebView2）/ macOS 桌面（WKWebView）/
+   手机·平板（iOS Safari、Android Chrome）。
+
+   壳自己已经在 ≤768px 把中栏拉满、把侧栏收成浮层轨道（[data-sidebar-collapsed]），
+   dsh-remote-web-ui 的竖屏层再压一轮，所以版式、点击区与安全区不必皮肤操心。
+   皮肤要守的三条：
+     ① 视口高度交给宿主（见下面那条：别去动 [data-dsh-frame] 的高度）；
+     ② 窄屏把 viewport 级的大件家具降一档尺度，别让 460px 的角花盖住 390px 的屏；
+     ③ 弱设备与系统无障碍设置下降档（动效 / 半透明 / 一整屏离屏模糊）。
+   ═══════════════════════════════════════════════════════════════════════ */
+
+/* 视口高度：**不要**在这里给 [data-dsh-frame] 加 height / min-height。
+   宿主自己就把画框设成 100dvh，dsh-web-all 的 ≤768px 层也兜了一遍；
+   而 `min-height: 100dvh` 会把「故意把画框缩短、给上下 HUD 让位」的皮肤重新
+   撑满视口 —— blueprint 用 #root 的 padding + 画框 calc 让出 56px，
+   一旦被撑回 1000，会话滚动区就伸到底栏底下（实测：滚动区底 1030、
+   被 974..1000 的底栏压掉 26px，看起来就是「状态栏挡住后面的内容」）。
+   这一条是 2026-08-30 加设备适配时写进来的，同日撤掉。 */
+
+@media (max-width: 768px) {
+  /* 霜底那六枚霜点按 460px 一铺、repeat —— 手机上等于把同一簇点铺成网。
+     窄屏改成不重复，只留位置本身（它们本来就是「固定位置的装饰」）。 */
+  body::after {
+    background-repeat: no-repeat, no-repeat, no-repeat, no-repeat, no-repeat, no-repeat,
+      no-repeat, no-repeat, no-repeat, no-repeat;
+  }
+
+  /* 四角霜棱角花 96px 在 390 宽的屏上占四分之一，收到 56。 */
+  body::before {
+    background-size: 56px 56px, 56px 56px, 56px 56px, 56px 56px;
+  }
+}
+
+@media (prefers-reduced-transparency: reduce) {
+  /* 霜底本身是实色，没有毛玻璃；这条留给以后加的半透明层。 */
+  body::after {
+    filter: none;
+  }
+}
+
