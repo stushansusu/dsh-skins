@@ -174,6 +174,11 @@ body[data-ds-dark-theme] [data-conversation-scroll] {
 /* 会话标题栏：cel 渐变条 + 墨线收口 */
 /* 明亮主题：会话标题栏整条透明，让壁纸直接透上来；
    标题与页签靠一层贴边光晕保证可读（不是那块白色蒙版）。 */
+/* 宿主 0.1.7：surface 戳在 0x0 的插槽出口上，出口里装的是 titleRow / tabs 两个
+   div，真 <header> 改挂 [data-slot='conversation.header']；dsh-web-all 的
+   conversation-header 语义戳在这个形状下也盖不上。所以以插槽 > header 为准，
+   旧宿主的两条一并保留。 */
+[data-slot='conversation.header'] > header,
 [data-dsh-surface="session-header"] > header,
 [data-dsh-responsive-part="conversation-header"] {
   background: none !important;
@@ -182,6 +187,7 @@ body[data-ds-dark-theme] [data-conversation-scroll] {
   text-shadow: 0 1px 1px #ffffffcc, 0 0 10px #ffffffa6;
 }
 
+body[data-ds-dark-theme] [data-slot='conversation.header'] > header,
 body[data-ds-dark-theme] [data-dsh-surface="session-header"] > header,
 body[data-ds-dark-theme] [data-dsh-responsive-part="conversation-header"] {
   background: linear-gradient(90deg, #0d1a3aeb 0%, #14284ff2 50%, #123038eb 100%) !important;
@@ -234,14 +240,43 @@ body[data-ds-dark-theme] [class*="sidebarCol"] {
 /* 左上角字标：把 shell 的「DSH 本地构建」收起（font-size: 0），改成两段式
    「DSH / 初音未来」——前段是代号（小号、字距拉开、银蓝），后段是名号（渐变字）。
    分隔用一根细竖线（border-left），不是连字符。 */
+/* 宿主 0.1.7 把这个位置渲染成一个**纵向** flex 列（.localBuildBrand，两行：
+   名称「DSH 本地构建」+ 版本号），高度钉死 24px，外层 .brand 与 .logoRow 都是
+   overflow:hidden；而 .localBuildTitle / .buildVersion 的字号写在 shell 的模块类上，
+   **不会**跟着父级的 font-size: 0 一起归零。
+   皮肤塞进来的是一行两段字标（::before + ::after），所以必须做三件事，
+   只改字号（旧写法）会让两段伪元素竖着叠、原文还在，总高超出 24px 被裁掉上缘 ——
+   现象就是「左上角文字被遮挡」。 */
 [data-slot="sidebar.brand.name"] > * {
   display: inline-flex;
-  align-items: center;
+  flex-direction: row !important;      /* 关键：宿主默认是 column */
+  align-items: center !important;
+  justify-content: flex-start !important;
+  gap: 0 !important;
+  height: auto !important;
+  min-height: 24px;
+  max-height: none !important;
+  overflow: visible !important;
+  white-space: nowrap;
   font-size: 0 !important;
   line-height: 1;
   color: #fff !important;
   background: none !important;
   -webkit-text-fill-color: currentColor;
+}
+
+/* 原来那两行整个撤掉（它们的字号由 shell 的模块类写死，父级归零带不动它们）。 */
+[data-slot="sidebar.brand.name"] > * > * {
+  display: none !important;
+}
+
+/* 外两层也各有一个钉死的高度与 overflow:hidden，一起放开，否则字标上下缘仍会被裁。 */
+span:has(> [data-slot="sidebar.brand.name"]),
+[aria-hidden="true"]:has([data-slot="sidebar.brand.mark"]):has([data-slot="sidebar.brand.name"]),
+button:has([data-slot="sidebar.brand.name"]) {
+  height: auto !important;
+  min-height: 24px;
+  overflow: visible !important;
 }
 
 /* 第一段「DSH」= 代号铭牌：迷你机甲 keycap（斜切角 + 内嵌高光 + 细描边 + Bahnschrift 拉字距） */
@@ -1254,7 +1289,7 @@ body:not([data-ds-dark-theme]) .NPtzYa_mikuTitlebarBtn:last-child:hover {
 }
 
 /* 右侧看板（better-sidebar）：平涂 + 圆角。
-   注意：这几个子串选择器必须限定在 [data-slot="rightbar"] 里：
+   ⚠️ 这几个子串选择器必须限定在 [data-slot="rightbar"] 里：
    "_pane" 是 "_panel" 的子串，不限定就会命中设置弹窗的 CSS-Modules 类
    （新外壳设置弹窗 = …_panel），把它强制刷成 transparent !important，
    于是设置栏整块透明、底下的会话内容串进文字里。 */
@@ -1380,3 +1415,49 @@ html [class*='drag-handle'], html [class*='grab'] { cursor: url("data:image/png;
 html [class*='crosshair'] { cursor: url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADAAAAAwCAYAAABXAvmHAAADfklEQVR4nO2ZTUwTURDHuXPywkGPeiMh8VYRQkKUr5CIYoQC0Rj5EEGgmBAlQIloiSQUEKmiglVikIRIDTRiKUppNMaDiRoPXrzoBT0Z746ZMbN5+7q7VLrd7Rpf8k/3badv5vd23rzXNivLoLkKK0GWkX3GNQ668KQHDlY3ORegNBiFYu9N5wI0xyNQE5j6D2B5+2cAMnoNaJVKWSLAdso4gFTtLQHAOo+zjLnOwj4KbfgeXuO9o4tril3D0zWysxUANylMEVyoLOyjZAC8Vz4cUOyqxgKq9LIFwNEpZNQcUYWMGgNgzmPaOBbA8RuZ4wGwVGK1MRPAkgKQzkVsKYCZTsS0ZGUEgJ6t3n6BgZ9eeaysre0+YzqcGQBy8LYAiE4aC+oheqA34SQrnp30JJ+pUDjWeH6bdetEBMgvq6VDIgZfu7w9wKm1CNmWnvNAcX1jAgDeP3ymzXwIPQCtE26y4tQSAdKyF/HMiJVErjA7kVY6WQLAaZMqAKcT/R5V1wWu6s4/YA8fkD/T1oMMkEraaIk20Kln4BpYSc++IQPwtRyEXhXiVHEsQNd6FK6EYgSCaSO/T8f4uxkMMP36BcC7N4Y2NYur9gBwemCAm7GXmqnCAKj1cDwhUNsA0Gnl9Dy4uq/C8qQf5mbuaaaKCLC6EILc2j6o8A1CVWCSbG0DQId59V7YnZNDaj5+TDNVRIDQ2Ajsys4m7S0sUZ6YLQAVbX3gGw1QYAyB4mBlceAo7MeXQjSGbVUInZ+/eJnSRwXw6b1KX2MR1cyjsO8f8tkPkH+kThU86te3LyotBe+ogmfty91vDwDvxJRCU7MJAaO2ImHYcLtJH68Na9psbsSsB8DXEk8/fXcu758Az+R9CkQP4O3ZFvh8Y1wz+NsLT2gMHKvIG7QGoFk4LeLMlfnnaRb1AL4PD8GPR3MJ7+NnMHjlNFrdaT2AKAzoUEO70u9p6YCf0eUEG5be10vbADD4E00XoLdnkOT3+iB8fULpo9CGlREAsg0GCVtbpPVQmGy4jzL6zmsZgN6PX38DoOeD1xUrZQAegMpm34hycBMB2AaDn5+ZU4IfvTULea3ddP0h/oruo42n45LhExAB0G+Bu33nEFqD6gHIM43B74k9B70nsxNfpgDIj1VezMnKyCdvlKYB8P9oWv+RpQMA04b9FbUOpA6QjGMzm5bf31+3cHQjB9p3AAAAAElFTkSuQmCC") 10 5, crosshair; }
 html [class*='explorer-handle'], html [class*='preview-handle'],
 html [class*='resizeHandle'] { cursor: url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADAAAAAwCAYAAABXAvmHAAAA4ElEQVR4nO2WsQrCMBRF+1li7eJSB5fiYIWiKOggLv0Cv0JdRXATFwWhcfPDIi+QEAQVY56hcg/c9d4e+qCNIgAAAAAAAAAANaKRdOVjQnQ4QUNxNpHJsFSJe1NngWYnNz2tweI3EjRCg+n2qtJebpwFfPR8NEihsewg5OxWqfTXK2eBdF6anuIiVDfLOdlnQw+fn/wLjESlulnOyX7detC3gA7LOT0b4xD4phMCoTvfDlK4Bdg+arqYHrjY77wLjM9H08X+PbCHfQmwnM2r8dr+C/kaDyoAAAAAAAAA+Avu9orQEw5bWDAAAAAASUVORK5CYII=") 23 24, col-resize; }
+
+
+/* ══ 设备适配 ══════════════════════════════════════════════════════════════
+   目标壳：桌面浏览器 / exe 桌面端（WebView2）/ macOS 桌面（WKWebView）/
+   手机·平板（iOS Safari、Android Chrome）。
+
+   这套皮的家具分两类：壳内的面（侧栏 / 右栏 / 输入卡，壳已经处理好窄屏版式）
+   与 hooks.mjs 注入的两条固定横条（top:0 的标题条、bottom:0 的状态条）。
+   注射条与自定义光标是窄屏上唯二要皮肤自己处理的。
+
+   动效与半透明降档已在第 11 节（prefers-reduced-motion / -transparency）写过，
+   这里只补「视口高度」与「触摸指针」两件。
+   ═══════════════════════════════════════════════════════════════════════ */
+
+/* 视口高度：**不要**在这里给 [data-dsh-frame] 加 height / min-height。
+   宿主自己就把画框设成 100dvh，dsh-web-all 的 ≤768px 层也兜了一遍；
+   而 `min-height: 100dvh` 会把「故意把画框缩短、给上下 HUD 让位」的皮肤重新
+   撑满视口 —— blueprint 用 #root 的 padding + 画框 calc 让出 56px，
+   一旦被撑回 1000，会话滚动区就伸到底栏底下（实测：滚动区底 1030、
+   被 974..1000 的底栏压掉 26px，看起来就是「状态栏挡住后面的内容」）。
+   这一条是 2026-08-30 加设备适配时写进来的，同日撤掉。 */
+
+@media (max-width: 768px) {
+  /* 注入的标题条是 top:0 的固定条，手机上会被刘海 / 状态栏压住；状态条同理会
+     压到 home 指示条上。两条各自让出安全区（env() 在非刘海设备上是 0）。 */
+  .NPtzYa_mikuTitlebar {
+    top: env(safe-area-inset-top);
+    padding-left: max(8px, env(safe-area-inset-left));
+    padding-right: max(8px, env(safe-area-inset-right));
+  }
+
+  .NPtzYa_mikuStatusbar {
+    bottom: env(safe-area-inset-bottom);
+    padding-left: max(8px, env(safe-area-inset-left));
+    padding-right: max(8px, env(safe-area-inset-right));
+  }
+}
+
+/* 触摸设备没有光标：整套自定义 PNG 光标（每个状态一张内联 base64）在手机上
+   既看不见，又要为每个元素解析一遍 cursor 值。触摸端全部退回 auto。 */
+@media (pointer: coarse) {
+  html,
+  html * {
+    cursor: auto;
+  }
+}
