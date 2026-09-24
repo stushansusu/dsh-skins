@@ -47,12 +47,21 @@ body[data-ds-dark-theme] [data-pane="sidebar"] {
   box-shadow: inset -1px 0 0 #f2c98a2e;
 }
 
-/* The sidebar-cards plugin's right panel: same warm sheet, not the app's
-   layer-1 fill, so both columns read as one roastery wall. */
+/* The right column: same warm sheet, not the app's layer-1 fill, so both
+   columns read as one roastery wall.
+
+   Host 0.1.7 moved the right column off the old `data-slot="details"` /
+   `data-pane="details"` dialect: it is now the official `[data-rightbar-col]`
+   element, which the skin center also stamps `data-dsh-surface="details"`.
+   The legacy selectors stay first so an older host keeps the same paint. */
+[data-dsh-surface="details"],
+[data-rightbar-col],
 [data-dsh-panel="true"]:not([data-dsh-bottom-panel]) {
   background-color: #f3e9d2d9 !important;
 }
 
+body[data-ds-dark-theme] [data-dsh-surface="details"],
+body[data-ds-dark-theme] [data-rightbar-col],
 body[data-ds-dark-theme] [data-dsh-panel="true"]:not([data-dsh-bottom-panel]) {
   background-color: #4a331bd9 !important;
 }
@@ -153,11 +162,19 @@ body[data-ds-dark-theme] [data-composer-input] {
 
 /* --- session header: café chalkboard underline --------------------------- */
 
-[data-dsh-surface="session-header"] {
+/* Host 0.1.7 stamps `data-dsh-surface="session-header"` on a 0x0 slot outlet,
+   so a box-shadow there paints nothing. The painted band is the real
+   `<header>` under the conversation header slot (and, on hosts that still
+   ship the legacy shape, the header the surface stamp wraps). */
+[data-slot='conversation.header'] > header,
+[data-slot='conversation.session.header'] > header,
+[data-dsh-surface="session-header"] > header {
   box-shadow: inset 0 -1px 0 #7d68481a;
 }
 
-body[data-ds-dark-theme] [data-dsh-surface="session-header"] {
+body[data-ds-dark-theme] [data-slot='conversation.header'] > header,
+body[data-ds-dark-theme] [data-slot='conversation.session.header'] > header,
+body[data-ds-dark-theme] [data-dsh-surface="session-header"] > header {
   box-shadow: inset 0 -1px 0 #f2c98a2e;
 }
 
@@ -212,16 +229,77 @@ body[data-ds-dark-theme] [data-dsh-part="summon-button"]:focus-visible {
 
 /* --- pane hairlines ------------------------------------------------------ */
 
+[data-dsh-surface="details"],
+[data-rightbar-col],
 [data-pane="details"] {
   background-image: var(--cr-details-fill);
   box-shadow: inset 1px 0 0 #7d68482b;
 }
 
+body[data-ds-dark-theme] [data-dsh-surface="details"],
+body[data-ds-dark-theme] [data-rightbar-col],
 body[data-ds-dark-theme] [data-pane="details"] {
   box-shadow: inset 1px 0 0 #f2c98a2e;
 }
 
-/* --- reduced motion ------------------------------------------------------ */
+/* ══ 设备适配 ══════════════════════════════════════════════════════════════
+   同一套皮要在四种壳里都成立：桌面浏览器 / exe 桌面端（WebView2）/ macOS 桌面
+   （WKWebView）/ 手机·平板（iOS Safari、Android Chrome）。
+
+   壳自己已经在 ≤768px 把中栏拉满、把侧栏收成浮层轨道（[data-sidebar-collapsed]），
+   dsh-remote-web-ui 的竖屏层再压一轮，所以皮肤只需要守三条：
+     ① 视口高度用 dvh 兜住 iOS 地址栏；② 窄屏把「按正方形画的」装饰收掉，
+     别让同心圆被竖屏拉成椭圆；③ 系统开了减动效 / 减透明就降档。
+   ═════════════════════════════════════════════════════════════════════════ */
+
+@supports (height: 100dvh) {
+  [data-dsh-frame] {
+    height: 100dvh;
+    min-height: 100dvh;
+  }
+}
+
+@media (max-width: 768px) {
+  /* 侧栏这时是一条盖在会话上的浮层：只留渐隐。细密木纹（4px 周期）在手机上
+     的高 DPI 屏里会起摩尔纹，收掉。 */
+  [data-pane="sidebar"],
+  body[data-ds-dark-theme] [data-pane="sidebar"] {
+    background-image: var(--cr-sidebar-fade);
+  }
+
+  /* 首屏拉花是按正方形画的（radial-gradient circle），竖屏把它拉成长椭圆。
+     手机上只留蒸汽与顶光，圆环收掉。 */
+  [data-phase="hero"] {
+    background-image:
+      radial-gradient(34px 120px at 46% 30%, var(--cr-steam) 0%, rgba(255, 248, 234, 0) 72%),
+      radial-gradient(30px 110px at 54% 31%, var(--cr-steam) 0%, rgba(255, 248, 234, 0) 72%),
+      var(--cr-pane-light);
+    background-size: 100% 100%;
+    background-position: 0 0, 0 0, 0 0;
+    background-repeat: no-repeat;
+  }
+
+  /* 输入卡在手机上只有 ~360 宽：14px 圆角 + 3px 外环吃掉的是正文宽度。 */
+  [data-composer-card="true"] {
+    border-radius: 12px !important;
+  }
+}
+
+@media (prefers-reduced-transparency: reduce) {
+  /* 右侧栏那层纱本来是半透明的；系统开了「降低透明度」就换实底。 */
+  [data-dsh-surface="details"],
+  [data-rightbar-col],
+  [data-pane="details"] {
+    background-image: none;
+    background-color: #efe3c8;
+  }
+
+  body[data-ds-dark-theme] [data-dsh-surface="details"],
+  body[data-ds-dark-theme] [data-rightbar-col],
+  body[data-ds-dark-theme] [data-pane="details"] {
+    background-color: #3f2c19;
+  }
+}
 
 @media (prefers-reduced-motion: reduce) {
   [data-phase="hero"] {
