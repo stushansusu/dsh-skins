@@ -341,10 +341,21 @@ h3 {
 }
 
 /* 代码块：宿主 0.1.7 的模块类名是 <hash>_<local>（本轮实测为 md-code-block），
-   老的 _markdown-code-block / _codeBlock 已经不存在，两代都写。 */
+   老的 _markdown-code-block / _codeBlock 已经不存在，两代都写。
+
+   只给外框收方角是不够的：宿主把内层 <pre> 写成 `border-radius: 0 0 16px 16px`，
+   而两者同色、pre 又盖在外框上，所以底部圆角实际由 pre 决定 —— 外框那条
+   2px 在两代选择器下渲染结果都是 0 个像素差异（实测 maxdelta 7/255）。
+   内层一起收，方角才是真的。 */
 [class*='md-code-block'],
 [class*='_markdown-code-block'],
 [class*='_codeBlock'] {
+  border-radius: 2px;
+}
+
+[class*='md-code-block'] pre,
+[class*='_markdown-code-block'] pre,
+[class*='_codeBlock'] pre {
   border-radius: 2px;
 }
 
