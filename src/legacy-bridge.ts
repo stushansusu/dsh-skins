@@ -119,13 +119,21 @@ function dropEmptyInserts(text: string): string {
  * mutual-exclusion wiring and are removed by stripManaged together with the
  * section; stragglers outside the section are dropped here only when they
  * are insert rows (a name: line directly below).
+ *
+ * A row is removed as a whole block, never as its first two lines (issue
+ * #1719): the host's plugin managers and the config editor write `{ id, name,
+ * disabled }` and `{ id, name, config }` rows, so a trailing continuation line
+ * left behind would merge into the entry above and duplicate its key — the
+ * resulting `cordis.patch.yml` parses as "Map keys must be unique" and the next
+ * boot dies. The block runs while lines are indented deeper than the `- id:`
+ * line, or blank inside the row.
  */
 export function stripLegacySkinRows(patch: string): string {
   const lines = patch.split(/\r?\n/)
   const kept: string[] = []
   for (let i = 0; i < lines.length; i += 1) {
     const line = lines[i]
-    const idMatch = /^\s*- id:\s*(ui-skin-[a-z0-9-]+)\s*$/.exec(line)
+    const idMatch = /^(\s*)- id:\s*(ui-skin-[a-z0-9-]+)\s*$/.exec(line)
     if (idMatch !== null) {
       const next = lines[i + 1]
       // dsh-client-ui-skin-center is the skin CENTER's own wiring, never a
@@ -135,7 +143,19 @@ export function stripLegacySkinRows(patch: string): string {
         : /^\s*name:\s*['"]?@[a-z0-9][a-z0-9._-]*\/dsh-client-ui-skin-(?!center['"]?\s*$)[^'"]*['"]?\s*$/.exec(next)
       if (insertName !== null) {
         if (i > 0 && /^\s*#[^\n]*$/.test(lines[i - 1]) && kept[kept.length - 1] === lines[i - 1]) kept.pop()
-        i += 1 // skip the name line; the loop increment skips the id line
+        const indent = idMatch[1].length
+        i += 1 // the name line is part of the row
+        // Consume every continuation line the row owns (disabled:, config:, …)
+        // so no key of a removed row survives to duplicate the entry above.
+        // A blank line belongs to the row only when the row continues past it.
+        while (i + 1 < lines.length) {
+          let next = i + 1
+          while (next < lines.length && lines[next].trim() === '') next += 1
+          if (next >= lines.length) break
+          const candidate = lines[next]
+          if (candidate.length - candidate.trimStart().length <= indent) break
+          i = next
+        }
         continue
       }
     }

@@ -15,6 +15,7 @@ import {
   migrateLegacySelection,
   readLegacyActiveId,
   stripLegacySkinState,
+  stripLegacySkinRows,
   stripManaged,
 } from '../src/legacy-bridge.ts'
 import { readActiveSelection } from '../src/active-state.ts'
@@ -131,6 +132,75 @@ describe('stripManaged / stripLegacySkinState', () => {
     const out = stripLegacySkinState(withEmptyInsert)
     expect(out).not.toContain('insert: []')
     expect(out).toContain('ui-skin-center')
+  })
+
+  // #1719: the host's plugin managers and the config editor write `{ id, name,
+  // disabled }` / `{ id, name, config }` rows. Removing only the id and name
+  // lines left the third merged into the entry above, so the file became
+  // `Map keys must be unique` YAML and the next boot died.
+  it('removes the whole three-line id/name/disabled row (issue #1719)', () => {
+    const patch = [
+      '- id: web-ui-doctor',
+      '  name: \'@linxin666/dsh-web-all/doctor\'',
+      '  disabled: false',
+      '- id: ui-skin-maid-atelier',
+      '  name: \'@dsh-external/dsh-client-ui-skin-maid-atelier\'',
+      '  disabled: true',
+      '',
+    ].join('\n')
+    const out = stripLegacySkinRows(patch)
+    expect(out).not.toContain('ui-skin-maid-atelier')
+    expect(out).not.toContain('disabled: true')
+    // The survivor is untouched: no key of the removed row merged into it
+    expect(out).toBe('- id: web-ui-doctor\n  name: \'@linxin666/dsh-web-all/doctor\'\n  disabled: false\n')
+  })
+
+  it('removes a three-line row indented inside an insert block (issue #1719)', () => {
+    const patch = [
+      '- insert:',
+      '    - id: ui-skin-old',
+      "      name: '@linxin666/dsh-client-ui-skin-old'",
+      '      disabled: true',
+      '    - id: web-ui-skin-center',
+      "      name: '@linxin666/dsh-client-ui-skin-center'",
+      '',
+    ].join('\n')
+    const out = stripLegacySkinState(patch)
+    expect(out).not.toContain('ui-skin-old')
+    expect(out).not.toContain('disabled: true')
+    expect(out).toContain('ui-skin-center')
+  })
+
+  it('keeps the row after a removed one, across its blank separator (issue #1719)', () => {
+    const patch = [
+      '- id: ui-skin-old',
+      "  name: '@linxin666/dsh-client-ui-skin-old'",
+      '  disabled: true',
+      '',
+      '- id: web-ui-doctor',
+      '  name: \'@linxin666/dsh-web-all/doctor\'',
+      '',
+    ].join('\n')
+    const out = stripLegacySkinRows(patch)
+    expect(out).not.toContain('ui-skin-old')
+    expect(out).toContain('web-ui-doctor')
+  })
+
+  it('keeps a continuation line that belongs to the surviving row (issue #1719)', () => {
+    const patch = [
+      '- id: web-ui-doctor',
+      '  name: \'@linxin666/dsh-web-all/doctor\'',
+      '  config:',
+      '    enabled: false',
+      '- id: ui-skin-old',
+      "  name: '@linxin666/dsh-client-ui-skin-old'",
+      '  disabled: true',
+      '',
+    ].join('\n')
+    const out = stripLegacySkinRows(patch)
+    expect(out).toContain('enabled: false')
+    expect(out).not.toContain('ui-skin-old')
+    expect(out).not.toContain('disabled: true')
   })
 })
 
