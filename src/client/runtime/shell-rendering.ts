@@ -55,11 +55,24 @@ export function shellRenderingCss(): string {
       opacity: 1 !important;
     }
     ${scoped('[data-phase="active"] [data-slot="conversation.input.dock"] > *')},
-    ${scoped('[data-phase="active"] [data-slot="conversation.composer.dock"] > *')} {
+    ${scoped('[data-phase="active"] [data-slot="conversation.composer.dock"] > *')},
+    ${scoped('[data-phase="active"] [data-slot="conversation.composer.dock"] + *')} {
       /* One skin-driven accessory surface for task and statistics docks. Skins
          automatically follow their existing semantic theme tokens and may
          override the --dsh-composer-accessory-* variables for a stronger
-         signature without coupling this adapter to a specific catalog skin. */
+         signature without coupling this adapter to a specific catalog skin.
+
+         The third head covers an accessory that is a SIBLING of the dock slot
+         host rather than a child of it. The slot host is display: contents, so
+         the shell lays its children out as items of the surrounding dock row
+         and the child heads reach them; 0.1.7's context meter was placed beside
+         that host instead of inside it, so it shared the row with the
+         statistics pill but stayed bare (issue #1715) -- one line, two looks.
+         The adjacent-sibling head keeps the row uniform without naming any
+         hashed class or localized label, and covers whatever future accessory
+         the shell seats next to the dock. The plate lands on the accessory's
+         own seat, never on a trigger inside it, so a component's own hover
+         feedback keeps painting on top. */
       background: var(--dsh-composer-accessory-bg, var(--dsw-specific-tip, var(--dsw-alias-bg-layer-1))) !important;
       color: var(--dsh-composer-accessory-color, var(--dsw-alias-label-tertiary)) !important;
       border: var(--dsh-composer-accessory-border, none) !important;
@@ -68,7 +81,11 @@ export function shellRenderingCss(): string {
       backdrop-filter: blur(var(--dsh-composer-accessory-blur, var(--dsh-input-card-blur, 10px))) !important;
       -webkit-backdrop-filter: blur(var(--dsh-composer-accessory-blur, var(--dsh-input-card-blur, 10px))) !important;
     }
-    ${scoped('[data-phase="active"] [data-slot="conversation.composer.dock"] > *')} {
+    ${scoped('[data-phase="active"] [data-slot="conversation.composer.dock"] > *')},
+    ${scoped('[data-phase="active"] [data-slot="conversation.composer.dock"] + *')} {
+      /* Same metrics for a dock child and for the sibling seat beside the dock
+         slot host, so the two accessories of one row end up the same height:
+         the plate must not make one of them look like a different control. */
       margin-top: var(--dsh-composer-accessory-gap, 4px);
       margin-bottom: var(--dsh-composer-accessory-gap, 4px);
       padding-top: 2px;

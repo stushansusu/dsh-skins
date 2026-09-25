@@ -182,6 +182,36 @@ describe('shared shell rendering adapter (#954)', () => {
     expect(css).toContain('var(--dsh-composer-accessory-gap, 4px)')
   })
 
+  // #1715: 0.1.7 seats the context meter BESIDE the composer dock slot host
+  // instead of inside it. Because that host is display: contents, the meter
+  // shares the dock row with the statistics pill, but the child heads cannot
+  // reach it -- so one row rendered a plated pill next to a bare ring.
+  it('themes an accessory seated beside the dock slot host, not only inside it (issue #1715)', () => {
+    // Given the shared shell-rendering stylesheet
+    const css = shellRenderingCss()
+    // When an accessory is a sibling of the dock slot host rather than its child
+    // Then the accessory contract still reaches it, so the row keeps one look
+    expect(css).toContain('[data-slot="conversation.composer.dock"] + *')
+    // And it is the same contract, not a second hard-coded surface
+    const accessoryRule = /\[data-slot="conversation\.composer\.dock"\] \+ \*[^{]*\{([^}]*)\}/s.exec(css)
+    expect(accessoryRule).not.toBeNull()
+    expect(accessoryRule![1]).toContain('var(--dsh-composer-accessory-bg')
+    expect(accessoryRule![1]).toContain('backdrop-filter:')
+  })
+
+  it('gives the dock child and the sibling accessory the same box metrics', () => {
+    // Given the two accessory seats of one composer row
+    // When the metrics apply
+    // Then the sibling seat carries the same gap as a dock child, so neither
+    // reads as a different control
+    const blocks = [...shellRenderingCss().matchAll(/\[data-slot="conversation\.composer\.dock"\] \+ \*[^{]*\{([^}]*)\}/gs)]
+      .map(match => match[1])
+    const metrics = blocks.find(block => block.includes('margin-top:'))
+    expect(metrics, 'no metrics block for the sibling accessory seat').toBeDefined()
+    expect(metrics!).toContain('margin-top: var(--dsh-composer-accessory-gap, 4px)')
+    expect(metrics!).toContain('margin-bottom: var(--dsh-composer-accessory-gap, 4px)')
+  })
+
   it('keeps the wide goal dock transparent and lets its compact inner bar paint', () => {
     const css = shellRenderingCss()
     expect(css).toContain('[data-slot="conversation.input.dock"] > [data-goal-bar="true"][data-goal-bar="true"][data-goal-bar="true"]')
