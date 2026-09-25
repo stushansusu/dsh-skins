@@ -105,8 +105,11 @@ body {
   --dsw-alias-tooltip-bg: #e7e9ee;
   --dsw-alias-tooltip-fg: #0f121a;
   --dsw-alias-shadow-lv1: 0 1px 2px #00000073;
+  --dsw-shadow-lv1: 0 1px 2px #00000073;
   --dsw-alias-shadow-lv2: 0 4px 12px #00000080;
+  --dsw-shadow-lv2: 0 4px 12px #00000080;
   --dsw-alias-shadow-lv3: 0 12px 32px #0000008c;
+  --dsw-shadow-lv3: 0 12px 32px #0000008c;
   --dsw-alias-specific-bubble: #0f121a;
   --dsw-alias-specific-bubble-highlight: #18191b;
   --dsw-alias-specific-input-major: #0f121a;
@@ -236,8 +239,11 @@ body[data-ds-dark-theme] {
   --dsw-alias-tooltip-bg: #e7e9ee;
   --dsw-alias-tooltip-fg: #0f121a;
   --dsw-alias-shadow-lv1: 0 1px 2px #00000073;
+  --dsw-shadow-lv1: 0 1px 2px #00000073;
   --dsw-alias-shadow-lv2: 0 4px 12px #00000080;
+  --dsw-shadow-lv2: 0 4px 12px #00000080;
   --dsw-alias-shadow-lv3: 0 12px 32px #0000008c;
+  --dsw-shadow-lv3: 0 12px 32px #0000008c;
   --dsw-alias-specific-bubble: #0f121a;
   --dsw-alias-specific-bubble-highlight: #18191b;
   --dsw-alias-specific-input-major: #0f121a;

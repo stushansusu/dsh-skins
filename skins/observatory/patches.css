@@ -89,8 +89,6 @@ body[data-dsh-backdrop-active]::after {
 [data-dsh-surface='sidebar'],
 [data-pane='sidebar'] {
   background-color: var(--sk-wall) !important;
-  background-image:
-    linear-gradient(180deg, #9c803812 0%, transparent 52%);
   box-shadow: inset -1px 0 0 var(--sk-wall-edge);
 }
 
@@ -108,12 +106,7 @@ body [data-pane='sidebar'] {
 
 /* ── details pane ────────────────────────────────────────────────────────── */
 
-[data-slot='details'],
-[data-slot='details'] > *,
-[data-dsh-surface='details'],
-[data-pane='details'] {
-  background-color: #f1efe9db !important;
-}
+
 
 body [data-slot='details'],
 body [data-slot='details'] > *,
@@ -122,23 +115,18 @@ body [data-pane='details'] {
   background-color: #0a0c12db !important;
 }
 
-/* ── hero: the empty-session screen ──────────────────────────────────────── */
+/* ── hero: the empty-session screen ──
+   原来这里还有两层 repeating-radial-gradient（21px/26px 的同心细圈），
+   在主页上读起来就是一只钟面，已移除。只留一层柔和顶光。 */
 
 [data-phase='hero'] {
   position: relative;
-  background-image:
-    repeating-radial-gradient(circle at 50% 42%, transparent 0 21px, #9c803821 21px 22px),
-    repeating-radial-gradient(circle at 50% 42%, transparent 0 26px, #9c803812 26px 26.6px),
-    radial-gradient(46% 38% at 50% 40%, #1b1d2612 0%, transparent 70%),
-    radial-gradient(72% 56% at 50% 0%, #d9c7956b 0%, transparent 72%);
   background-repeat: no-repeat;
   background-size: 100% 100%;
 }
 
 body [data-phase='hero'] {
   background-image:
-    repeating-radial-gradient(circle at 50% 42%, transparent 0 21px, #c2a55a1c 21px 22px),
-    repeating-radial-gradient(circle at 50% 42%, transparent 0 26px, #c2a55a0f 26px 26.6px),
     radial-gradient(46% 38% at 50% 40%, #06080c80 0%, transparent 70%),
     radial-gradient(72% 56% at 50% 0%, #8e7a3e24 0%, transparent 72%);
 }
@@ -147,7 +135,6 @@ body [data-phase='hero'] {
 
 [data-composer-card] {
   border-radius: 14px;
-  box-shadow: var(--sk-composer-ring), inset 0 1px 0 var(--sk-card-top);
 }
 
 body [data-composer-card] {
@@ -159,9 +146,7 @@ body [data-composer-card] {
   background-color: transparent;
 }
 
-[data-composer-placeholder] {
-  color: #575a68;
-}
+
 
 body [data-composer-placeholder] {
   color: #8b90a0;
@@ -183,7 +168,6 @@ body [data-composer-placeholder] {
 [data-chat-flow-kind='tool-call'],
 [data-chat-flow-kind='context'] {
   border-radius: 10px;
-  background-color: #e6e2d880;
 }
 
 body [data-chat-flow-kind='tool-call'],
@@ -193,9 +177,7 @@ body [data-chat-flow-kind='context'] {
 
 /* ── selection carries the metal ─────────────────────────────────────────── */
 
-::selection {
-  background-color: #7a653040;
-}
+
 
 body ::selection {
   background-color: #8e7a3e52;
@@ -212,9 +194,7 @@ body ::selection {
 
 /* ── links keep the theme's metal rather than the shell's blue ───────────── */
 
-a {
-  color: #7a6530;
-}
+
 
 body a {
   color: #8e7a3e;
@@ -222,9 +202,7 @@ body a {
 
 /* ── scrollbars ──────────────────────────────────────────────────────────── */
 
-* {
-  scrollbar-color: #575a6859 transparent;
-}
+
 
 body * {
   scrollbar-color: #8b90a066 transparent;
@@ -309,10 +287,16 @@ body {
   opacity: 0.9;
 }
 
-/* 详情栏左缘，镜像一份。 */
+/* 详情栏左缘，镜像一份。
+   宿主 0.1.7 的右详情列改挂官方 [data-rightbar-col]（皮肤中心另打
+   data-dsh-surface='details'），老方言 data-pane='details' 一并留着。 */
+[data-dsh-surface='details'],
+[data-rightbar-col],
 [data-pane='details'] {
   position: relative;
 }
+[data-dsh-surface='details']::before,
+[data-rightbar-col]::before,
 [data-pane='details']::before {
   content: '';
   position: absolute;
@@ -334,15 +318,23 @@ body {
 /* ── 3. 会话顶栏 = 仪器窗框 + 下缘游标刻度 ──────────────────────────────
    顶栏是全壳唯一一条横梁，按「仪表盘横梁」来做。三件事，全部只走线、不铺面：
      · 上缘一道黄铜轨（inset 阴影），与 §1 整机外框的双线同族；
-     · 上缘 7px 内垂下极短的竖线，读作穹顶扇形瓣的**肋缝接缝**（与底板同一母题）；
+     · 上缘 10px 内垂下极短的竖线（1px 宽、24px 间距），读作穹顶扇形瓣的
+       **肋缝接缝**（与底板同一母题）；
      · 左右各一枚铆钉，和 §2 面板接缝、§4 新会话铭牌上的铆钉是同一族。
    下缘那条 8px 游标刻度（::after）保持不动，两者用 ::before / ::after 分开，
-   互不打架。全部不占布局——顶栏 76px 的高度是在 ConversationRoot 里钉死的。 */
-/* 插槽出口是 display:contents 的包装 div，**它没有盒子，挂在上面的装饰一律不绘制**。
-   真正有盒子的是它的子元素（ConversationSessionHeader 渲染的 .header）。所以选择器必须下探一层。
-   实测（2026-09-12，真实界面）：出口 rect=[0,0,0,0]、display=contents、bgImage 算得出但看不见。 */
-[data-dsh-surface='session-header'] > *,
-[data-slot='conversation.session.header'] > * {
+   互不打架。全部不占布局——顶栏 76px 的高度是在 ConversationRoot 里钉死的。
+
+   锚点：宿主 0.1.7 把语义戳 data-dsh-surface='session-header' 打在**0x0 的
+   display:contents 插槽出口**上，真正有盒子的是下面那棵子树。旧写法写的是
+   「出口 > *」—— 而 0.1.7 的出口有**两个**孩子（titleRow 与 tabs），于是整套
+   装饰被画了两遍：肋缝带落在 y10–20 与 y50–60、游标刻度落在 y32–40 与
+   y67–75，看起来就是「刻度变成两层」。
+   真 <header> 本身就是那根 1400x76 的横梁、只有一个盒子，所以改锚它；
+   后面两条 `header[data-…]` 是给旧宿主留的后路 —— 只有真 <header> 自己带戳时
+   才命中，在 0.1.7 下不会重复命中（出口是 div，不是 header）。 */
+[data-slot='conversation.header'] > header,
+header[data-dsh-surface='session-header'],
+header[data-slot='conversation.session.header'] {
   position: relative;
   background-image:
     repeating-linear-gradient(90deg, var(--ob-b3) 0 1px, transparent 1px 24px),
@@ -356,8 +348,9 @@ body {
 }
 
 /* 顶栏左右两枚铆钉：压在 10px 的上内边距里，不碰标题行。 */
-[data-dsh-surface='session-header'] > *::before,
-[data-slot='conversation.session.header'] > *::before {
+[data-slot='conversation.header'] > header::before,
+header[data-dsh-surface='session-header']::before,
+header[data-slot='conversation.session.header']::before {
   content: '';
   position: absolute;
   top: 5px;
@@ -374,8 +367,9 @@ body {
 }
 
 /* 下缘游标刻度：保留原样。 */
-[data-dsh-surface='session-header'] > *::after,
-[data-slot='conversation.session.header'] > *::after {
+[data-slot='conversation.header'] > header::after,
+header[data-dsh-surface='session-header']::after,
+header[data-slot='conversation.session.header']::after {
   content: '';
   position: absolute;
   left: 0;
@@ -425,25 +419,6 @@ body {
    七层，从下到上：凹槽底 → 上唇阴影 → 黄铜外框四条 → 右缘架位刻度。
    一处曲线都没有。 */
 [data-slot='sidebar.workspaces'] {
-  background-image:
-    /* 右缘的架位刻度：6px 窄列，每 6px 一道横齿 */
-    repeating-linear-gradient(0deg, var(--ob-b3) 0 1px, transparent 1px 6px),
-    /* 拉丝黄铜纹：3px 间距的极细竖线，读作"拉过丝的金属"而不是条纹 */
-    repeating-linear-gradient(90deg, #c2a55a08 0 1px, transparent 1px 3px),
-    /* 黄铜外框四条 */
-    linear-gradient(var(--ob-b2), var(--ob-b2)),
-    linear-gradient(var(--ob-b2), var(--ob-b2)),
-    linear-gradient(var(--ob-b2), var(--ob-b2)),
-    linear-gradient(var(--ob-b2), var(--ob-b2)),
-    /* 左上与右下两枚角标：仪器面板的取景记号，比一圈整框更像仪表 */
-    linear-gradient(var(--ob-b1), var(--ob-b1)),
-    linear-gradient(var(--ob-b1), var(--ob-b1)),
-    linear-gradient(var(--ob-b1), var(--ob-b1)),
-    linear-gradient(var(--ob-b1), var(--ob-b1)),
-    /* 上唇阴影：柜格的进深 */
-    linear-gradient(180deg, #0000004d 0%, #00000000 100%),
-    /* 凹槽底：上深下浅，像被顶光照着的凹面 */
-    linear-gradient(180deg, #3a2c1821 0%, #3a2c180a 100%);
   background-size:
     7px 100%,
     3px 100%,
@@ -487,7 +462,6 @@ body [data-slot='sidebar.workspaces'] {
    变实心——它们是同级兄弟，嵌套排除规则根本不匹配，所以判据改用"可展开"。 */
 [data-slot='sidebar.workspaces'] [role='treeitem'][aria-expanded],
 [data-slot='sidebar.workspaces'] [role='treeitem']:has([role='group']) {
-  background-image: url(assets/ws-sleeve-light.svg);
   background-size: 100% 100%;
   background-position: center;
   background-repeat: no-repeat;
@@ -501,24 +475,9 @@ body [data-slot='sidebar.workspaces'] [role='treeitem']:has([role='group']) {
   background-image: url(assets/ws-sleeve-dark.svg);
 }
 
-/* ── 6. 首屏：观测环。挂在 hero 的伪元素上（引擎已把 hero 设成 relative），
-   这样不和引擎已经写好的 hero 渐变抢 background-image。 ── */
-[data-phase='hero']::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  z-index: -1;
-  pointer-events: none;
-  background-image: url(assets/hero-reticle-light.svg);
-  background-size: contain;
-  background-position: center;
-  background-repeat: no-repeat;
-  opacity: 0.9;
-}
-body [data-phase='hero']::before {
-  background-image: url(assets/hero-reticle-dark.svg);
-  opacity: 1;
-}
+/* ── 6. 首屏观测环已移除 ──
+   那一圈带 120 根刻度与十字丝的观测环读起来就是一只钟面，在主页上太抢。
+   首屏现在只有引擎给的那层柔和同心圈（见上方的 [data-phase='hero']）。 */
 
 /* ══ 补齐还没设计过的面 ══════════════════════════════════════════════════
    到这一步，观测室的语言（圆、弧、刻度、铆钉、黄铜线）已经有了，但还有五个面是
@@ -590,21 +549,50 @@ body [data-phase='hero']::before {
   font-family: ui-monospace, Consolas, 'Cascadia Mono', monospace;
   letter-spacing: 0.08em;
 }
-/* ── 6b. 把 fallback 的「DSH 本地构建」换成「dsh 天文学家」 ──
+/* ── 6b. 把侧栏品牌位的内容换成「dsh 天文学家」 ──
    来源是 packages/client/locale/src/locales/zh.ts 的 brand.localBuild，由 ui-sidebar
-   的 SidebarRoot 渲染成 sidebar.brand.name 插槽里的 fallback 内容。结构（见官方快照）：
-     [data-slot='sidebar.brand.name'] > * > span:first-child   ← 标题
-     [data-slot='sidebar.brand.name'] > * > span:last-child    ← 版本号
-   两个 span 的类名是 CSS-Modules 哈希，碰不得（verify() 会拒），但它们的位置是稳定的，
-   所以在**稳定插槽 + 位置**上做替换：把原文字号归零，用 ::after 写新的。
-   注意 ::after 必须自己给 font-size——父级被设成 0 会继承下去。 */
-/* 出口同样没有盒子，且层数会随官方改动而变——两种写法都写上，哪一个先匹配上就用哪个。 */
-[data-slot='sidebar.brand.name'] > * > span:first-child,
-[data-slot='sidebar.brand.name'] span:first-child {
-  font-size: 0;
+   的 SidebarRoot 渲染成 sidebar.brand.name 插槽里的内容。宿主有两种形状：
+     官方 fallback ： 插槽 > span（单行文字）
+     本地构建       ： 插槽 > span.localBuildBrand（纵向 flex 列）> 标题 + 版本号
+   两个 span 的类名是 CSS-Modules 哈希，碰不得；但插槽与「出口的直接子元素」是稳定的，
+   所以在**稳定插槽 + 直接子元素**上做替换：归零字号不可靠（子 span 的字号写在
+   shell 的模块类上，父级归零带不动它们），改成把里面的行撤掉、用 ::after 写新的。
+   注意 ::after 必须自己给 font-size —— 父级被设成 0 会继承下去。 */
+/* 出口同样没有盒子，且层数会随官方改动而变。
+   宿主 0.1.7 在**本地构建**这个形状下把名称位渲染成一个**纵向** flex 列
+   （.localBuildBrand：名称 + 版本号两行）、高度钉死 24px 且 justify-content: center，
+   而这里注入的「dsh 天文学家」比原来的 12px 高一档，两行加起来超过 24px ——
+   居中之后被往上顶：实测标题行 rect 是 y 9..27，而 .brand 的盒子是 y 24..48，
+   18px 里只剩 3px 落在框内（几乎全被裁掉）。
+   旧写法用笼统的 `span:first-child`，在列里会同时命中「列」本身和「列里的标题」，
+   同一个名字写两遍 —— 所以这里改成：名字只挂在**出口的直接子元素**上，
+   两种形状（单行 fallback / 两行列）各命中一次，再把列里原来那两行整个撤掉。
+   （版本号因此不再单独占一行；要它回来就得再写一段固定文案的第二行。） */
+[data-slot='sidebar.brand.name'] > * {
+  flex-direction: row !important;
+  align-items: center !important;
+  justify-content: flex-start !important;
+  gap: 0 !important;
+  height: auto !important;
+  min-height: 24px;
+  max-height: none !important;
+  overflow: visible !important;
+  white-space: nowrap;
 }
-[data-slot='sidebar.brand.name'] > * > span:first-child::after,
-[data-slot='sidebar.brand.name'] span:first-child::after {
+
+[data-slot='sidebar.brand.name'] > * > * {
+  display: none !important;
+}
+
+span:has(> [data-slot='sidebar.brand.name']),
+[aria-hidden='true']:has([data-slot='sidebar.brand.mark']):has([data-slot='sidebar.brand.name']),
+button:has([data-slot='sidebar.brand.name']) {
+  height: auto !important;
+  min-height: 24px;
+  overflow: visible !important;
+}
+
+[data-slot='sidebar.brand.name'] > *::after {
   content: 'dsh 天文学家';
   font-size: 13px;
   font-weight: 600;
@@ -672,5 +660,52 @@ body[data-dsh-backdrop-active]::after {
   background-image: var(--sk-pane);
   -webkit-mask-image: linear-gradient(90deg, #000 0 38%, rgba(0, 0, 0, 0.4) 48%, transparent 55%);
   mask-image: linear-gradient(90deg, #000 0 38%, rgba(0, 0, 0, 0.4) 48%, transparent 55%);
+}
+
+
+
+/* ══ 设备适配 ══════════════════════════════════════════════════════════════
+   家具是整机外框（画在 shell overlay 的 ::after 上）、面板接缝的 11px 铆钉列与顶栏横梁的游标刻度。前两者都贴视口边缘，要处理的是安全区。
+
+   目标壳：桌面浏览器 / exe 桌面端（WebView2）/ macOS 桌面（WKWebView）/
+   手机·平板（iOS Safari、Android Chrome）。
+
+   壳自己已经在 ≤768px 把中栏拉满、把侧栏收成浮层轨道（[data-sidebar-collapsed]），
+   dsh-remote-web-ui 的竖屏层再压一轮，所以版式、点击区与安全区不必皮肤操心。
+   皮肤要守的三条：
+     ① 视口高度交给宿主（见下面那条：别去动 [data-dsh-frame] 的高度）；
+     ② 窄屏把 viewport 级的大件家具降一档尺度，别让 460px 的角花盖住 390px 的屏；
+     ③ 弱设备与系统无障碍设置下降档（动效 / 半透明 / 一整屏离屏模糊）。
+   ═══════════════════════════════════════════════════════════════════════ */
+
+/* 视口高度：**不要**在这里给 [data-dsh-frame] 加 height / min-height。
+   宿主自己就把画框设成 100dvh，dsh-web-all 的 ≤768px 层也兜了一遍；
+   而 `min-height: 100dvh` 会把「故意把画框缩短、给上下 HUD 让位」的皮肤重新
+   撑满视口 —— blueprint 用 #root 的 padding + 画框 calc 让出 56px，
+   一旦被撑回 1000，会话滚动区就伸到底栏底下（实测：滚动区底 1030、
+   被 974..1000 的底栏压掉 26px，看起来就是「状态栏挡住后面的内容」）。
+   这一条是 2026-08-30 加设备适配时写进来的，同日撤掉。 */
+
+@media (max-width: 768px) {
+  /* 整机外框贴着视口四边画双线；手机上让开刘海与 home 指示条。 */
+  [data-dsh-surface='overlay']::after,
+  [data-slot='shell.overlay']::after,
+  [data-shell-overlay]::after {
+    inset: env(safe-area-inset-top) env(safe-area-inset-right)
+      env(safe-area-inset-bottom) env(safe-area-inset-left);
+  }
+
+  /* 面板接缝的 11px 铆钉列：手机上的侧栏是浮层，11px 相对太宽，收到 7px。 */
+  [data-pane='sidebar']::after {
+    width: 7px;
+    background-size: 100% 100%, 7px 72px;
+  }
+
+  [data-dsh-surface='details']::before,
+  [data-rightbar-col]::before,
+  [data-pane='details']::before {
+    width: 7px;
+    background-size: 100% 100%, 7px 72px;
+  }
 }
 
