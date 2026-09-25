@@ -115,6 +115,23 @@ export const SkinBackgroundConfigSchema = z.object({
 export const SKIN_WALLPAPER_NAMESPACE = 'skin-wallpaper'
 
 /**
+ * Whether the wallpaper feature starts enabled on a platform.
+ *
+ * Wallpaper Engine is a Windows application, so only Windows (and the Linux
+ * Steam builds) have a library to auto-detect. macOS has none: the feature
+ * therefore starts OFF there, and turning it on is the user pointing the
+ * panel's directory picker at a folder of video wallpapers — which is the
+ * whole macOS flow. Detection stays injectable so the default is testable on
+ * any CI machine.
+ *
+ * @param platform - platform to decide for; defaults to the running host.
+ * @returns true when the feature should start enabled.
+ */
+export function defaultWallpaperEnabled(platform: NodeJS.Platform = process.platform): boolean {
+  return platform !== 'darwin'
+}
+
+/**
  * Wallpaper bridge configuration. Wallpapers only ever come from the user's
  * own machine (their Wallpaper Engine library or manual folders); the import
  * store keeps personal local copies, nothing is redistributed.
@@ -146,7 +163,7 @@ export interface SkinWallpaperConfig {
 
 /** Runtime schema for SkinWallpaperConfig; every field is volatile (card-writable). */
 export const SkinWallpaperConfigSchema = z.object({
-  enabled: z.boolean().default(true).volatile(),
+  enabled: z.boolean().default(defaultWallpaperEnabled()).volatile(),
   weLibraryDirs: z.array(z.string()).default([]).volatile(),
   selection: z.string().default('').volatile(),
   mode: z.union(['live', 'frame'] as const).default('live').volatile(),

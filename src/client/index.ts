@@ -132,8 +132,25 @@ function bindConfigForm(ctx: ClientContext): ConfigForm<SkinCenterSettings> {
   return ctx.configForms.get<SkinCenterSettings>(servedEntryId(ctx.configForms))
 }
 
-/** Required services: slots + locale (plugin card), theme (preview toggle), configForms (settings sections), and remote (wallpaper directory picker). */
-export const inject = ['slots', 'locale', 'theme', 'configForms', 'connection', 'remote']
+/**
+ * Required services: slots + locale (plugin card), theme (preview toggle),
+ * configForms (settings sections), and the Remote faces the wallpaper feature
+ * calls.
+ *
+ * `remote.directoryPicker` is named explicitly because a generated Remote
+ * namespace is its own Cordis service (`remote.<namespace>`), NOT a property
+ * of `remote`: `ctx.remote.x` is only readable while `remote.x` is injected,
+ * otherwise cordis' context proxy throws
+ * `cannot get property "remote.x" without inject`. `connection` owns the
+ * carrier the namespace service rides on, so it is required first.
+ *
+ * The skin center is mounted inside the dsh-web-all aggregate, whose client
+ * children bring their own nested fiber; naming the namespace here parks this
+ * plugin until the picker namespace is really mounted, which is what makes
+ * `pickDir` available on a Host that serves it (and keeps the browse button
+ * off a deployment that does not).
+ */
+export const inject = ['slots', 'locale', 'theme', 'configForms', 'connection', 'remote', 'remote.directoryPicker']
 
 /** Self-report item for the install heartbeat. */
 const SELF_ITEM = [{ name: '@linxin666/dsh-client-ui-skin-center' }]

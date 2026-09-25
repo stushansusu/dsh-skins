@@ -181,7 +181,7 @@ describe('WallpaperPanel directory picker', () => {
   })
 })
 
-describe('WallpaperPanel macOS system wallpapers', () => {
+describe('WallpaperPanel folder-sourced library status', () => {
   const item = (id: string, overrides: Record<string, unknown> = {}): Record<string, unknown> => ({
     id,
     title: id,
@@ -284,21 +284,9 @@ describe('WallpaperPanel macOS system wallpapers', () => {
     expect(host.textContent).toContain('Safe Art')
   })
 
-  it('shows the static-image badge and no import button for macOS system entries', async () => {
-    await render([item('macos-image/Tahoe Day', {
-      type: 'image',
-      source: 'system',
-      playable: false,
-      videoUrl: null,
-      previewUrl: '/api/skin-center/we/image/AAA',
-    })])
-    expect(host.textContent).toContain(zh.wallpaperTypeImage)
-    expect(host.querySelector('img')?.getAttribute('src')).toBe('/api/skin-center/we/image/AAA')
-    const labels = Array.from(host.querySelectorAll('button')).map((button) => button.textContent)
-    expect(labels).not.toContain(zh.wallpaperImport)
-  })
-
-  it('reports the macOS library status line when system wallpapers exist', async () => {
+  it('reports the added-folders status line when no Wallpaper Engine install is found', async () => {
+    // Given an inventory with neither a Wallpaper Engine install nor system
+    // entries — the macOS shape, where the library is the folders the user added
     vi.stubGlobal('fetch', vi.fn(async () => ({
       ok: true,
       status: 200,
@@ -307,15 +295,16 @@ describe('WallpaperPanel macOS system wallpapers', () => {
         installDir: null,
         total: 1,
         portableCount: 1,
-        systemCount: 1,
-        wallpapers: [item('macos-aerial/AAAA-1', { source: 'system' })],
+        wallpapers: [item('local/mine', { source: 'local' })],
       }),
     })))
     root = createRoot(host)
     await act(async () => {
       root.render(<WallpaperPanel t={t as never} wallpaper={stubWallpaper()} />)
     })
-    expect(host.textContent).toContain(zh.wallpaperLibrarySystem)
+
+    // Then the panel names the added-folder source instead of a system scan
+    await vi.waitFor(() => { expect(host.textContent).toContain(zh.wallpaperLibraryManual) })
   })
 
   it('user sees a failed-save notice after a settings write the Host refused', async () => {

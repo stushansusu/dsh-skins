@@ -11,10 +11,6 @@
  *   GET  /scene-frame/<token> → PNG of a scene wallpaper's main texture,
  *                               decoded in-process (pkg-extract.ts), cached
  *                               under the import store's .cache directory
- *   GET  /image/<token>       → macOS Desktop Pictures: jpg/png/webp served
- *                               directly, HEIC converted to JPEG through
- *                               sips, cached under the import store's
- *                               .cache directory (darwin only)
  *   POST /import              → copy a library wallpaper into the import
  *                               store (<harnessHome>/skin-center/wallpapers)
  *   POST /reimport            → refresh an imported copy from its source
@@ -36,7 +32,6 @@
  * @module @linxin666/dsh-client-ui-skin-center/we-routes
  */
 
-import { execFile } from 'node:child_process'
 import { cpSync, createReadStream, existsSync, mkdirSync, readdirSync, readFileSync, rmSync, statSync, writeFileSync } from 'node:fs'
 import { readFile, stat } from 'node:fs/promises'
 import type { IncomingMessage, ServerResponse } from 'node:http'
@@ -49,12 +44,10 @@ import {
   inventoryFingerprint,
   locateWallpaperEngine,
   owningLibraries,
-  type MacosWallpaperRoots,
   type WallpaperEntry,
   type WallpaperType,
   type WeInventory,
 } from './we-library.ts'
-import { defaultMacosWallpaperRoots } from './macos-library.ts'
 import {
   buildSceneManifest,
   buildSceneManifestFromDir,
@@ -137,12 +130,6 @@ export interface WeRouteDeps {
   storeDir: string
   /** Auto-detect Steam / Wallpaper Engine installation (default true). */
   autoDetect?: boolean
-  /** macOS wallpaper roots override (tests); undefined uses the darwin defaults. */
-  macosRoots?: MacosWallpaperRoots | null
-  /** Platform override for tests (the macOS scan gates on darwin). */
-  platform?: NodeJS.Platform
-  /** HEIC converter override for tests (default: sips on darwin). */
-  convertImage?: (src: string, dest: string) => Promise<void>
   /** Internal stream factory override used by route-level lifecycle tests. */
   openReadStream?: (path: string, options?: { start?: number; end?: number }) => Readable
 }
@@ -343,18 +330,12 @@ export function makeWeRoutes(deps: WeRouteDeps): WebRoute[] {
     // only re-runs reg.exe once per process (memoized).
     const installDir = autoDetect ? locateWallpaperEngine() : null
     const libraryDirs = autoDetect ? owningLibraries() : []
-    // macOS wallpaper stores (aerials + Desktop Pictures) ride the same
-    // auto-detect switch; off-darwin they are empty by construction.
-    const macos = deps.macosRoots !== undefined
-      ? deps.macosRoots
-      : (autoDetect && process.platform === 'darwin' ? defaultMacosWallpaperRoots() : null)
     const key = inventoryFingerprint({
       installDir,
       libraryDirs,
       manualDirs,
       storeDir: deps.storeDir,
       entries: inventoryCache?.value.wallpapers,
-      macos,
     })
     if (inventoryCache && inventoryCache.key === key) return inventoryCache.value
     const value = buildInventory({
@@ -363,8 +344,6 @@ export function makeWeRoutes(deps: WeRouteDeps): WebRoute[] {
       autoDetect: false,
       installDir,
       libraryDirs,
-      macos,
-      platform: deps.platform,
     })
     // Store a key computed from the entries this scan produced; the
     // previous entry set described the previous scan and would invalidate
@@ -376,7 +355,6 @@ export function makeWeRoutes(deps: WeRouteDeps): WebRoute[] {
         manualDirs,
         storeDir: deps.storeDir,
         entries: value.wallpapers,
-        macos,
       }),
       value,
     }
@@ -408,25 +386,6 @@ export function makeWeRoutes(deps: WeRouteDeps): WebRoute[] {
 
   const entryToJson = (entry: WallpaperEntry): WallpaperJson => {
     const hasFile = existsSync(entry.fileAbs)
-    // macOS Desktop Pictures (HEIC): the browser cannot decode HEIC, so the
-    // thumbnail and the mounted backdrop both come from the converting
-    // /image route rather than a raw file preview.
-    if (entry.type === 'image') {
-      return {
-        id: entry.id,
-        title: entry.title,
-        type: entry.type,
-        source: entry.source,
-        playable: false,
-        updateAvailable: false,
-        rating: entry.rating ?? 'g',
-        videoUrl: null,
-        webUrl: null,
-        frameUrl: null,
-        sceneUrl: null,
-        previewUrl: hasFile ? WE_API_PREFIX + '/image/' + tokenFor(entry.fileAbs) : null,
-      }
-    }
     // Scene video/WebGL capabilities are probed lazily by the scene-probe
     // route for the selected wallpaper only; probing every scene here would
     // read the whole packed payload of a large library on every inventory.
@@ -484,7 +443,6 @@ export function makeWeRoutes(deps: WeRouteDeps): WebRoute[] {
           installDir: inventory.installDir,
           total: inventory.total,
           portableCount: inventory.portableCount,
-          systemCount: inventory.wallpapers.filter((w) => w.source === 'system').length,
           wallpapers,
         })
       } catch (error) {
@@ -624,60 +582,6 @@ export function makeWeRoutes(deps: WeRouteDeps): WebRoute[] {
       },
     })
   }
-
-  /**
-   * Convert one HEIC wallpaper into a <=2560px JPEG with the macOS-native
-   * sips tool (no extra dependency). Darwin-only: Desktop Pictures scanning
-   * only runs there, and the token map only ever holds scanned paths.
-   */
-  const defaultConvertImage = (src: string, dest: string): Promise<void> =>
-    new Promise((resolvePromise, reject) => {
-      if (process.platform !== 'darwin') {
-        reject(new Error('heic conversion requires macOS'))
-        return
-      }
-      execFile('/usr/bin/sips', ['-s', 'format', 'jpeg', '-s', 'formatOptions', '85', '-Z', '2560', src, '--out', dest], { timeout: 60000 }, (error) => {
-        if (error !== null) reject(error)
-        else resolvePromise()
-      })
-    })
-
-  // GET /image/<token> — macOS Desktop Pictures: .jpg/.jpeg/.png/.webp are
-  // served directly; HEIC/HEIF converts to JPEG, cached under
-  // <store>/.cache/images keyed by path + mtime (stale keys pruned like the
-  // scene caches). Anything else is rejected: only image formats leave here.
-  const imagePrefix = WE_API_PREFIX + '/image/'
-  routes.push({
-    kind: 'prefix',
-    path: WE_API_PREFIX + '/image',
-    handler: (req, res) => {
-      if (req.method !== 'GET') { writeJson(res, 405, { ok: false, error: 'method-not-allowed' }); return }
-      if (!requireSameOrigin(req, res)) return
-      const abs = resolveToken(req, res, imagePrefix)
-      if (!abs) return
-      if (/\.(jpe?g|png|webp)$/i.test(abs)) {
-        serveFile(abs, req, res, openReadStream)
-        return
-      }
-      if (!/\.hei[cf]$/i.test(abs)) { writeJson(res, 400, { ok: false, error: 'not-an-image' }); return }
-      void (async () => {
-        let mtime = 0
-        try { mtime = statSync(abs).mtimeMs } catch { /* stays 0 */ }
-        const cacheDir = joinPath(deps.storeDir, '.cache', 'images')
-        const base = Buffer.from(abs, 'utf8').toString('base64url')
-        const key = base + '_v1_' + String(Math.round(mtime)) + '.jpg'
-        const cachePath = joinPath(cacheDir, key)
-        if (!existsSync(cachePath)) {
-          mkdirSync(cacheDir, { recursive: true })
-          await (deps.convertImage ?? defaultConvertImage)(abs, cachePath)
-          pruneStaleSceneCache(cacheDir, base, key)
-        }
-        serveFile(cachePath, req, res, openReadStream)
-      })().catch((error: unknown) => {
-        writeJson(res, 422, { ok: false, error: error instanceof Error ? error.message : String(error) })
-      })
-    },
-  })
 
   // GET /scene-video/<token> — stream extracted MP4 video from scene pkg textures.
   const sceneVideoPrefix = WE_API_PREFIX + '/scene-video/'
@@ -952,9 +856,6 @@ export function makeWeRoutes(deps: WeRouteDeps): WebRoute[] {
     if (id === '' || id.startsWith('imported/')) { writeJson(res, 400, { ok: false, error: 'bad-id' }); return }
     const entry = freshInventory().wallpapers.find((w) => w.id === id)
     if (!entry) { writeJson(res, 404, { ok: false, error: 'wallpaper-not-found' }); return }
-    // macOS-managed entries (aerials / Desktop Pictures) are already local
-    // and their dir is a shared system folder — never copy it wholesale.
-    if (entry.source === 'system') { writeJson(res, 400, { ok: false, error: 'not-importable' }); return }
     const dest = storeEntryPath(deps.storeDir, id)
     if (dest === null) { writeJson(res, 400, { ok: false, error: 'bad-id' }); return }
     if (existsSync(dest)) { writeJson(res, 409, { ok: false, error: 'already-imported' }); return }

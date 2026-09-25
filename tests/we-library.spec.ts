@@ -313,6 +313,29 @@ describe('buildInventory', () => {
     const inventory = buildInventory({ manualDirs: ['', join(root, 'missing')], autoDetect: false })
     expect(inventory.total).toBe(0)
   })
+
+  it('draws the whole macOS library from the folders the user added', () => {
+    // Given macOS, where Wallpaper Engine does not exist and the built-in
+    // Apple wallpaper stores are no longer scanned at all
+    const folder = join(root, 'my-videos')
+    mkdirSync(folder, { recursive: true })
+    writeFileSync(join(folder, 'Ocean.mp4'), 'x', 'utf8')
+    writeFileSync(join(folder, 'Ocean.jpg'), 'x', 'utf8')
+    writeFileSync(join(folder, 'Mountains.webm'), 'x', 'utf8')
+
+    // When the inventory is assembled with auto-detection on (the macOS case)
+    const inventory = buildInventory({ manualDirs: [folder], autoDetect: true })
+
+    // Then every video in the folder becomes a playable wallpaper, paired
+    // with its same-stem preview, and no system entry is invented
+    expect(inventory.total).toBe(2)
+    expect(inventory.wallpapers.map(w => w.title).sort()).toEqual(['Mountains', 'Ocean'])
+    const ocean = inventory.wallpapers.find(w => w.title === 'Ocean')
+    expect(ocean?.type).toBe('video')
+    expect(ocean?.playable).toBe(true)
+    expect(ocean?.preview).toBe('Ocean.jpg')
+    expect(inventory.wallpapers.some(w => w.source === 'system')).toBe(false)
+  })
 })
 
 describe('memoizedProbe', () => {

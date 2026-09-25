@@ -1106,101 +1106,43 @@ describe('import POST body contract (shared readJsonBody migration)', () => {
 })
 
 
-describe('macOS system wallpapers', () => {
-  /** Build temp aerial + Desktop Pictures roots and serve routes over them. */
-  async function serveMacos(convertImage?: (src: string, dest: string) => Promise<void>): Promise<{ aerialRoot: string; pictureRoot: string }> {
+describe('macOS has no built-in wallpaper source', () => {
+  it('never scans Apple wallpaper stores, even with roots that hold media', async () => {
+    // Given a macOS-like tree holding an Apple aerial and a Desktop Picture
     const aerialRoot = join(root, 'com.apple.wallpaper', 'aerials')
     const pictureRoot = join(root, 'Desktop Pictures')
     mkdirSync(join(aerialRoot, 'videos'), { recursive: true })
     mkdirSync(join(aerialRoot, 'thumbnails'), { recursive: true })
-    mkdirSync(join(aerialRoot, 'manifest'), { recursive: true })
-    // Magic bytes must pass the scanner's format validation.
-    writeFileSync(join(aerialRoot, 'videos', 'AAAA-1.mov'), Buffer.concat([Buffer.from([0, 0, 0, 0x18]), Buffer.from('ftypqt  '), Buffer.from('FAKE-AERIAL')]))
-    writeFileSync(join(aerialRoot, 'thumbnails', 'AAAA-1.png'), 'FAKE-THUMB', 'utf8')
-    writeFileSync(join(aerialRoot, 'manifest', 'entries.json'), JSON.stringify({
-      assets: [{ id: 'AAAA-1', accessibilityLabel: 'Sonoma from Above' }],
-    }), 'utf8')
+    writeFileSync(join(aerialRoot, 'videos', 'AAAA-1.mov'), Buffer.concat([Buffer.from([0, 0, 0, 0x18]), Buffer.from('ftypqt  ')]))
     mkdirSync(pictureRoot, { recursive: true })
-    writeFileSync(join(pictureRoot, 'Tahoe Day.heic'), Buffer.concat([Buffer.from([0, 0, 0, 0x1c]), Buffer.from('ftypheic'), Buffer.from('FAKE-HEIC')]))
-    writeFileSync(join(pictureRoot, 'Plain Photo.jpg'), Buffer.concat([Buffer.from([0xff, 0xd8, 0xff, 0xe0]), Buffer.from('FAKE-JPEG')]))
+    writeFileSync(join(pictureRoot, 'Tahoe Day.heic'), Buffer.concat([Buffer.from([0, 0, 0, 0x1c]), Buffer.from('ftypheic')]))
     await new Promise<void>((resolve, reject) => server.close(e => (e ? reject(e) : resolve())))
     await serve(makeWeRoutes({
       getConfig: () => ({}),
       storeDir: store,
       autoDetect: false,
-      macosRoots: { aerials: [aerialRoot], pictures: [pictureRoot] },
-      convertImage,
-      platform: 'darwin',
     }))
-    return { aerialRoot, pictureRoot }
-  }
 
-  it('lists aerials and Desktop Pictures as system entries with titles and count', async () => {
-    await serveMacos()
+    // When the inventory is read
     const res = await call('GET', WE_API_PREFIX + '/inventory')
+
+    // Then no system entry is listed, and the payload carries no system count
+    // (the macOS flow is a user-chosen folder of videos, not Apple's own art)
     expect(res.status).toBe(200)
-    expect(res.body.systemCount).toBe(3)
     const wallpapers = res.body.wallpapers as Array<Record<string, unknown>>
-    const aerial = wallpapers.find(w => w.id === 'macos-aerial/AAAA-1')
-    expect(aerial?.title).toBe('Sonoma from Above')
-    expect(aerial?.type).toBe('video')
-    expect(aerial?.source).toBe('system')
-    expect(String(aerial?.videoUrl)).toContain(WE_API_PREFIX + '/media/')
-    expect(String(aerial?.previewUrl)).toContain(WE_API_PREFIX + '/preview/')
-    const heic = wallpapers.find(w => w.id === 'macos-image/Tahoe Day')
-    expect(heic?.type).toBe('image')
-    expect(heic?.source).toBe('system')
-    expect(heic?.playable).toBe(false)
-    expect(String(heic?.previewUrl)).toContain(WE_API_PREFIX + '/image/')
-    const jpg = wallpapers.find(w => w.id === 'macos-image/Plain Photo')
-    expect(jpg?.type).toBe('image')
-    expect(String(jpg?.previewUrl)).toContain(WE_API_PREFIX + '/image/')
+    expect(wallpapers.some(w => w.source === 'system')).toBe(false)
+    expect(res.body).not.toHaveProperty('systemCount')
   })
 
-  it('converts heic through the injected converter once and serves the cache', async () => {
-    let conversions = 0
-    await serveMacos(async (_src, dest) => {
-      conversions++
-      writeFileSync(dest, 'JPEG-BYTES', 'utf8')
-    })
-    const inventory = await call('GET', WE_API_PREFIX + '/inventory')
-    const heic = (inventory.body.wallpapers as Array<Record<string, unknown>>).find(w => w.id === 'macos-image/Tahoe Day')
-    const first = await callRaw('GET', String(heic?.previewUrl))
-    expect(first.status).toBe(200)
-    expect(first.headers['content-type']).toBe('image/jpeg')
-    expect(first.body.toString('utf8')).toBe('JPEG-BYTES')
-    const second = await callRaw('GET', String(heic?.previewUrl))
-    expect(second.status).toBe(200)
-    expect(conversions).toBe(1)
-  })
-
-  it('rejects import of macOS-managed entries', async () => {
-    await serveMacos()
-    const res = await call('POST', WE_API_PREFIX + '/import', { body: { id: 'macos-aerial/AAAA-1' } })
-    expect(res.status).toBe(400)
-    expect(res.body).toEqual({ ok: false, error: 'not-importable' })
-  })
-
-  it('serves jpg directly without invoking the converter', async () => {
-    let conversions = 0
-    await serveMacos(async () => { conversions++ })
-    const inventory = await call('GET', WE_API_PREFIX + '/inventory')
-    const jpg = (inventory.body.wallpapers as Array<Record<string, unknown>>).find(w => w.id === 'macos-image/Plain Photo')
-    const res = await callRaw('GET', String(jpg?.previewUrl))
-    expect(res.status).toBe(200)
-    expect(res.headers['content-type']).toBe('image/jpeg')
-    expect(res.body.subarray(0, 3)).toEqual(Buffer.from([0xff, 0xd8, 0xff]))
-    expect(conversions).toBe(0)
-  })
-
-  it('answers 400 for a non-image token on the image route', async () => {
-    // The default beforeEach library holds sea.mp4: its media token exists
-    // but the image route only serves or converts image formats.
+  it('serves the /image route no more', async () => {
+    // Given the routes served for an ordinary library
+    // When a Desktop-Pictures style token is requested
     const inventory = await call('GET', WE_API_PREFIX + '/inventory')
     const video = (inventory.body.wallpapers as Array<Record<string, unknown>>).find(w => w.id === '111')
     const token = String(video?.videoUrl).split('/media/')[1]
     const res = await call('GET', WE_API_PREFIX + '/image/' + token)
-    expect(res.status).toBe(400)
-    expect(res.body).toEqual({ ok: false, error: 'not-an-image' })
+
+    // Then the route is gone (no HEIC converter, no image passthrough)
+    expect(res.status).toBe(404)
   })
 })

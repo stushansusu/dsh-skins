@@ -32,8 +32,7 @@ export const SKIN_WALLPAPER_NS = 'skin-wallpaper'
 export interface WallpaperDescriptor {
   id: string
   title: string
-  /** 'image' is the macOS Desktop Pictures kind: a static host-converted JPEG. */
-  type: 'video' | 'web' | 'scene' | 'application' | 'image'
+  type: 'video' | 'web' | 'scene' | 'application'
   videoUrl: string | null
   webUrl: string | null
   frameUrl: string | null
@@ -781,6 +780,9 @@ export class WallpaperController implements WallpaperHandle {
   private readAll(): void {
     const snapshot: ConfigFormSnapshot<WallpaperSection> = this.scope.getSnapshot()
     const value = snapshot.value ?? {}
+    // The Host schema owns the platform default (see defaultWallpaperEnabled
+    // in src/index.ts); this fallback only covers a form that has not resolved
+    // yet, so it must not re-derive the platform in the browser.
     this.enabledValue = typeof value.enabled === 'boolean' ? value.enabled : true
     this.selectionValue = typeof value.selection === 'string' ? value.selection : ''
     this.modeValue = value.mode === 'frame' ? 'frame' : 'live'

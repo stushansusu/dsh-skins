@@ -30,7 +30,7 @@ const WE_API = '/api/skin-center/we'
 
 /** One wallpaper entry as served by the inventory route. */
 interface WallpaperItem extends WallpaperDescriptor {
-  source: 'workshop' | 'local' | 'imported' | 'system'
+  source: 'workshop' | 'local' | 'imported'
   playable: boolean
   updateAvailable: boolean
   rating?: 'g' | 'pg13' | 'r18'
@@ -42,8 +42,6 @@ interface InventoryPayload {
   installDir?: string | null
   total?: number
   portableCount?: number
-  /** macOS-managed wallpapers (aerials + Desktop Pictures) in the list. */
-  systemCount?: number
   wallpapers?: WallpaperItem[]
   error?: string
 }
@@ -65,12 +63,11 @@ async function postWe(path: string, id: string): Promise<string | null> {
 }
 
 /** The type badge copy key of one wallpaper. */
-function typeKey(item: WallpaperItem): 'wallpaperTypeVideo' | 'wallpaperTypeWeb' | 'wallpaperTypeScene' | 'wallpaperTypeApp' | 'wallpaperTypeImage' {
+function typeKey(item: WallpaperItem): 'wallpaperTypeVideo' | 'wallpaperTypeWeb' | 'wallpaperTypeScene' | 'wallpaperTypeApp' {
   switch (item.type) {
     case 'video': return 'wallpaperTypeVideo'
     case 'web': return 'wallpaperTypeWeb'
     case 'scene': return 'wallpaperTypeScene'
-    case 'image': return 'wallpaperTypeImage'
     default: return 'wallpaperTypeApp'
   }
 }
@@ -130,7 +127,6 @@ export function WallpaperPanel({ t, wallpaper }: { t: PropsLocale<'skinCenter'>[
 
   const [items, setItems] = useState<WallpaperItem[] | null>(null)
   const [installDir, setInstallDir] = useState<string | null>(null)
-  const [systemCount, setSystemCount] = useState(0)
   const [loadError, setLoadError] = useState<string | null>(null)
   const [actionError, setActionError] = useState<string | null>(null)
   const [workingId, setWorkingId] = useState<string | null>(null)
@@ -156,7 +152,6 @@ export function WallpaperPanel({ t, wallpaper }: { t: PropsLocale<'skinCenter'>[
         // A fresh inventory restarts the paged grid from the first page.
         setPage(1)
         setInstallDir(typeof payload.installDir === 'string' ? payload.installDir : null)
-        setSystemCount(typeof payload.systemCount === 'number' ? payload.systemCount : 0)
         const selected = wallpaper.selection()
         wallpaper.sync(resolveSelection(payload.wallpapers, selected) ?? null)
       })
@@ -269,9 +264,7 @@ export function WallpaperPanel({ t, wallpaper }: { t: PropsLocale<'skinCenter'>[
                 ? <span>{t('loading')}</span>
                 : installDir !== null
                   ? <span>{t('wallpaperLibraryFound')} · {items.length}</span>
-                  : systemCount > 0
-                    ? <span>{t('wallpaperLibrarySystem')} · {items.length}</span>
-                    : <span>{t('wallpaperLibraryManual')} · {items.length}</span>}
+                  : <span>{t('wallpaperLibraryManual')} · {items.length}</span>}
             <button type="button" className={css.button} onClick={load}>{t('wallpaperRefresh')}</button>
           </div>
 
@@ -589,10 +582,6 @@ export function WallpaperPanel({ t, wallpaper }: { t: PropsLocale<'skinCenter'>[
                             {t('wallpaperRemove')}
                           </button>
                         </>
-                      ) : item.source === 'system' ? (
-                        // macOS-managed wallpapers are already local and
-                        // their folder is shared — nothing to import.
-                        <></>
                       ) : (
                         <button
                           type="button"

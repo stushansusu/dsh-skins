@@ -16,6 +16,7 @@ import {
   SkinBackgroundConfigSchema,
   SkinCustomThemeConfigSchema,
   SkinWallpaperConfigSchema,
+  defaultWallpaperEnabled,
 } from '../src/index.ts'
 import { SKIN_BACKGROUND_DEFAULTS, type SkinBackgroundConfig } from '../src/core/background.ts'
 import { CUSTOM_THEME_DEFAULTS, CUSTOM_THEME_VERSION } from '../src/core/custom-theme.ts'
@@ -101,7 +102,7 @@ describe('skin-center host config', () => {
     // Then every wallpaper field — including the sound toggle and volume the
     // card persists — carries the value the previous namespace declared
     expect(resolved).toEqual({
-      enabled: true,
+      enabled: defaultWallpaperEnabled(),
       weLibraryDirs: [],
       selection: '',
       mode: 'live',
@@ -113,6 +114,17 @@ describe('skin-center host config', () => {
       sound: false,
       volume: 100,
     })
+  })
+
+  it('wallpaper starts enabled only where a Wallpaper Engine library can exist', () => {
+    // Given Wallpaper Engine is a Windows application with no macOS build
+    // When the platform default is asked for each supported platform
+    // Then only macOS starts the feature off, so the user turns it on and
+    // picks a folder of videos (the macOS flow) instead of the feature
+    // silently scanning Apple's own wallpapers
+    expect(defaultWallpaperEnabled('win32')).toBe(true)
+    expect(defaultWallpaperEnabled('linux')).toBe(true)
+    expect(defaultWallpaperEnabled('darwin')).toBe(false)
   })
 
   it('user gets the custom-theme section resolved from the versioned contract', () => {

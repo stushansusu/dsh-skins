@@ -48,7 +48,6 @@ export type SkinCenterKey =
   | 'wallpaperLoadError'
   | 'wallpaperLibraryFound'
   | 'wallpaperLibraryManual'
-  | 'wallpaperLibrarySystem'
   | 'wallpaperRefresh'
   | 'wallpaperMode'
   | 'wallpaperModeLive'
@@ -75,7 +74,6 @@ export type SkinCenterKey =
   | 'wallpaperTypeWeb'
   | 'wallpaperTypeScene'
   | 'wallpaperTypeApp'
-  | 'wallpaperTypeImage'
   | 'wallpaperLoadMore'
   | 'wallpaperDirs'
   | 'wallpaperDirsEmpty'
@@ -167,11 +165,10 @@ export const en: Record<SkinCenterKey, string> = {
   backgroundHintInert: 'Only applies to skins that paint a backdrop (Blue Fantasy / Whale Song). Applies to the official default automatically once such a skin is active.',
   wallpaperTitle: 'Wallpaper Engine',
   wallpaperEnable: 'Enable wallpapers',
-  wallpaperHint: 'Use your local Wallpaper Engine library as the GUI backdrop: video, web, and scene wallpapers render live (scene wallpapers need WebGL).',
+  wallpaperHint: 'Use your local Wallpaper Engine library as the GUI backdrop: video, web, and scene wallpapers render live (scene wallpapers need WebGL). On macOS there is no Wallpaper Engine library, so the feature starts off — turn it on, then add a folder of videos.',
   wallpaperLoadError: 'Wallpaper library failed to load',
   wallpaperLibraryFound: 'Wallpaper Engine library detected',
-  wallpaperLibraryManual: 'Manual folders only (no Wallpaper Engine install found; set folders in the skin-wallpaper settings)',
-  wallpaperLibrarySystem: 'macOS wallpapers detected (aerials and Desktop Pictures)',
+  wallpaperLibraryManual: 'Folders you added',
   wallpaperRefresh: 'Refresh',
   wallpaperMode: 'Render mode',
   wallpaperModeLive: 'Live',
@@ -193,16 +190,15 @@ export const en: Record<SkinCenterKey, string> = {
   wallpaperReimport: 'Update',
   wallpaperRemove: 'Remove',
   wallpaperUpdateAvailable: 'The workshop original changed since import — update the local copy',
-  wallpaperEmpty: 'No wallpapers found. Subscribe in the Wallpaper Engine workshop, or add manual folders to the skin-wallpaper settings.',
+  wallpaperEmpty: 'No wallpapers found. Add a folder of videos below, or subscribe in the Wallpaper Engine workshop on Windows.',
   wallpaperTypeVideo: 'Video',
   wallpaperTypeWeb: 'Web',
   wallpaperTypeScene: 'Scene (static)',
   wallpaperTypeApp: 'Unsupported',
-  wallpaperTypeImage: 'Image',
   wallpaperLoadMore: 'Load more',
   wallpaperDirs: 'Manual folders',
-  wallpaperDirsEmpty: 'No manual folders yet.',
-  wallpaperDirsHint: 'No Wallpaper Engine (e.g. macOS)? Point a folder at any .mp4/.webm files, a wallpaper project folder, or a folder of projects — they become your wallpaper library.',
+  wallpaperDirsEmpty: 'No folders yet — add one to load its videos.',
+  wallpaperDirsHint: 'On macOS: pick a folder of .mp4/.webm videos (or a wallpaper project folder). On Windows, folders extend the auto-detected Wallpaper Engine library.',
   wallpaperDirPlaceholder: '/path/to/wallpapers or ~/Movies/wallpapers',
   wallpaperDirAdd: 'Add',
   wallpaperDirBrowse: 'Browse…',
@@ -291,11 +287,10 @@ export const zh: Record<SkinCenterKey, string> = {
   backgroundHintInert: '仅对带背景图插画的皮肤（蓝色幻想 / 鲸吟）生效；官方默认无背景图，该滑块对这些皮肤自动生效。',
   wallpaperTitle: 'Wallpaper Engine',
   wallpaperEnable: '启用动态壁纸',
-  wallpaperHint: '把本机 Wallpaper Engine 壁纸库用作 GUI 背景：视频、网页与场景壁纸均动态渲染（场景壁纸需要 WebGL）。',
+  wallpaperHint: '把本机 Wallpaper Engine 壁纸库用作 GUI 背景：视频、网页与场景壁纸均动态渲染（场景壁纸需要 WebGL）。macOS 没有 Wallpaper Engine 壁纸库，该功能默认关闭；开启后添加一个存放视频的目录即可。',
   wallpaperLoadError: '壁纸库加载失败',
   wallpaperLibraryFound: '已检测到 Wallpaper Engine 壁纸库',
-  wallpaperLibraryManual: '仅手动目录（未检测到 Wallpaper Engine 安装，可在 skin-wallpaper 设置里添加目录）',
-  wallpaperLibrarySystem: '已检测到 macOS 系统壁纸（航拍与桌面图片）',
+  wallpaperLibraryManual: '来自你添加的目录',
   wallpaperRefresh: '刷新',
   wallpaperMode: '渲染模式',
   wallpaperModeLive: '动态',
@@ -317,16 +312,15 @@ export const zh: Record<SkinCenterKey, string> = {
   wallpaperReimport: '更新',
   wallpaperRemove: '移除',
   wallpaperUpdateAvailable: '工坊原件在导入后有更新——同步更新本地副本',
-  wallpaperEmpty: '未发现壁纸。可先在 Wallpaper Engine 创意工坊订阅，或在 skin-wallpaper 设置里添加手动目录。',
+  wallpaperEmpty: '未发现壁纸。请在下方添加一个存放视频的目录；Windows 上也可先在 Wallpaper Engine 创意工坊订阅。',
   wallpaperTypeVideo: '视频',
   wallpaperTypeWeb: '网页',
   wallpaperTypeScene: '场景(静态)',
   wallpaperTypeApp: '不支持',
-  wallpaperTypeImage: '静态图片',
   wallpaperLoadMore: '加载更多',
   wallpaperDirs: '手动目录',
-  wallpaperDirsEmpty: '还没有手动目录。',
-  wallpaperDirsHint: '没有 Wallpaper Engine（如 macOS）？把任意 .mp4/.webm 视频、单个壁纸项目文件夹或项目合集文件夹加进来，就是你的壁纸库。',
+  wallpaperDirsEmpty: '还没有目录——添加一个以加载其中的视频。',
+  wallpaperDirsHint: 'macOS：选择一个存放 .mp4/.webm 视频的目录（或单个壁纸项目文件夹）。Windows：这里添加的目录会扩展自动检测到的 Wallpaper Engine 壁纸库。',
   wallpaperDirPlaceholder: '/path/to/wallpapers 或 ~/Movies/wallpapers',
   wallpaperDirAdd: '添加',
   wallpaperDirBrowse: '浏览…',
