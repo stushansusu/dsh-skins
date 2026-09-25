@@ -15,6 +15,22 @@
 - Wallpaper Engine 桥：卡片可把本机 Wallpaper Engine 库用作 GUI 背景。host 半区（`src/we-library.ts` + `src/we-routes.ts`）定位 WE 安装（Steam 应用 431960：Windows 注册表、`libraryfolders.vdf` 中的全部库路径、持久的 `appmanifest_431960.acf` 所有权事实与探测路径），扫描项目与创意工坊内容及可选手动文件夹，经同源 `/api/skin-center/we/*` 路由提供清单、媒体（Range 流式）、预览图、web 壁纸项目文件（注入 WE API shim）与场景壁纸主贴图 PNG（由 `src/pkg-extract.ts` 进程内解码 PKG/TEX，磁盘缓存）。视频壁纸用 `<video>` 渲染，web 壁纸用沙箱 `<iframe>`，场景壁纸经内置 WebGL 播放器实时渲染（2D 图层场景与 3D 模型场景按 WE 材质/着色器语义回放）；场景内嵌脚本会被忽略，但受支持的图像、反射、水面与粒子通道仍保持实时渲染，「静态帧」模式可为任意类型钉一张零动画开销的图。单张壁纸的导入会把项目复制进 `<harness-home>/skin-center/wallpapers/`，脱离 Steam 库变更也能用，并检测创意工坊原作更新。壁纸都是用户本机文件，从不上传或再分发——创意工坊内容归原作者。「手动文件夹」行可接收零散 `.mp4`/`.webm` 媒体、单个项目、项目合集、Wallpaper Engine 安装根目录或 Steam 库根目录（`~` 展开为主目录）。
 - 旧版迁移：v2 升级后的首次启动，一次性桥（`src/legacy-bridge.ts`）读取 harness home 根 `cordis.patch.yml`（v1 CLI 写入处；活动 profile 的 `cordis.patch.yml` 作为次级位置也会探测）里已退役的 `dsh-skin` 受管段，把活动皮肤 id 迁进 v2 选择存储，并清除旧行。迁移幂等且 fail-closed（出错时旧状态原样保留）。仅在发生迁移、清理或失败时输出日志，无 legacy 状态的稳态保持静默（issue #788）。
 
+## 人气皮肤
+
+[dsh-market.com](https://dsh-market.com) 创意工坊皮肤分类里人气最高的三款皮肤，按网站默认的「按人气」排序：
+
+| 皮肤 | 作者 | 外观 |
+|---|---|---|
+| [深海女仆工坊](https://dsh-market.com/#skin:maid-atelier)（`maid-atelier`） | Small-tailqwq | 双女仆工坊背景、深海蓝蕾丝界面与 Q 版侧栏 |
+| [鲸吟](https://dsh-market.com/#skin:whale-song)（`whale-song`） | dsh-web | 深海鲸语女神背景 · 冰蓝海洋调色板 · 金色细线点缀 |
+| [蓝色幻想](https://dsh-market.com/#skin:blue-fantasy)（`blue-fantasy`） | powerdog996（DreamSkin 社区）· dsh-web 适配 | 鲸鱼插画背景 · periwinkle 靛蓝调色板 · 半透明面板 |
+
+| 深海女仆工坊 | 鲸吟 | 蓝色幻想 |
+|---|---|---|
+| ![深海女仆工坊](skins/maid-atelier/preview/light.jpg) | ![鲸吟](skins/whale-song/preview/light.jpg) | ![蓝色幻想](skins/blue-fantasy/preview/light.jpg) |
+
+三款都可从创意工坊一键安装；其中 `blue-fantasy` 同时也是本包内置的默认皮肤。
+
 ## 安装
 
 ```sh
@@ -51,7 +67,7 @@ dsh plugin --profile web add @linxin666/dsh-client-ui-skin-center
 
 ## 数据遥测
 
-浏览器半区每个 UTC 日向 dsh-market.com 发送一次匿名安装心跳：仅含一个 localStorage 随机 ID 与本包名，无其他数据。服务端只存储该 ID 的加盐哈希，不存 IP，且只暴露聚合计数。完整契约见 [docs/telemetry.md](../../../docs/telemetry.md)。
+浏览器半区每个 UTC 日向 dsh-market.com 发送一次匿名安装心跳：仅含一个 localStorage 随机 ID 与本包名，无其他数据。服务端只存储该 ID 的加盐哈希，不存 IP，且只暴露聚合计数。完整契约见 [docs/telemetry.md](../../docs/telemetry.md)。
 
 ## 目录结构
 

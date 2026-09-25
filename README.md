@@ -15,6 +15,22 @@ English | [中文](README.zh.md)
 - Wallpaper Engine bridge: the card can use the machine's local Wallpaper Engine library as the GUI backdrop. The host half (`src/we-library.ts` + `src/we-routes.ts`) locates the WE install (Steam app 431960: registry, every path in `libraryfolders.vdf`, durable `appmanifest_431960.acf` ownership, and probe paths on Windows), scans its projects and workshop content plus optional manual folders, and serves the inventory, media (Range-streamed), previews, web-wallpaper project files (with the WE API shim injected), and scene main-texture PNGs (decoded in-process from PKG/TEX by `src/pkg-extract.ts`, cached on disk) through same-origin `/api/skin-center/we/*` routes. Video wallpapers render in a `<video>`, web wallpapers in a sandboxed `<iframe>`, scene wallpapers live in the built-in WebGL player (2D layered scenes and 3D model scenes replayed with WE material/shader semantics); scene-embedded scripts are ignored while supported image, reflection, water and particle passes remain live, and a "static frame" render mode pins a zero-animation-cost image for any type. Per-wallpaper Import copies the project into `<harness-home>/skin-center/wallpapers/` so it survives Steam library changes, with update detection against the workshop original. Wallpapers are the user's own local files and are never uploaded or redistributed — Workshop content belongs to its authors. The Manual folders row accepts loose `.mp4`/`.webm` media, one project, a project collection, a Wallpaper Engine install root, or a Steam library root (`~` expands to the home directory).
 - Legacy migration: on the first boot after the v2 upgrade, a one-shot bridge (`src/legacy-bridge.ts`) reads the retired `dsh-skin` managed section from the harness home `cordis.patch.yml` (where the v1 CLI wrote it; the active profile's `cordis.patch.yml` is probed as a secondary location), migrates the active skin id into the v2 selection store, and strips the legacy rows. The migration is idempotent and fails closed (the old state stays untouched on any error). It logs only when it migrated, cleaned, or failed — the nothing-to-migrate steady state stays silent (issue #788).
 
+## Most popular skins
+
+The three most-liked skins in the Workshop's skin category on [dsh-market.com](https://dsh-market.com), in the site's default popularity order:
+
+| Skin | Author | Look |
+|---|---|---|
+| [Abyssal Maid Atelier](https://dsh-market.com/#skin:maid-atelier) (`maid-atelier`) | Small-tailqwq | Twin-maid atelier backdrop, deep-sea blue lace surfaces and a chibi sidebar |
+| [Whale Song](https://dsh-market.com/#skin:whale-song) (`whale-song`) | dsh-web | Deep-sea whale goddess backdrop, ice-blue ocean palette and gold hairlines |
+| [Blue Fantasy](https://dsh-market.com/#skin:blue-fantasy) (`blue-fantasy`) | powerdog996 (DreamSkin community), adapted by dsh-web | Whale-illustration backdrop, periwinkle indigo palette and translucent panels |
+
+| Abyssal Maid Atelier | Whale Song | Blue Fantasy |
+|---|---|---|
+| ![Abyssal Maid Atelier](skins/maid-atelier/preview/light.jpg) | ![Whale Song](skins/whale-song/preview/light.jpg) | ![Blue Fantasy](skins/blue-fantasy/preview/light.jpg) |
+
+Install any of them from the Workshop in one click; `blue-fantasy` is also the skin this package ships as its built-in default.
+
 ## Install
 
 ```sh
@@ -51,7 +67,7 @@ skin-center is a self-contained bundle meeting the official DSH plugin standard 
 
 ## Telemetry
 
-The browser half sends one anonymous install heartbeat per UTC day to dsh-market.com: a random localStorage id plus this package's name, nothing else. The server stores only a salted hash of that id, never IP addresses, and exposes aggregate counts only. See [docs/telemetry.md](../../../docs/telemetry.md) for the full contract.
+The browser half sends one anonymous install heartbeat per UTC day to dsh-market.com: a random localStorage id plus this package's name, nothing else. The server stores only a salted hash of that id, never IP addresses, and exposes aggregate counts only. See [docs/telemetry.md](../../docs/telemetry.md) for the full contract.
 
 ## Directory structure
 
