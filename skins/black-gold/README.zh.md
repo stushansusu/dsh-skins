@@ -37,6 +37,19 @@
 立绘置于右下、`auto 88%`，以整层 `blur(1.7px)` 羽化；该层 `inset: -48px`，
 好让模糊的软边落在视口之外。横向渐变压暗保住正文列在她的亮部之上可读。
 
+## 素材与许可
+
+`assets/liujin-bg.png` 是作者为本皮肤制作的自有立绘：黑金礼装的金发鲸鱼娘。
+她与作者其他皮肤（`whale-maid` / `whale-song` / `whale-mom` /
+`wallpaper-exclusive`）里的鲸鱼娘同属作者自有的角色线。`assets/` 中 13 个
+SVG 由作者自己的装饰生成器产出。本目录不含任何第三方素材。
+
+皮肤工程（`skin.json` / `skin.css` / `patches.css`）与 `assets/` 中的
+全部素材均为作者原创，按
+[CC BY-NC-SA 4.0](https://creativecommons.org/licenses/by-nc-sa/4.0/) 发布
+（署名 — 非商业性使用 — 相同方式共享）。详见 `skin.json` 的 `license` /
+`licenseUrl` / `attribution` 字段。
+
 ## 预览
 
 `preview/light.jpg` 与 `preview/dark.jpg` 相同——本皮肤按设计就是暗色专用。

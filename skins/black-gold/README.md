@@ -46,6 +46,21 @@ whole-layer `blur(1.7px)`; the layer is `inset: -48px` so the blur's soft edge
 falls outside the viewport. A horizontal scrim keeps the text column readable
 over the bright hair.
 
+## Artwork and license
+
+`assets/liujin-bg.png` is the author's own illustration: the golden-haired
+whale girl in the black-and-gold gown, drawn for this skin. She belongs to the
+same 鲸鱼娘 (whale-girl) character line as the author's other skins
+(`whale-maid`, `whale-song`, `whale-mom`, `wallpaper-exclusive`). The 13
+SVGs in `assets/` come from the author's own ornament generator. No
+third-party material is bundled in this directory.
+
+The skin engineering (`skin.json` / `skin.css` / `patches.css`) and every
+asset in `assets/` are the author's original work, released under
+[CC BY-NC-SA 4.0](https://creativecommons.org/licenses/by-nc-sa/4.0/):
+attribution required, non-commercial only, share-alike. See the `license` /
+`licenseUrl` / `attribution` fields in `skin.json`.
+
 ## Preview
 
 `preview/light.jpg` and `preview/dark.jpg` are identical — the skin is
