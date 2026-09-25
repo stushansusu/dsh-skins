@@ -92,11 +92,9 @@ family / 插件区域：
 | `summon-button` | pet | 召唤钮；`[data-testid="pet-summon"]` |
 | `preset-panel` | preset-center | 创意工坊「预设」标签页面板根；`[data-dsh-plugin="preset-center"] [data-dsh-part="preset-panel"]` |
 | `plugin-item` | web-ui-settings | 家族插件设置卡；`[data-slot="web-ui.plugin.item"]` 内 entry |
-| `head` | skill-explorer | 技能中心模态卡头部；`[data-dsh-plugin="skill-explorer"] [data-dsh-part="card"] > header` |
-| `card` | skill-explorer | 技能中心模态卡；`[data-dsh-plugin="skill-explorer"] [data-dsh-part="card"]` |
-| `tab-bar` / `tab` | skill-explorer | 技能中心页签条/页签；`[data-dsh-plugin="skill-explorer"] [data-dsh-part="tab-bar"]` / `[data-dsh-plugin="skill-explorer"] [data-dsh-part="tab"]` |
+| `tab-bar` / `tab` | skill-explorer | 技能中心页签条/页签（中间列面板，同 ssh）；`[data-dsh-plugin="skill-explorer"] [data-dsh-part="tab-bar"]` / `[data-dsh-plugin="skill-explorer"] [data-dsh-part="tab"]` |
 | `skill-row` | skill-explorer | 技能卡行；`[data-dsh-plugin="skill-explorer"] [data-dsh-part="skill-row"]` |
-| `filter-bar` | skill-explorer | 技能列表筛选条（搜索框 + 工作区选择）；`[data-dsh-plugin="skill-explorer"] [data-dsh-part="filter-bar"]` |
+| `filter-bar` | skill-explorer | 技能列表筛选条（搜索框 + 工作区选择 + 刷新）；`[data-dsh-plugin="skill-explorer"] [data-dsh-part="filter-bar"]` |
 | `entry` | session-id | 侧栏 footer 触发器；`button[data-dsh-part="entry"]`（`[data-dsh-plugin="session-id"]` 容器内） |
 | `panel` | session-id | 会话 ID 模态面板；`[role="dialog"]` 根（`[data-dsh-part="panel"]`） |
 | `row` | session-id | 会话列表行；面板内行容器（`[data-dsh-part="row"]`） |
