@@ -521,10 +521,14 @@ body[data-ds-dark-theme] [data-composer-card] > div:last-child > div:last-child 
   box-shadow: 0 0 0 2px #F2F7FF, 3px 3px 0 #F2F7FF !important;
 }
 
+/* 宿主 0.1.7 的输入框是 Lexical 的 contenteditable（挂 data-composer-input），
+   不再是 textarea。两条都写，谁在谁生效。 */
+[data-composer-card] [data-composer-input],
 [data-composer-card] textarea {
   caret-color: #E8783C !important;
 }
 
+body[data-ds-dark-theme] [data-composer-card] [data-composer-input],
 body[data-ds-dark-theme] [data-composer-card] textarea {
   caret-color: #E0A6FF !important;
 }
@@ -570,6 +574,7 @@ button, input, textarea, select, summary,
 [data-dsh-part='new-session'], [data-dsh-part='composer-chip'], [data-dsh-part='message-row'],
 [data-chat-flow-kind],
 [data-slot='sidebar'] > *, [data-pane='sidebar'] *,
+[data-dsh-surface='details'] *, [data-rightbar-col] *,
 [data-pane='details'] *, [data-dsh-surface='settings'], [data-tooltip-content] {
   border-radius: 0 !important;
 }
@@ -578,5 +583,45 @@ body[data-dsh-wallpaper-active]::after,
 body[data-dsh-backdrop-active]::after {
   background-color: transparent;
   background-image: none;
+}
+
+
+
+/* ══ 设备适配 ══════════════════════════════════════════════════════════════
+   家具是 viewport 级的像素天空/海面层与 4px 像素网。像素皮的比例是设计的一部分，窄屏只做安全区与「别把像素拉变形」两件事。
+
+   目标壳：桌面浏览器 / exe 桌面端（WebView2）/ macOS 桌面（WKWebView）/
+   手机·平板（iOS Safari、Android Chrome）。
+
+   壳自己已经在 ≤768px 把中栏拉满、把侧栏收成浮层轨道（[data-sidebar-collapsed]），
+   dsh-remote-web-ui 的竖屏层再压一轮，所以版式、点击区与安全区不必皮肤操心。
+   皮肤要守的三条：
+     ① 视口高度交给宿主（见下面那条：别去动 [data-dsh-frame] 的高度）；
+     ② 窄屏把 viewport 级的大件家具降一档尺度，别让 460px 的角花盖住 390px 的屏；
+     ③ 弱设备与系统无障碍设置下降档（动效 / 半透明 / 一整屏离屏模糊）。
+   ═══════════════════════════════════════════════════════════════════════ */
+
+/* 视口高度：**不要**在这里给 [data-dsh-frame] 加 height / min-height。
+   宿主自己就把画框设成 100dvh，dsh-web-all 的 ≤768px 层也兜了一遍；
+   而 `min-height: 100dvh` 会把「故意把画框缩短、给上下 HUD 让位」的皮肤重新
+   撑满视口 —— blueprint 用 #root 的 padding + 画框 calc 让出 56px，
+   一旦被撑回 1000，会话滚动区就伸到底栏底下（实测：滚动区底 1030、
+   被 974..1000 的底栏压掉 26px，看起来就是「状态栏挡住后面的内容」）。
+   这一条是 2026-08-30 加设备适配时写进来的，同日撤掉。 */
+
+@media (max-width: 768px) {
+  /* 4px 的像素网在高 DPI 手机上会被亚像素重采样成灰雾，收到 8px（2x 整数倍，
+     像素仍然落在物理像素网格上）。 */
+  body::before,
+  body::after {
+    image-rendering: pixelated;
+  }
+}
+
+/* 触摸指针没有 hover；像素皮的反馈都在 :active / 状态类上，不需要补。 */
+@media (pointer: coarse) {
+  [data-composer-card] > div:last-child > div:last-child > button:active {
+    transform: translate(2px, 2px);
+  }
 }
 
