@@ -151,11 +151,20 @@ body[data-ds-dark-theme] [data-pane='details'] {
 
 /* ── 会话头：一条更薄的纱，压住插画最上面的天空 ─────────────────────────── */
 
+/* 宿主 0.1.7 把 surface 戳打在 0x0 的插槽出口上，面画在那儿看不见；
+   真盒子是出口下面的 <header>（挂在 [data-slot='conversation.header']）。
+   旧宿主的两条都留着，谁在谁生效。 */
+[data-slot='conversation.header'] > header,
+[data-slot='conversation.session.header'] > header,
+[data-dsh-surface='session-header'] > header,
 [data-dsh-surface='session-header'] {
   background-color: #eaf4fd47 !important;
   background-image: none !important;
 }
 
+body[data-ds-dark-theme] [data-slot='conversation.header'] > header,
+body[data-ds-dark-theme] [data-slot='conversation.session.header'] > header,
+body[data-ds-dark-theme] [data-dsh-surface='session-header'] > header,
 body[data-ds-dark-theme] [data-dsh-surface='session-header'] {
   background-color: #050e204d !important;
 }
@@ -827,3 +836,57 @@ body[data-ds-dark-theme] [data-question-key],
 body[data-ds-dark-theme] [data-plan-review-key] {
   box-shadow: 0 0 0 2px #FF6E80, 3px 3px 0 #ff6e8066;
 }
+
+
+/* ══ 设备适配 ══════════════════════════════════════════════════════════════
+   家具是两张 1200/1800px 的气泡瓦片（108s / 62s 上升）与插画底。窄屏要处理的是瓦片尺度与动效降档（瓦片已经在 reduced-motion 里关掉）。
+
+   目标壳：桌面浏览器 / exe 桌面端（WebView2）/ macOS 桌面（WKWebView）/
+   手机·平板（iOS Safari、Android Chrome）。
+
+   壳自己已经在 ≤768px 把中栏拉满、把侧栏收成浮层轨道（[data-sidebar-collapsed]），
+   dsh-remote-web-ui 的竖屏层再压一轮，所以版式、点击区与安全区不必皮肤操心。
+   皮肤要守的三条：
+     ① 视口高度交给宿主（见下面那条：别去动 [data-dsh-frame] 的高度）；
+     ② 窄屏把 viewport 级的大件家具降一档尺度，别让 460px 的角花盖住 390px 的屏；
+     ③ 弱设备与系统无障碍设置下降档（动效 / 半透明 / 一整屏离屏模糊）。
+   ═══════════════════════════════════════════════════════════════════════ */
+
+/* 视口高度：**不要**在这里给 [data-dsh-frame] 加 height / min-height。
+   宿主自己就把画框设成 100dvh，dsh-web-all 的 ≤768px 层也兜了一遍；
+   而 `min-height: 100dvh` 会把「故意把画框缩短、给上下 HUD 让位」的皮肤重新
+   撑满视口 —— blueprint 用 #root 的 padding + 画框 calc 让出 56px，
+   一旦被撑回 1000，会话滚动区就伸到底栏底下（实测：滚动区底 1030、
+   被 974..1000 的底栏压掉 26px，看起来就是「状态栏挡住后面的内容」）。
+   这一条是 2026-08-30 加设备适配时写进来的，同日撤掉。 */
+
+@media (max-width: 768px) {
+  /* 1200/1800px 的瓦片在 390 宽的屏上横向只剩三分之一可见 —— 气泡会挤成竖条。
+     窄屏把瓦片按屏宽收缩，让同一个周期仍然能读出来。 */
+  body[data-dsh-backdrop-active] [data-dsh-skin-layer='background']::before {
+    background-size: 640px 437px;
+  }
+
+  body[data-dsh-backdrop-active] [data-dsh-skin-layer='background']::after {
+    background-size: 900px 575px;
+  }
+
+  /* 位移必须跟着瓦片高度一起改，否则循环不再是无缝的。 */
+  @keyframes whale-maid-bubbles-far {
+    from { background-position: 0 0; }
+    to   { background-position: 0 -437px; }
+  }
+
+  @keyframes whale-maid-bubbles-near {
+    from { background-position: 0 0; }
+    to   { background-position: 0 -575px; }
+  }
+}
+
+@media (prefers-reduced-transparency: reduce) {
+  body[data-dsh-backdrop-active] [data-dsh-skin-layer='background']::before,
+  body[data-dsh-backdrop-active] [data-dsh-skin-layer='background']::after {
+    opacity: 0.18;
+  }
+}
+
