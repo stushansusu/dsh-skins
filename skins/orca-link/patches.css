@@ -679,11 +679,11 @@ body[data-orca-sidebar-wide] .orca-ch-dshWordmark {
   transform: scale(1);
 }
 
-body[data-orca-sidebar-wide] [data-dsh-surface="sidebar"] > :first-child > :first-child:after {
+body[data-orca-sidebar-wide] [data-orca-logo-row]:after {
   animation: .36s cubic-bezier(.22, 1, .36, 1) both orca-ch-orcaWordmarkScan;
 }
 
-body:not([data-orca-sidebar-wide]) [data-dsh-surface="sidebar"] > :first-child > :first-child > button:first-of-type > svg, body:not([data-orca-sidebar-wide]) [data-dsh-surface="sidebar"] > :first-child > :first-child > button:first-of-type [data-slot="sidebar.brand.mark"] svg {
+body:not([data-orca-sidebar-wide]) [data-orca-logo-row] > button:first-of-type > svg, body:not([data-orca-sidebar-wide]) [data-orca-logo-row] > button:first-of-type [data-slot="sidebar.brand.mark"] svg {
   opacity: 0;
 }
 
@@ -1489,7 +1489,7 @@ body[data-orca-sidebar-wide] .orca-ch-signalChip {
   transition: top .18s cubic-bezier(.16, 1, .3, 1), border-color .16s, background-color .16s, color .16s, box-shadow .16s;
   display: flex;
   position: absolute;
-  top: 55px;
+  top: calc(55px + var(--orca-shell-top-inset, 0px));
   left: 50%;
   transform: translate(-50%);
   box-shadow: 0 5px 12px #1b273a24;
@@ -1501,7 +1501,7 @@ body[data-orca-sidebar-wide] [data-dsh-surface="sidebar"] > :first-child > .orca
   gap: 4px;
   padding: 1px 5px;
   font-size: 7px;
-  top: 46px;
+  top: calc(46px + var(--orca-shell-top-inset, 0px));
   left: 4px;
   transform: none;
 }
@@ -2086,7 +2086,7 @@ body[data-orca-scene="hero"] .orca-ch-standby {
     transition: none;
   }
 
-  [data-dsh-surface="sidebar"] > :first-child > :first-child:after, .orca-ch-signalDot, [data-orca-link-icon="spinner"] [data-orca-link-spinner-seq], [data-orca-link-icon="todo-progress"] [data-orca-link-todo-progress-cell], body[data-orca-settings-open] [data-slot="sidebar.settings"] > [role="presentation"] > :first-child, body[data-orca-settings-open] [data-slot="sidebar.settings"] > [role="presentation"] > [role="dialog"], body[data-orca-settings-open] [data-slot="sidebar.settings"] > [role="presentation"] > [role="dialog"]:before, body[data-orca-settings-open] [data-slot="sidebar.settings"] > [role="presentation"] > [role="dialog"]:after, [data-phase="hero"] [class*="headlineText"]:after, [data-composer-seat][data-orca-composer-entering], [data-orca-composer-ghost], [data-composer-seat][data-orca-composer-restoring], [data-orca-composer-restore] {
+  [data-orca-logo-row]:after, .orca-ch-signalDot, [data-orca-link-icon="spinner"] [data-orca-link-spinner-seq], [data-orca-link-icon="todo-progress"] [data-orca-link-todo-progress-cell], body[data-orca-settings-open] [data-slot="sidebar.settings"] > [role="presentation"] > :first-child, body[data-orca-settings-open] [data-slot="sidebar.settings"] > [role="presentation"] > [role="dialog"], body[data-orca-settings-open] [data-slot="sidebar.settings"] > [role="presentation"] > [role="dialog"]:before, body[data-orca-settings-open] [data-slot="sidebar.settings"] > [role="presentation"] > [role="dialog"]:after, [data-phase="hero"] [class*="headlineText"]:after, [data-composer-seat][data-orca-composer-entering], [data-orca-composer-ghost], [data-composer-seat][data-orca-composer-restoring], [data-orca-composer-restore] {
     animation: none;
   }
 

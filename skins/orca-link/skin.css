@@ -133,11 +133,14 @@ body[data-ds-dark-theme] {
   --orca-permission-full: #ff7771;
 }
 
-[data-dsh-surface="sidebar"] > :first-child > :first-child {
+/* The brand row, marked by the hooks on every shell; the macOS desktop shell
+   inserts a traffic-light strip as the sidebar's first child, so the row cannot
+   be addressed positionally. */
+[data-orca-logo-row] {
   position: relative;
 }
 
-[data-dsh-surface="sidebar"] > :first-child > :first-child:after {
+[data-orca-logo-row]:after {
   content: "";
   z-index: 2;
   opacity: 0;

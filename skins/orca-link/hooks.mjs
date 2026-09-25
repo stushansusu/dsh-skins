@@ -82,12 +82,22 @@ const DARK_HERO_ART_PROPERTY = '--orca-link-dark-hero-art'
 const DARK_ACTIVE_ART_PROPERTY = '--orca-link-dark-active-art'
 const SIDEBAR_WIDTH_PROPERTY = '--orca-sidebar-width'
 const SIDEBAR_ART_WIDTH_PROPERTY = '--orca-sidebar-art-width'
+const SHELL_TOP_INSET_PROPERTY = '--orca-shell-top-inset'
 const SIDEBAR_WIDE_ATTRIBUTE = 'data-orca-sidebar-wide'
 const SCENE_ATTRIBUTE = 'data-orca-scene'
 const BODY_SKIN_ATTRIBUTE = 'data-dsh-orca-link'
 const APP_FRAME_SELECTOR = "[id='root'] > div[data-slot='root'] > div"
 const SIDEBAR_PANE_SELECTOR = "[data-slot='sidebar'] > :first-child"
-const SIDEBAR_LOGO_ROW_SELECTOR = "[data-slot='sidebar'] > :first-child > :first-child"
+/* The brand row is the pane child that hosts the shell's brand slots, not
+ * simply the first one: the macOS desktop shell opens the column with a 52px
+ * traffic-light strip (it carries the collapse toggle and clears the
+ * hiddenInset window buttons), so the brand row is its sibling below. The
+ * strip hosts no brand slot, so the slot-bearing child is the row in every
+ * shell. The positional selector stays as the fallback for a shell that
+ * renders no brand (the collapsed rail). */
+const SIDEBAR_BRAND_ROW_SELECTOR = SIDEBAR_PANE_SELECTOR + " > :has([data-slot='sidebar.brand.mark'])"
+const SIDEBAR_LOGO_ROW_SELECTOR = SIDEBAR_PANE_SELECTOR + ' > :first-child'
+const LOGO_ROW_ATTRIBUTE = 'data-orca-logo-row'
 const CONVERSATION_SCROLL_SELECTOR = '[data-conversation-scroll]'
 const CHAT_FLOW_SELECTOR = '[data-chat-flow]'
 const COMPOSER_SEAT_SELECTOR = '[data-composer-seat]'
@@ -889,6 +899,7 @@ export default function defineSkinHooks() {
         DARK_ACTIVE_ART_PROPERTY,
         SIDEBAR_WIDTH_PROPERTY,
         SIDEBAR_ART_WIDTH_PROPERTY,
+        SHELL_TOP_INSET_PROPERTY,
       ]
       const previousStyles = new Map(styleProperties.map((property) => [property, body.style.getPropertyValue(property)]))
       const hadStyleAttribute = body.hasAttribute('style')
@@ -1017,15 +1028,57 @@ export default function defineSkinHooks() {
       /* ------------------------ wordmark + signal ---------------------- */
 
       const ownedWordmarkNodes = []
+      // The pane child that hosts the shell's brand slots, falling back to the
+      // first pane child when the shell renders no brand (collapsed rail).
+      const sidebarLogoRowOf = () => {
+        const branded = doc.querySelector(SIDEBAR_BRAND_ROW_SELECTOR)
+        if (branded instanceof HTMLElement) return branded
+        const first = doc.querySelector(SIDEBAR_LOGO_ROW_SELECTOR)
+        return first instanceof HTMLElement ? first : null
+      }
+      // The row child that hosts the shell's brand mark/name. The expanded
+      // brand is a New Session button on the browser shell and a plain span on
+      // the macOS desktop shell, so resolve it from the brand slots rather than
+      // from the button shape.
+      const brandHostOf = (row) => {
+        const identity = row.querySelector("[data-slot='sidebar.brand.mark'], [data-slot='sidebar.brand.name']")
+        let host = identity
+        while (host !== null && host.parentElement !== row) host = host.parentElement
+        return host
+      }
+      let mountedLogoRow = null
+      let measuredShellChild = null
+      // How far the shell pushed the brand row below the sidebar's content
+      // start: 0 on the browser shell, the macOS desktop traffic-light strip on
+      // the darwin shell. The skin's pane-anchored top-left chrome follows it.
+      const syncShellTopInset = (row, pane) => {
+        const first = pane.firstElementChild
+        if (mountedLogoRow === row && measuredShellChild === first) return
+        measuredShellChild = first
+        const contentTop = pane.getBoundingClientRect().top
+          + Number.parseFloat(view.getComputedStyle(pane).paddingTop || '0')
+        const inset = Math.max(0, Math.round(row.getBoundingClientRect().top - contentTop))
+        body.style.setProperty(SHELL_TOP_INSET_PROPERTY, inset + 'px')
+      }
       const mountDshWordmark = () => {
-        const row = doc.querySelector(SIDEBAR_LOGO_ROW_SELECTOR)
-        if (!(row instanceof HTMLElement)) return false
+        const row = sidebarLogoRowOf()
+        if (row === null) return false
+        row.setAttribute(LOGO_ROW_ATTRIBUTE, '')
+        const pane = row.parentElement
+        if (pane !== null) syncShellTopInset(row, pane)
+        if (mountedLogoRow !== null && mountedLogoRow !== row) {
+          mountedLogoRow
+            .querySelectorAll(':scope > [data-orca-link-wordmark], :scope > [data-orca-link-signal]')
+            .forEach((stale) => stale.remove())
+        }
+        mountedLogoRow = row
         const buttons = Array.from(row.querySelectorAll(':scope > button'))
         const brand = buttons.find((button, index) => {
           const label = button.getAttribute('aria-label') ?? ''
           return index === 0 && (buttons.length > 1 || !/sidebar|侧边栏/i.test(label))
         })
-        if (brand) brand.dataset.orcaLinkBrand = ''
+        const brandHost = brand ?? brandHostOf(row)
+        if (brandHost) brandHost.dataset.orcaLinkBrand = ''
         if (!row.querySelector(':scope > [data-orca-link-wordmark]')) {
           const wordmark = doc.createElementNS(SVG_NS, 'svg')
           wordmark.classList.add(CH.dshWordmark)
@@ -2705,6 +2758,8 @@ export default function defineSkinHooks() {
         wordmarkObserver.disconnect()
         doc.querySelectorAll('[data-orca-link-wordmark], [data-orca-link-signal]').forEach((node) => node.remove())
         doc.querySelectorAll('[data-orca-link-brand]').forEach((node) => node.removeAttribute('data-orca-link-brand'))
+        doc.querySelectorAll('[' + LOGO_ROW_ATTRIBUTE + ']').forEach((node) => node.removeAttribute(LOGO_ROW_ATTRIBUTE))
+        mountedLogoRow = null
       })
     },
   }

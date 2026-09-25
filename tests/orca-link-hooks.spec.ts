@@ -33,6 +33,51 @@ function sidebarFixture(): void {
   document.body.append(sidebar)
 }
 
+/**
+ * The sidebar shell as the macOS desktop client renders it: the column opens
+ * with the 52px traffic-light strip that carries the collapse toggle, and the
+ * brand row (a plain span, not a New Session button) is the sibling below it.
+ */
+function darwinSidebarFixture(): { pane: HTMLElement; strip: HTMLElement; logoRow: HTMLElement } {
+  const sidebar = document.createElement('div')
+  sidebar.setAttribute('data-slot', 'sidebar')
+  const pane = document.createElement('div')
+
+  const strip = document.createElement('div')
+  strip.className = 'pjj1TG_topStrip'
+  strip.setAttribute('data-window-drag', 'true')
+  const toggle = document.createElement('button')
+  toggle.setAttribute('aria-label', 'Collapse sidebar')
+  strip.append(toggle)
+
+  const logoRow = document.createElement('div')
+  logoRow.className = 'pjj1TG_logoRow'
+  logoRow.setAttribute('data-window-drag', 'true')
+  const brand = document.createElement('span')
+  brand.className = 'pjj1TG_brand'
+  const identity = document.createElement('span')
+  identity.className = 'pjj1TG_brandIdentity'
+  const mark = document.createElement('span')
+  mark.className = 'pjj1TG_brandMark'
+  const markSlot = document.createElement('div')
+  markSlot.setAttribute('data-slot', 'sidebar.brand.mark')
+  markSlot.append(document.createElementNS('http://www.w3.org/2000/svg', 'svg'))
+  const name = document.createElement('span')
+  name.className = 'pjj1TG_brandName'
+  const nameSlot = document.createElement('div')
+  nameSlot.setAttribute('data-slot', 'sidebar.brand.name')
+  mark.append(markSlot)
+  name.append(nameSlot)
+  identity.append(mark, name)
+  brand.append(identity)
+  logoRow.append(brand)
+
+  pane.append(strip, logoRow)
+  sidebar.append(pane)
+  document.body.append(sidebar)
+  return { pane, strip, logoRow }
+}
+
 function conversationFixture(phase: string): HTMLElement {
   const root = document.createElement('div')
   root.setAttribute('data-phase', phase)
@@ -117,6 +162,48 @@ describe('orca-link hooks: scene layers and chrome', () => {
     runCleanup()
     expect(document.body.querySelector('[data-orca-link-signal]')).toBeNull()
     expect(document.body.querySelector('[data-orca-link-wordmark]')).toBeNull()
+  })
+
+  it('seats the wordmark and signal chip in the brand row on the macOS desktop shell', () => {
+    const { ctx, runCleanup } = setup()
+    const { strip, logoRow } = darwinSidebarFixture()
+    defineSkinHooks().apply(ctx)
+
+    // Given the desktop shell's traffic-light strip and brand row, the chrome
+    // lands in the brand row: the strip must stay clear of the window buttons.
+    expect(logoRow.querySelector('[data-orca-link-wordmark]')).not.toBeNull()
+    expect(logoRow.querySelector('[data-orca-link-signal]')).not.toBeNull()
+    expect(strip.querySelector('[data-orca-link-wordmark]')).toBeNull()
+    expect(strip.querySelector('[data-orca-link-signal]')).toBeNull()
+    expect(logoRow.getAttribute('data-orca-logo-row')).toBe('')
+    expect(strip.hasAttribute('data-orca-logo-row')).toBe(false)
+    // The shell's own brand artwork is replaced by the wordmark on this shell
+    // too, where the brand host is the span rather than the button.
+    expect(logoRow.querySelector(':scope > span')?.getAttribute('data-orca-link-brand')).toBe('')
+
+    runCleanup()
+    expect(document.body.querySelector('[data-orca-logo-row]')).toBeNull()
+    expect(document.body.querySelector('[data-orca-link-brand]')).toBeNull()
+  })
+
+  it('keeps one wordmark in the brand row when the desktop strip appears late', async () => {
+    const { ctx, runCleanup, flush } = setup()
+    const { pane, strip, logoRow } = darwinSidebarFixture()
+    strip.remove()
+    defineSkinHooks().apply(ctx)
+    expect(logoRow.querySelector('[data-orca-link-wordmark]')).not.toBeNull()
+
+    // When the shell inserts the caption strip above the brand row
+    pane.prepend(strip)
+    await flush()
+
+    // Then the chrome stays in the brand row, exactly once
+    expect(strip.querySelector('[data-orca-link-wordmark]')).toBeNull()
+    expect(document.querySelectorAll('[data-orca-link-wordmark]')).toHaveLength(1)
+    expect(document.querySelectorAll('[data-orca-link-signal]')).toHaveLength(1)
+    expect(logoRow.getAttribute('data-orca-logo-row')).toBe('')
+
+    runCleanup()
   })
 
   it('projects the conversation phase onto body[data-orca-scene] and back', async () => {
