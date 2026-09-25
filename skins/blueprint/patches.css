@@ -521,10 +521,12 @@ body[data-ds-dark-theme] .dsh-bp-grain {
      ③ 弱设备与系统无障碍设置下降档（动效 / 半透明 / 一整屏离屏模糊）。
    ═══════════════════════════════════════════════════════════════════════ */
 
+/* 只换单位，别加 min-height：上面那条 height 带 !important，dvh 版要同样带 !important
+   才盖得住；而 min-height 在这里没有竞争者，会把画框重新撑满视口，压掉让它让位的
+   两条 HUD 横条（pixel-anime 的注释记的就是这个坑）。 */
 @supports (height: 100dvh) {
   [data-dsh-frame] {
-    height: 100dvh;
-    min-height: 100dvh;
+    height: calc(100dvh - var(--dsh-bp-bar-top) - var(--dsh-bp-bar-bottom)) !important;
   }
 }
 
