@@ -5,6 +5,9 @@
 # 二进制文件（git 自动检测之外的显式声明，防止被 text=auto 误判）
 *.png binary
 *.jpg binary
+*.mp4 binary
+*.webm binary
+*.mov binary
 *.jpeg binary
 *.gif binary
 *.webp binary
