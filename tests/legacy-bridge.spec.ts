@@ -301,16 +301,29 @@ describe('migrateLegacySelection', () => {
 describe('migrateLegacySelection home/profile patch probing (issue #788)', () => {
   let home: string
   let savedHome: string | undefined
+  let savedProfile: string | undefined
+  let savedSkinProfile: string | undefined
 
   beforeEach(() => {
     home = mkdtempSync(join(tmpdir(), 'legacy-bridge-home-'))
     savedHome = process.env.DSH_HOME
+    savedProfile = process.env.DSH_PROFILE
+    savedSkinProfile = process.env.DSH_SKIN_PROFILE
     process.env.DSH_HOME = home
+    // The temp fixture writes profiles/web/cordis.patch.yml; a host-injected
+    // DSH_PROFILE (any value) would redirect patchPath to another profile and
+    // break the probing under test. Pin the selectors for determinism.
+    delete process.env.DSH_PROFILE
+    delete process.env.DSH_SKIN_PROFILE
   })
 
   afterEach(() => {
     if (savedHome === undefined) delete process.env.DSH_HOME
     else process.env.DSH_HOME = savedHome
+    if (savedProfile === undefined) delete process.env.DSH_PROFILE
+    else process.env.DSH_PROFILE = savedProfile
+    if (savedSkinProfile === undefined) delete process.env.DSH_SKIN_PROFILE
+    else process.env.DSH_SKIN_PROFILE = savedSkinProfile
     rmSync(home, { recursive: true, force: true })
   })
 
