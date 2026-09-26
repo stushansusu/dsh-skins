@@ -140,8 +140,11 @@ body[data-ds-dark-theme] {
   --dsw-alias-tooltip-fg: #eaf6ff;
 
   --dsw-alias-shadow-lv1: 0 1px 2px #12324f1f;
+  --dsw-shadow-lv1: 0 1px 2px #12324f1f;
   --dsw-alias-shadow-lv2: 0 4px 14px #12324f24;
+  --dsw-shadow-lv2: 0 4px 14px #12324f24;
   --dsw-alias-shadow-lv3: 0 12px 32px #12324f2e;
+  --dsw-shadow-lv3: 0 12px 32px #12324f2e;
 
   /* 外壳专属面（这些名字平台读的是**不带 alias-** 的那一套） */
 
@@ -298,8 +301,11 @@ body[data-ds-dark-theme] {
   --dsw-alias-tooltip-fg: #dbe8ff;
 
   --dsw-alias-shadow-lv1: 0 1px 2px #00000073;
+  --dsw-shadow-lv1: 0 1px 2px #00000073;
   --dsw-alias-shadow-lv2: 0 4px 12px #00000080;
+  --dsw-shadow-lv2: 0 4px 12px #00000080;
   --dsw-alias-shadow-lv3: 0 12px 32px #0000008c;
+  --dsw-shadow-lv3: 0 12px 32px #0000008c;
 
   --dsw-specific-bubble: #16294fe6;
   --dsw-specific-bubble-highlight: #22407a;

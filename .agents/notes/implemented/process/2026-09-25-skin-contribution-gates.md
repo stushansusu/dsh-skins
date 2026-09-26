@@ -84,3 +84,9 @@ item named and the evidence quoted, rather than merged with a follow-up promise.
   including one genuine functional regression caught by reading the stylesheet
   rather than the description (`min-height: 100dvh` on `[data-dsh-frame]`
   overriding the skin's own `height: calc(100vh - 56px) !important`).
+- Verification: at the 2026-09-26 round the three gates were again decisive —
+  three skins were merged (two new, one adaptation), and three were held: two on
+  the frame-height convention now recorded in
+  [the frame height note](2026-09-26-frame-height-belongs-to-the-host.md), and
+  one on a stale generated registry plus two documentation defects that the
+  licensing and evidence gates do not cover.
