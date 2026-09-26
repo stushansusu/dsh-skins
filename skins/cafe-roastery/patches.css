@@ -248,16 +248,15 @@ body[data-ds-dark-theme] [data-pane="details"] {
 
    壳自己已经在 ≤768px 把中栏拉满、把侧栏收成浮层轨道（[data-sidebar-collapsed]），
    dsh-remote-web-ui 的竖屏层再压一轮，所以皮肤只需要守三条：
-     ① 视口高度用 dvh 兜住 iOS 地址栏；② 窄屏把「按正方形画的」装饰收掉，
-     别让同心圆被竖屏拉成椭圆；③ 系统开了减动效 / 减透明就降档。
+     ① 不要在这里给 [data-dsh-frame] 加 height / min-height —— 宿主自己就把画框设成
+        100dvh，dsh-web-all 的 ≤768px 层也兜了一遍；而 `min-height: 100dvh` 会把
+        「故意把画框缩短、给上下 HUD 让位」的皮肤重新撑满视口（blueprint 用 #root 的
+        padding + 画框 calc 让出 56px，一旦被撑回，会话滚动区就伸到底栏底下）。同批
+        其它皮肤（whale-maid / pixel-anime / observatory / ice-princess /
+        shangmei-jinbi）也是这么约定的。
+     ② 窄屏把「按正方形画的」装饰收掉，别让同心圆被竖屏拉成椭圆；
+     ③ 系统开了减动效 / 减透明就降档。
    ═════════════════════════════════════════════════════════════════════════ */
-
-@supports (height: 100dvh) {
-  [data-dsh-frame] {
-    height: 100dvh;
-    min-height: 100dvh;
-  }
-}
 
 @media (max-width: 768px) {
   /* 侧栏这时是一条盖在会话上的浮层：只留渐隐。细密木纹（4px 周期）在手机上
