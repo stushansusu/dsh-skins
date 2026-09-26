@@ -189,15 +189,23 @@ body[data-ds-dark-theme] [data-pane="sidebar"] {
 }
 
 /**
- * The right-hand panel of the sidebar-cards plugin paints an opaque
- * `bg-layer-1` fill. It exposes stable semantic attributes of its own
- * (`data-dsh-panel` / `data-dsh-bottom-panel`), so no hashed class is needed.
- * Matched to the left column's alpha so both columns read as one sheet.
+ * The right-hand panel paints an opaque `bg-layer-1` fill. Matched to the left
+ * column's alpha so both columns read as one sheet.
+ *
+ * Host 0.1.7 moved the right column to the official `[data-rightbar-col]`
+ * element (the skin center stamps it `data-dsh-surface="details"`); the
+ * sidebar-cards plugin attributes the rule originally used no longer exist on
+ * the current shell. All three dialects are listed so old and new hosts paint
+ * the same sheet.
  */
+[data-dsh-surface="details"],
+[data-rightbar-col],
 [data-dsh-panel="true"]:not([data-dsh-bottom-panel]) {
   background-color: #f8f3e8d9 !important;
 }
 
+body[data-ds-dark-theme] [data-dsh-surface="details"],
+body[data-ds-dark-theme] [data-rightbar-col],
 body[data-ds-dark-theme] [data-dsh-panel="true"]:not([data-dsh-bottom-panel]) {
   background-color: #0d3152d9 !important;
 }
@@ -497,3 +505,68 @@ body[data-ds-dark-theme] .dsh-bp-grain {
     animation: none;
   }
 }
+
+
+/* ══ 设备适配 ══════════════════════════════════════════════════════════════
+   家具是 viewport 级的图纸网格（body::before）、角落定位角标记（body::after）与 hooks.mjs 注入的两条 HUD 横条。
+
+   目标壳：桌面浏览器 / exe 桌面端（WebView2）/ macOS 桌面（WKWebView）/
+   手机·平板（iOS Safari、Android Chrome）。
+
+   壳自己已经在 ≤768px 把中栏拉满、把侧栏收成浮层轨道（[data-sidebar-collapsed]），
+   dsh-remote-web-ui 的竖屏层再压一轮，所以版式、点击区与安全区不必皮肤操心。
+   皮肤要守的三条：
+     ① 视口高度用 dvh 兜住 iOS 地址栏；
+     ② 窄屏把 viewport 级的大件家具降一档尺度，别让 460px 的角花盖住 390px 的屏；
+     ③ 弱设备与系统无障碍设置下降档（动效 / 半透明 / 一整屏离屏模糊）。
+   ═══════════════════════════════════════════════════════════════════════ */
+
+/* 只换单位，别加 min-height：上面那条 height 带 !important，dvh 版要同样带 !important
+   才盖得住；而 min-height 在这里没有竞争者，会把画框重新撑满视口，压掉让它让位的
+   两条 HUD 横条（pixel-anime 的注释记的就是这个坑）。 */
+@supports (height: 100dvh) {
+  [data-dsh-frame] {
+    height: calc(100dvh - var(--dsh-bp-bar-top) - var(--dsh-bp-bar-bottom)) !important;
+  }
+}
+
+@media (max-width: 768px) {
+  /* 24px 细格在手机上密度翻倍，读起来是噪声；主格线一并从 120 收到 160 保住层级。 */
+  body::before {
+    background-image:
+      repeating-linear-gradient(to right, #6b5a3e0f 0 1px, transparent 1px 32px),
+      repeating-linear-gradient(to bottom, #6b5a3e0f 0 1px, transparent 1px 32px),
+      repeating-linear-gradient(to right, #6b5a3e1f 0 1px, transparent 1px 160px),
+      repeating-linear-gradient(to bottom, #6b5a3e1f 0 1px, transparent 1px 160px);
+  }
+
+  body[data-ds-dark-theme]::before {
+    background-image:
+      repeating-linear-gradient(to right, #9fd8ff0f 0 1px, transparent 1px 32px),
+      repeating-linear-gradient(to bottom, #9fd8ff0f 0 1px, transparent 1px 32px),
+      repeating-linear-gradient(to right, #9fd8ff1f 0 1px, transparent 1px 160px),
+      repeating-linear-gradient(to bottom, #9fd8ff1f 0 1px, transparent 1px 160px);
+  }
+
+  /* HUD 横条是 10px 等宽字压在一次会话正文之上；手机上再降 1px，并让出安全区。 */
+  .dsh-bp-titlebar,
+  .dsh-bp-statusbar {
+    font-size: 9px;
+    padding-left: max(12px, env(safe-area-inset-left));
+    padding-right: max(12px, env(safe-area-inset-right));
+  }
+
+  /* 角落定位角标记原本离边 10 / 38 / 34px，刘海与 home 指示条会盖掉它。 */
+  body::after {
+    background-position:
+      left max(10px, env(safe-area-inset-left)) top max(38px, env(safe-area-inset-top)),
+      left max(10px, env(safe-area-inset-left)) top max(38px, env(safe-area-inset-top)),
+      right max(10px, env(safe-area-inset-right)) top max(38px, env(safe-area-inset-top)),
+      right max(10px, env(safe-area-inset-right)) top max(38px, env(safe-area-inset-top)),
+      left max(10px, env(safe-area-inset-left)) bottom max(34px, env(safe-area-inset-bottom)),
+      left max(10px, env(safe-area-inset-left)) bottom max(34px, env(safe-area-inset-bottom)),
+      right max(10px, env(safe-area-inset-right)) bottom max(34px, env(safe-area-inset-bottom)),
+      right max(10px, env(safe-area-inset-right)) bottom max(34px, env(safe-area-inset-bottom));
+  }
+}
+
