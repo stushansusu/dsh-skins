@@ -16,7 +16,14 @@
 | 轮次 | 磁盘文件 sha256（与分支 blob 一致） | 接口回读 sha256 | 长度 | 含 `[class*='md-code-block']` |
 | --- | --- | --- | --- | --- |
 | base（`upstream/main`，19109 B） | `85474dcfabc1840dd69041fb95a49d0c136b99d9ca8d49a6c6129e79792854bc` | `384d76be0bfd6e4c1bfd8ac20ffd933de7131fe4682085091c05f5c9bb899740` | 18617 | 否 |
-| head（本分支，22434 B） | `7537f984255b1ed0e0153948ea3f61cbe86dca0b5b12069ad474f06c95abd46c` | `add7cad1b5e5a3d16edf992635a1ef1d1ea4ed71cfb5cbadefd9c0dec60938bc` | 21037 | 是 |
+| after 拍摄轮（本分支 `b09554e`，22434 B） | `7537f984255b1ed0e0153948ea3f61cbe86dca0b5b12069ad474f06c95abd46c` | `add7cad1b5e5a3d16edf992635a1ef1d1ea4ed71cfb5cbadefd9c0dec60938bc` | 21037 | 是 |
+| 当前 head（本分支 `27bb789`，22834 B） | `f9156fc456ad215dc5533d4187af162107e7153621deb2b57be98bf9c2d51138` | `cc76a3ea3f9a9fea5d4c4fb0e8ba8a7be80d6fe9950077de458af7d54cfe9466` | 21226 | 是 |
+
+`27bb789` 相对拍摄轮只删掉了 `@supports (height: 100dvh) { [data-dsh-frame] { ... } }` 那一段
+（复核意见）。这一段不影响上面任何一张 after 图的画面：宿主自己就把画框钉成 100dvh，
+black-gold 也不缩短画框，删掉之后 `[data-dsh-frame]` 的实际尺寸与删除前相同——它恢复的是宿主
+`[data-dsh-frame] { min-height: 0 }` 那条 shim 的语义（也就是复核意见指出的那一点）。所以 after
+那一列沿用 `b09554e` 的拍摄结果，没有重新出图。
 
 ## 量到的差异（浏览器 computed style）
 
