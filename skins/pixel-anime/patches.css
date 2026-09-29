@@ -373,6 +373,17 @@ body[data-ds-dark-theme]::after {
   background-repeat: no-repeat, no-repeat, no-repeat, no-repeat, no-repeat, no-repeat, no-repeat, no-repeat, repeat, repeat, no-repeat, no-repeat, no-repeat, repeat-x, repeat-x, no-repeat, no-repeat, no-repeat, no-repeat, no-repeat, no-repeat, no-repeat, no-repeat, no-repeat, no-repeat, no-repeat, no-repeat, no-repeat, no-repeat, no-repeat, no-repeat, no-repeat, no-repeat, no-repeat, no-repeat, no-repeat, no-repeat, no-repeat, no-repeat, no-repeat, no-repeat, no-repeat, no-repeat, no-repeat, no-repeat, no-repeat;
 }
 
+/* ── 桌面端壳层让路（engine frame）─────────────────────────────────────────
+   画布是 body::after（z-index:-1 的整屏像素场景）。外壳在 [data-dsh-frame] /
+   [data-phase] 上铺一层不透明底，桌面端（DeepSeek Harness.exe，dsh-app://app）
+   实测整屏实色、场景一次都没画出来；浏览器壳上那两层本来就是透明的，所以这个
+   bug 只在桌面端复现。姊妹皮 whale-fantasy / rainy-night 的老规矩就是置透明，
+   这里对齐；只动底色，不动任何几何。 */
+body [data-phase],
+body [data-dsh-frame] {
+  background-color: transparent !important;
+}
+
 [data-slot='sidebar'] > *, [data-dsh-surface='sidebar'], [data-pane='sidebar'] {
   background-image:
     repeating-conic-gradient(#0b1d260f 0 25%, transparent 0 50%),
