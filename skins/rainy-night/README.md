@@ -17,7 +17,7 @@ language, one colour apart.
   remap) + `patches.css` (L3 free selectors) + one video. No package.json, no build
   step, no hooks.
 - **A video background** (`backgroundMedia.type = "video"`): 1920x988, 851 frames,
-  35.46s, 48.5 MB — the second skin in this repository to exercise that path.
+  35.46s, 16.55 MB (15.8 MiB) — the second skin in this repository to exercise that path.
 - **Dark only**: the same dark palette is declared for light and dark, and the skin is
   rendered identically whichever theme the system asks for.
 
@@ -48,27 +48,45 @@ let `object-fit: cover` spread those bars across the viewport.
 | step | what happens |
 | --- | --- |
 | crop | `crop=1920:988:0:46` |
-| encode | **1920 native width** / 24fps / **CRF 17** / preset slow / **tune film** / level 4.1 |
+| encode | **1920 native width** / 24fps / **CRF 25** / preset slow / **tune film** / level 4.1 |
 | grade | **none** — the author's footage is not recoloured |
-| loop | the last 1.2s fades to pure black; the source's first frame is already black, so the join is black-to-black: **851 frames / 35.458s / 48.52 MB**, join difference **0.00** |
+| loop | the last 1.2s fades to pure black; the source's first frame is already black, so the join is black-to-black: **851 frames / 35.458s / 16.55 MB**, join difference **0.00** |
 
 The clip is a four-stage reveal, which is why it is kept whole: black -> animated
 outline -> a grid grows inside the outline -> a scan band converts the grid into the
 finished character -> about 28 seconds of finished scene.
 
-**The encode is not lossy relative to the source.** It was picked by measurement, not by
-habit:
+**The encode is deliberately lossy, and the size is the reason.** The first revision of
+this skin shipped a 48.5 MB / 10.94 Mbps encode that was not lossy relative to the
+source. That one blob was 41.7% of every byte in this repository and larger than every
+other skin's assets combined, and a repository with no Git LFS makes every clone pay for
+it. CRF 25 keeps native width — the one thing not to trade — and cuts the file to a
+third.
 
 | setting | bitrate | SSIM |
 | --- | --- | --- |
-| source video stream | 11.36 Mbps | 1.0 |
-| **CRF 17 (shipped)** | **12.21 Mbps** | **0.9922** |
-| CRF 14 | 18.39 Mbps | 0.9943 |
+| source video stream | 11.36 Mbps (15-20s sample) | 1.0 |
+| **CRF 25 (shipped) — 16.55 MB whole file** | **3.73 Mbps (whole file)** | **0.984** |
+| CRF 20 | 8.03 Mbps (15-20s sample) | 0.990 |
+| CRF 14 | 18.39 Mbps (15-20s sample) | 0.9943 |
+
+The shipped row is the whole file's own arithmetic (`16,549,139 bytes x 8 / 35.458 s`),
+not a sample's. The two differ by about 11% on this footage — the source's whole-file
+stream is 10.35 Mbps while its 15-20s sample measures 11.36 — and quoting the sample is
+how the first revision's table came to advertise 12.21 Mbps for a 10.94 Mbps file. SSIM
+is measured on the 15-20s bright-picture window, the harshest stretch; the 6.5s black
+opening compresses far better (the loop reads 0.985 with the 29 fade-out frames
+excluded).
+
+Every other number in this README — the compositing regression, the contrast table, the
+screenshots — was measured against the first (CRF 17) bake. The shipped encode is the same
+851 frames within SSIM 0.984 of that footage and moves no geometry, so those readings still
+describe this skin; they have not been re-measured.
 
 An earlier revision of this skin downscaled to 1792 and used CRF 28 (2.5 Mbps, SSIM
-0.9699). It was visibly soft and the author caught it immediately — which is the reason
-this table exists. **Do not downscale below the source width**: the video is composited
-at about 1939 CSS px wide, so native width is the only 1:1 option.
+0.9699). It was visibly soft and the author caught it immediately — which is why CRF, not
+width, is the knob this skin turns. **Do not downscale below the source width**: the
+video is composited at about 1939 CSS px wide, so native width is the only 1:1 option.
 
 ### Two half-frame traps
 
@@ -121,8 +139,9 @@ against a decoded mean of 65.0. After moving the glass onto the element that act
 has the band's box (`[data-slot='conversation.header'] > header`, measured
 280,0,1400,76), the same regression reads **0.967**.
 
-The merged `whale-fantasy` still carries the old rule and therefore still has the veil;
-the same one-line retarget applies there. Happy to send it as a follow-up.
+The merged `whale-fantasy` carried the same rule; this pull request retargets it there
+too (`skins/whale-fantasy/patches.css`, with the measurement in that file's comment), so
+no skin in the catalog ships the veil.
 
 ## The holographic layer
 
@@ -170,10 +189,19 @@ the footage is at its brightest behind it. The composer card is deliberately not
 `preview/light.jpg` and `preview/dark.jpg` are the same render — this skin is dark only.
 They are captured from the try-on page against the shipped video, not from a colour card.
 
-## License
+## Licence and provenance
 
-The skin engineering (`skin.json` / `skin.css` / `patches.css`, the palette and every
-holographic rule) is the author's original work. The background video was provided by
-the author as source footage and processed by the bake pipeline described above. Both are
-released under [CC BY-NC-SA 4.0](LICENSE): attribution required, non-commercial,
-share-alike.
+| part | where it comes from | rights holder |
+| --- | --- | --- |
+| skin engineering — `skin.json`, `skin.css`, `patches.css`, the palette and every holographic rule | the author's original work | stushansusu |
+| background video — `assets/rainy-night-loop.mp4` | **AI-generated for this skin**: the author wrote the shot-by-shot prompt and supplied the reference still, rendered it with a generative video model, and cut the 35.5s export in DaVinci Resolve. No third-party footage, music or illustration is bundled, and none of it is a re-upload | stushansusu |
+| character — 「鲸鱼娘」/ Whale Girl | the author's own character line, shared with the sibling skin `whale-fantasy` | stushansusu |
+
+The skin engineering is released under [CC BY-NC-SA 4.0](LICENSE): attribution required,
+non-commercial, share-alike. **The artwork — the video and the character design — is not
+covered by that licence.** It is the author's own material, published here so the skin can
+ship; ask the author before reusing or redistributing it.
+
+This skin is an **unofficial, non-commercial fan work**. It is not created by, affiliated
+with, sponsored by or endorsed by DeepSeek, and nothing here grants any right in
+DeepSeek's name, marks or logos.
