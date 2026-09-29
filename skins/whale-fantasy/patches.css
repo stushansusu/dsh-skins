@@ -656,13 +656,16 @@ body [data-dsh-surface='session-header'] {
   --dsw-alias-label-tertiary: #9ab1d2;
   --dsw-alias-state-business-primary: #3a7bfffa;
 }
-body [data-dsh-surface='session-header']::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  z-index: -1;
-  pointer-events: none;
-  background-color: var(--ff-glass-card);
+/* **坑（与 rainy-night 是同一个 bug）**：这层玻璃原先挂在
+   [data-dsh-surface='session-header'] 的 ::before 上（position: absolute; inset: 0）。
+   而那个元素在真壳里是 **display: contents** —— 它不生成盒子，于是绝对定位的 ::before 的
+   包含块一路退到最近的定位祖先 [data-phase='active']（实测 280,0,1400x1000），
+   一条本该只填 76px 横带的规则，变成**整列对话区上的一层夜**（58% 的面板色）。
+   修法：玻璃改挂在**真有那条横带盒子**的元素上（[data-slot='conversation.header'] > header，
+   真壳实测 rect = 280,0,1400,76），整列的那条删掉。
+   这条修复的完整实测与量具见 skins/rainy-night/README.md 的同一节。 */
+body [data-slot='conversation.header'] > header {
+  background-color: var(--ff-glass-card) !important;
 }
 
 /* ── 8 · 消息 ──────────────────────────────────────────────────────────────
