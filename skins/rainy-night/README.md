@@ -17,7 +17,7 @@ language, one colour apart.
   remap) + `patches.css` (L3 free selectors) + one video. No package.json, no build
   step, no hooks.
 - **A video background** (`backgroundMedia.type = "video"`): 1920x988, 851 frames,
-  35.46s, 16.55 MB (15.8 MiB) — the second skin in this repository to exercise that path.
+  35.46s, 32.49 MB (31.0 MiB) — the second skin in this repository to exercise that path.
 - **Dark only**: the same dark palette is declared for light and dark, and the skin is
   rendered identically whichever theme the system asks for.
 
@@ -41,47 +41,55 @@ accent lines read as the city lights reflected in the glass.
 
 ## The background video
 
-Source clip: **35.48s / 1920x1080 / 24fps / 10.35 Mbps / 47.3 MB** with **46px of pure
-black top and bottom** (`cropdetect` reports `1920:988:0:46`). Shipping it as-is would
-let `object-fit: cover` spread those bars across the viewport.
+Source clip: the author's **2026-09-29 delivery** of the same take — 35.48s / 1920x1080 /
+HEVC / 7.11 Mbps / 31.6 MB, **30 fps nominal but only 24 unique pictures a second** (one
+frame in five is a duplicate), with **46px of pure black top and bottom** (`cropdetect`
+reports `1920:988:0:46`). Shipping it as-is would let `object-fit: cover` spread those bars
+across the viewport and would pay for the duplicated frames twice, so the bake drops them
+first.
 
 | step | what happens |
 | --- | --- |
+| cadence | `fps=24` — the master's duplicated frames are dropped, not encoded |
 | crop | `crop=1920:988:0:46` |
-| encode | **1920 native width** / 24fps / **CRF 25** / preset slow / **tune film** / level 4.1 |
+| encode | **1920 native width** / 24fps / **CRF 19** / preset slow / **tune film** / level 5.1 |
 | grade | **none** — the author's footage is not recoloured |
-| loop | the last 1.2s fades to pure black; the source's first frame is already black, so the join is black-to-black: **851 frames / 35.458s / 16.55 MB**, join difference **0.00** |
+| loop | the last 1.2s fades to pure black; the source's first frame is already black, so the join is black-to-black: **851 frames / 35.458s / 32.49 MB**, join difference **0.00** |
 
 The clip is a four-stage reveal, which is why it is kept whole: black -> animated
 outline -> a grid grows inside the outline -> a scan band converts the grid into the
 finished character -> about 28 seconds of finished scene.
 
-**The encode is deliberately lossy, and the size is the reason.** The first revision of
-this skin shipped a 48.5 MB / 10.94 Mbps encode that was not lossy relative to the
-source. That one blob was 41.7% of every byte in this repository and larger than every
-other skin's assets combined, and a repository with no Git LFS makes every clone pay for
-it. CRF 25 keeps native width — the one thing not to trade — and cuts the file to a
-third.
+**The encode is deliberately lossy, and 32.5 MB is the size the author asked for.** The
+first revision of this skin shipped a 48.5 MB / 10.94 Mbps encode of the 2026-09-27 export;
+that one blob was 41.7% of every byte in this repository and larger than every other skin's
+assets combined, and a repository with no Git LFS makes every clone pay for it. This is the
+2026-09-29 delivery of the same take at **CRF 19** — still native width, still one encode —
+which lands at 32.49 MB and encodes *better* than the leaner revision it replaces: SSIM
+0.991 against 0.984, because the newer master carries less grain for the encoder to spend
+bits on.
 
 | setting | bitrate | SSIM |
 | --- | --- | --- |
-| source video stream | 11.36 Mbps (15-20s sample) | 1.0 |
-| **CRF 25 (shipped) — 16.55 MB whole file** | **3.73 Mbps (whole file)** | **0.984** |
-| CRF 20 | 8.03 Mbps (15-20s sample) | 0.990 |
-| CRF 14 | 18.39 Mbps (15-20s sample) | 0.9943 |
+| source stream, whole file | 7.11 Mbps | 1.0 |
+| **CRF 19 (shipped) — 32.49 MB whole file** | **7.33 Mbps (whole file)** | **0.9917** |
+| CRF 17 | 9.62 Mbps (15-20s sample) | 0.9924 |
+| CRF 21 | 5.65 Mbps (15-20s sample) | 0.9892 |
 
-The shipped row is the whole file's own arithmetic (`16,549,139 bytes x 8 / 35.458 s`),
-not a sample's. The two differ by about 11% on this footage — the source's whole-file
-stream is 10.35 Mbps while its 15-20s sample measures 11.36 — and quoting the sample is
-how the first revision's table came to advertise 12.21 Mbps for a 10.94 Mbps file. SSIM
-is measured on the 15-20s bright-picture window, the harshest stretch; the 6.5s black
-opening compresses far better (the loop reads 0.985 with the 29 fade-out frames
-excluded).
+The shipped row is the whole file's own arithmetic (`32,494,969 bytes x 8 / 35.458 s`) and
+its SSIM is measured over all 822 picture frames (the 29 tail-fade frames excluded); the
+15-20s bright-picture window reads 0.9909 and the alternative rows are 5-second samples,
+which is the distinction the first revision's table got wrong — it advertised 12.21 Mbps
+for a file that measures 10.94. What the number is measured against matters too: this
+bake's master. At frame-aligned instants the 2026-09-27 export carries about 3% more
+high-frequency detail than the 2026-09-29 one, but the shipped CRF 19 encode keeps more of
+what it is given than the CRF 25 one does, so the picture on screen is not softer than the
+revision it replaces (a wash at t=25s, about 2% more detail at t=20s).
 
 Every other number in this README — the compositing regression, the contrast table, the
-screenshots — was measured against the first (CRF 17) bake. The shipped encode is the same
-851 frames within SSIM 0.984 of that footage and moves no geometry, so those readings still
-describe this skin; they have not been re-measured.
+screenshots — was measured on the first (CRF 17) bake of this same take. The shipped encode
+keeps the same 851 frames, moves no geometry and preserves the same high-frequency detail,
+so those readings still describe this skin; they have not been re-measured.
 
 An earlier revision of this skin downscaled to 1792 and used CRF 28 (2.5 Mbps, SSIM
 0.9699). It was visibly soft and the author caught it immediately — which is why CRF, not
@@ -105,9 +113,10 @@ leaving a visible bright seam:
 The same black bars can be removed without re-encoding at all:
 `-c copy -bsf:v h264_metadata=crop_top=50:crop_bottom=50` rewrites only the SPS
 `frame_cropping` rectangle, so the picture is cropped at decode time and the bitstream
-stays byte-identical (45.89 MB, zero encodes). It cannot provide the tail fade, so that
-variant loops with a hard cut to black every 35.5s. Both paths are kept in the authoring
-script; the shipped one is the fade.
+stays byte-identical (45.89 MB on the 2026-09-27 H.264 export, zero encodes). It cannot
+provide the tail fade, so that variant loops with a hard cut to black every 35.5s, and the
+2026-09-29 master is HEVC, where the same trick needs `hevc_metadata`. Both paths are kept
+in the authoring script; the shipped one is the fade.
 
 ## How far the footage survives compositing
 
@@ -187,14 +196,14 @@ the footage is at its brightest behind it. The composer card is deliberately not
 ## Preview
 
 `preview/light.jpg` and `preview/dark.jpg` are the same render — this skin is dark only.
-They are captured from the try-on page against the shipped video, not from a colour card.
+They are captured from the try-on page against the skin's own video, not from a colour card.
 
 ## Licence and provenance
 
 | part | where it comes from | rights holder |
 | --- | --- | --- |
 | skin engineering — `skin.json`, `skin.css`, `patches.css`, the palette and every holographic rule | the author's original work | stushansusu |
-| background video — `assets/rainy-night-loop.mp4` | **AI-generated for this skin**: the author wrote the shot-by-shot prompt and supplied the reference still, rendered it with a generative video model, and cut the 35.5s export in DaVinci Resolve. No third-party footage, music or illustration is bundled, and none of it is a re-upload | stushansusu |
+| background video — `assets/rainy-night-loop.mp4` | **AI-generated for this skin**: the author wrote the shot-by-shot prompt and supplied the reference still, rendered it with a generative video model, and delivered the master used here on 2026-09-29. No third-party footage, music or illustration is bundled, and none of it is a re-upload | stushansusu |
 | character — 「鲸鱼娘」/ Whale Girl | the author's own character line, shared with the sibling skin `whale-fantasy` | stushansusu |
 
 The skin engineering is released under [CC BY-NC-SA 4.0](LICENSE): attribution required,
