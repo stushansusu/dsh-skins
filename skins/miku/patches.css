@@ -44,8 +44,8 @@
   --miku-metal: linear-gradient(180deg, #ffffff 0%, #e9f3fd 15%, #c6dbef 50%, #e2eefb 78%, #ffffff 100%);
   --miku-metal-2: linear-gradient(180deg, #fbfdff 0%, #dbe9f8 32%, #b9d2e8 100%);
   --miku-plate: linear-gradient(135deg, #ffffff 0%, #eef6ff 42%, #dae8f7 100%);
-  --miku-bevel: inset 0 1px 0 #ffffffd9, inset 0 -2px 0 #12324f26, inset -2px 0 0 #12324f14;
-  --miku-bevel-sm: inset 0 1px 0 #ffffffb3, inset 0 -1px 0 #12324f1f;
+  --miku-bevel: inset 0 1px 0 #ffffffd9, inset 0 -2px 0 #12324f1f;
+  --miku-bevel-sm: inset 0 1px 0 #ffffffa6;
   /* 警示条改成调色板内的青绿/墨蓝（原来那条黄的不属于这套冷色主题） */
   --miku-hazard: repeating-linear-gradient(45deg, #12a79b 0 4px, #12324f 4px 8px);
   --miku-rivet: radial-gradient(circle, #12324f66 0 1.3px, #0000 1.8px);
@@ -59,6 +59,9 @@
   --miku-seam: linear-gradient(90deg, #39c5bb00, #39c5bbd9 20%, #2e9bffd9 52%, #d81b7ed9 80%, #d81b7e00);
   /* 菜单/浮层用的玻璃面（半透明，配模糊才好看） */
   --miku-glass: linear-gradient(180deg, #ffffffdb 0%, #eef7ffe6 100%);
+  /* 小浮层专用：几乎不透。菜单下面是侧栏的网点，86% 的半透玻璃会把那张网点读进菜单里，
+     看上去像菜单自己脏了。 */
+  --miku-menu-glass: linear-gradient(180deg, #fffffff7 0%, #f2f9fff7 100%);
   /* 需要"读字"的大面板用实面：98% 不透明，几乎不透底，避免底下内容串进文字 */
   --miku-surface: #fffffffa;
   /* 机甲边框：一圈渐变描边 */
@@ -86,8 +89,8 @@ body[data-ds-dark-theme] {
   --miku-metal: linear-gradient(180deg, #3a6396 0%, #23456f 16%, #101f42 52%, #1c3763 80%, #3a6396 100%);
   --miku-metal-2: linear-gradient(180deg, #26456f 0%, #16294f 38%, #0b1730 100%);
   --miku-plate: linear-gradient(135deg, #1e3c6e 0%, #142a52 46%, #0a1730 100%);
-  --miku-bevel: inset 0 1px 0 #7ad8ff2e, inset 0 -2px 0 #00000073, inset -2px 0 0 #00000059;
-  --miku-bevel-sm: inset 0 1px 0 #ffffff1a, inset 0 -1px 0 #00000059;
+  --miku-bevel: inset 0 1px 0 #7ad8ff2e, inset 0 -2px 0 #00000059;
+  --miku-bevel-sm: inset 0 1px 0 #7ad8ff1f;
   --miku-hazard: repeating-linear-gradient(45deg, #39c5bb 0 4px, #0b1730 4px 8px);
   --miku-rivet: radial-gradient(circle, #9fe8ff8c 0 1.3px, #0000 1.8px);
   --miku-grid: linear-gradient(90deg, #7ad8ff12 1px, #0000 1px), linear-gradient(0deg, #7ad8ff12 1px, #0000 1px);
@@ -97,6 +100,7 @@ body[data-ds-dark-theme] {
   --miku-flow-blend: screen;
   --miku-seam: linear-gradient(90deg, #39c5bb00, #39c5bbe6 20%, #4fd8e8e6 52%, #ff5cb0e6 80%, #ff5cb000);
   --miku-glass: linear-gradient(180deg, #16294fe0 0%, #0d1a3aeb 100%);
+  --miku-menu-glass: linear-gradient(180deg, #16294ff7 0%, #0d1a3af7 100%);
   --miku-surface: #12244af7;
   --miku-edge: linear-gradient(135deg, #39c5bb 0%, #4fd8e8 42%, #ff5cb0 100%);
   --miku-caret: #39c5bb;
@@ -660,7 +664,7 @@ body[data-ds-dark-theme] [data-composer-card="true"]::after {
   -webkit-text-fill-color: #12324f !important;
   caret-color: var(--miku-caret) !important;
   background: #eaf7f4a6 !important;
-  box-shadow: inset 0 1px 3px #12324f1f, inset 0 0 0 1px #12a79b24 !important;
+  box-shadow: inset 0 1px 3px #12324f1a !important;
   border-radius: 4px !important;
 }
 
@@ -668,7 +672,7 @@ body[data-ds-dark-theme] [data-composer-card="true"] [data-composer-input="true"
   color: #dbe8ff !important;
   -webkit-text-fill-color: #dbe8ff !important;
   background: #08132b8c !important;
-  box-shadow: inset 0 1px 4px #000000a6, inset 0 0 0 1px #39c5bb1f !important;
+  box-shadow: inset 0 1px 4px #000000a6 !important;
 }
 
 [data-composer-card="true"] [data-composer-placeholder="true"] {
@@ -742,18 +746,19 @@ body[data-ds-dark-theme] [data-slot="main.conversation"] [class*="codeBlock"] {
 
 /* ─────────── 6. 弹窗 / 菜单 / 提示 ─────────── */
 
-[role="dialog"],
+/* 小浮层（菜单 / 下拉 / 弹出面板）：一条 1px 边 + 一条柔影就够。
+   原来这里是「2px 渐变描边 + 三条内倒角 + 一条外投影」—— 一个 200x328 的菜单里挤七条
+   线，读起来就是「菜单栏线条过多、显得很脏」。渐变机甲描边只留给设置弹窗。 */
 [class*="popover"],
 [class*="dropdown"],
 [class*="sheet"],
 [role="menu"],
 [role="listbox"] {
-  border-radius: 6px !important;
+  border-radius: 8px !important;
   /* 机甲边框：渐变描边画在 2px 透明边框上 */
-  border: 2px solid transparent !important;
-  /* border 简写的 !important 会连 border-image 长手一起提权，所以这里也必须 !important */
-  border-image: var(--miku-edge) 1 !important;
-  box-shadow: var(--miku-bevel), 0 16px 36px #12324f33 !important;
+  border: 1px solid var(--miku-ink-soft) !important;
+  border-image: none !important;
+  box-shadow: 0 10px 26px #12324f24 !important;
   color: var(--dsw-alias-label-primary);
 }
 
@@ -761,6 +766,9 @@ body[data-ds-dark-theme] [data-slot="main.conversation"] [class*="codeBlock"] {
    却要付合成开销、还会让弹窗成为 fixed 后代的包含块。模糊只留给菜单这类小浮层。 */
 [role="dialog"] {
   color: var(--dsw-alias-label-primary);
+  /* 设置弹窗保留签名：2px 渐变机甲描边画在透明边框上。 */
+  border: 2px solid transparent !important;
+  border-image: var(--miku-edge) 1 !important;
   box-shadow: var(--miku-bevel), inset 0 0 44px -20px var(--miku-teal), 0 22px 48px #12324f3d !important;
 }
 
@@ -771,17 +779,12 @@ body[data-ds-dark-theme] [data-slot="main.conversation"] [class*="codeBlock"] {
 [role="menu"],
 [role="listbox"] {
   backdrop-filter: blur(12px);
-  background: var(--miku-glass) !important;
+  background: var(--miku-menu-glass, var(--miku-glass)) !important;
 }
 
-body[data-ds-dark-theme] [role="dialog"],
-body[data-ds-dark-theme] [class*="popover"],
-body[data-ds-dark-theme] [class*="dropdown"],
-body[data-ds-dark-theme] [class*="sheet"],
-body[data-ds-dark-theme] [role="menu"],
-body[data-ds-dark-theme] [role="listbox"] {
+body[data-ds-dark-theme] [role="dialog"] {
   border-color: #39c5bb66 !important;
-  box-shadow: var(--miku-bevel), 0 0 0 1px #39c5bb33, 0 18px 44px #000000a6 !important;
+  box-shadow: var(--miku-bevel), 0 18px 44px #000000a6 !important;
 }
 
 [class*="menu"] [class*="item"]:hover,
@@ -795,7 +798,9 @@ body[data-ds-dark-theme] [role="listbox"] {
 
 [class*="menu"] [class*="sep"],
 [class*="menu"] [class*="divider"] {
-  background: var(--miku-ink-soft) !important;
+  /* 分组靠标签本身读出来，线只留一丝：两端各留 10% 空，再压到 55%。 */
+  background: linear-gradient(90deg, transparent 0, var(--miku-ink-soft) 10%, var(--miku-ink-soft) 90%, transparent 100%) !important;
+  opacity: 0.55;
 }
 
 [class*="menu"] [class*="label"],
@@ -813,9 +818,9 @@ body[data-ds-dark-theme] [role="listbox"] {
 [role="tooltip"] {
   background: var(--dsw-alias-tooltip-bg) !important;
   color: var(--dsw-alias-tooltip-fg) !important;
-  border: 1px solid var(--miku-ink-line) !important;
+  border: 1px solid var(--miku-ink-soft) !important;
   border-radius: 8px !important;
-  box-shadow: var(--miku-hard-sm) !important;
+  box-shadow: 0 6px 18px #12324f26 !important;
 }
 
 [class$="_mask"],
@@ -919,12 +924,12 @@ body[data-ds-dark-theme] [data-slot="main.conversation"] [data-phase="hero"] {
 [data-slot="conversation.composer.bar"] [class*="primary"] {
   color: #06131a !important;
   border-radius: 999px !important;
-  box-shadow: inset 0 1px 0 #ffffff59, 0 0 0 1px #ffffff59, 0 2px 10px #12a79b59 !important;
+  box-shadow: inset 0 1px 0 #ffffff73, 0 2px 10px #12a79b4d !important;
 }
 
 body[data-ds-dark-theme] [data-slot="conversation.composer.bar"] [class*="primary"] {
   color: #06131a !important;
-  box-shadow: inset 0 1px 0 #ffffff40, 0 0 0 1px #39c5bb80, 0 2px 12px #39c5bb73 !important;
+  box-shadow: inset 0 1px 0 #ffffff40, 0 2px 12px #39c5bb59 !important;
 }
 
 /* 预览角标（composer 里的 previewBadge）也跟着主题走 */

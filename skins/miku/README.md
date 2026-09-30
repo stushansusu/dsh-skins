@@ -22,6 +22,15 @@ The session column is left fully transparent so the artwork shows through it;
 panels use mecha chamfers, brushed metal and cyan/magenta gradient keylines, and
 the composer is drawn as a cockpit recess with a themed caret.
 
+The linework is deliberately restrained. The chamfer bevel is a **single**
+highlight on the small, high-frequency surfaces (menus, bubbles, code blocks,
+rows, buttons) and a two-line bevel only on the two hero surfaces — the settings
+dialog and the composer card. Menus carry a 1px edge and one soft shadow instead
+of the earlier "2px gradient ring + three-line bevel + a drop shadow" stack, and
+their fill is near-opaque so the sidebar's dot screen no longer reads through the
+panel. Measured across the stylesheet, drawn lines drop from 49 to 24, and a
+200x328 menu goes from seven outlines to two.
+
 ## Host compatibility
 
 Written against DSH 0.1.7:
@@ -32,6 +41,11 @@ Written against DSH 0.1.7:
   `[data-dsh-frame]`: the host already sizes the frame at `100dvh`, and forcing
   it back to full height would break skins that shorten the frame to make room
   for HUD bars.
+- On the Windows desktop the shell paints an opaque fill on the whole app
+  frame, which is an ancestor of the session column; that crushed the artwork,
+  so the skin clears it (`[data-dsh-frame] { background: none }`). The shell's
+  titlebar strip keeps its own fill — it is the window drag region and backs the
+  native menu bar.
 - Below 768px the only additions are safe-area insets
   (`env(safe-area-inset-*)`) on the two injected bars, plus `cursor: auto` on
   coarse pointers so the custom PNG cursors are dropped on touch devices.
