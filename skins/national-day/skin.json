@@ -27,7 +27,7 @@
   "order": 47,
   "license": "CC BY-NC-SA 4.0",
   "licenseUrl": "https://creativecommons.org/licenses/by-nc-sa/4.0/",
-  "attribution": "assets/ 中两张背景画（gq-light-bg.webp / gq-dark-bg.webp）为 **AI 生成素材**：由贡献者 stushansusu 于 2026-09-24 使用 OpenAI 的 gpt-image（ChatGPT 图像服务）生成，画中角色「鲸鱼娘」亦属该批生成结果；源 PNG 内嵌 OpenAI 签发的 C2PA 内容凭证（softwareAgent = ChatGPT / gpt-image，digitalSourceType = trainedAlgorithmicMedia），仓内 WebP 为未保留该凭证的重新编码。assets/gq-star.svg 为本皮肤自绘的矢量遮罩，非生成素材。素材的版权与合规责任由贡献者承担；贡献者声明有权按 CC BY-NC-SA 4.0 分发本皮肤及其素材。",
+  "attribution": "assets/ 中两张背景画（gq-light-bg.webp / gq-dark-bg.webp）为 AI 生成素材：由贡献者 stushansusu 于 2026-09-24 使用 OpenAI 的 gpt-image（ChatGPT 图像服务）生成，画中角色「鲸鱼娘」亦属该批生成结果；源 PNG 内嵌 OpenAI 签发的 C2PA 内容凭证（softwareAgent = ChatGPT / gpt-image，digitalSourceType = trainedAlgorithmicMedia），仓内 WebP 为未保留该凭证的重新编码。assets/gq-star.svg 为本皮肤自绘的矢量遮罩，非生成素材。素材的版权与合规责任由贡献者承担；贡献者声明有权按 CC BY-NC-SA 4.0 分发本皮肤及其素材。",
   "preview": {
     "light": "preview/light.jpg",
     "dark": "preview/dark.jpg"
