@@ -31,6 +31,13 @@ their fill is near-opaque so the sidebar's dot screen no longer reads through th
 panel. Measured across the stylesheet, drawn lines drop from 49 to 24, and a
 200x328 menu goes from seven outlines to two.
 
+Inside the settings dialog the skin draws no dividers at all: the shell's per-row
+hairline (`.5px` on `--dsw-alias-border-l2`, one per settings row) and the skin's
+own 1px frame around every section/card are both removed, and the dialog keeps a
+1px gradient edge instead of the earlier 2px ring. A full pass over the ten
+settings tabs leaves only the controls that need an outline — buttons, selects,
+cards and the dialog itself.
+
 ## Host compatibility
 
 Written against DSH 0.1.7:
