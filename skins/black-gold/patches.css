@@ -597,3 +597,19 @@ html {
   }
 }
 
+/* ── Windows 桌面端：让出外壳画框的底 ──────────────────────────────────────
+   浏览器里 [data-dsh-frame] 的底是半透明的 --dsw-alias-bg-base，本皮的画布
+   （body 下 z-index ≤ -1 的固定层，或 contributes.backgroundMedia 的 -2 层）
+   还能透出来。Windows 桌面端（DeepSeek Harness.exe）会命中
+   [data-windows-titlebar] .BynINW_frame，把整个画框刷成不透明的
+   --dsw-specific-sidebar-fill；画框是流内元素，天然压在负 z-index 的画布
+   之上，于是整屏只剩那块实色，背景一张都看不到。macOS 有
+   [data-platform=darwin] .BynINW_frame{background:0 0} 的对应处理，Windows
+   没有 —— 所以这一条由皮肤自己补：只把底色置透明，不动任何几何。
+   顶部标题栏那条 ::before 横带保留（它是窗口拖拽区的底，也压着原生菜单栏）。
+   pixel-anime / whale-fantasy 早有同一条；maid-atelier 用的是
+   [class*="_frame"] 的哈希兜底写法（issue #1763）。 */
+body [data-phase],
+body [data-dsh-frame] {
+  background-color: transparent !important;
+}
