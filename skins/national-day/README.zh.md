@@ -68,10 +68,25 @@
 **背景变成红之后，金色必须重新算。** 枫金 `#C8871F` 压在旗红上只有 1.6:1，等于消失；
 金星是把它往白里提 45%，量到浅色 4.9:1 / 暗色 5.6:1。
 
-## 素材
+## 素材、出处与责任
 
-`assets/` 三件：白昼与夜空两张背景画（`gq-light-bg.webp` / `gq-dark-bg.webp`，
-`contributes.backgroundMedia` 引用），以及分组行五角星的遮罩 `gq-star.svg`。
+`assets/` 三件。
+
+| 文件 | 是什么 | 出处 |
+| --- | --- | --- |
+| `gq-light-bg.webp` | 白昼底图（蓝天、长城、红枫） | **AI 生成** |
+| `gq-dark-bg.webp` | 夜空底图（故宫角楼、烟花、宫灯） | **AI 生成** |
+| `gq-star.svg` | 工作区分组行的五角星遮罩 | 为本皮肤自绘（矢量，非生成） |
+
+两张底图是 **AI 生成素材**，不是手绘原创：由贡献者于 2026-09-24 使用 OpenAI 的
+**gpt-image**（ChatGPT 图像服务）生成，画中的角色「鲸鱼娘」同属这一批生成结果。
+未改动的源 PNG 内嵌 OpenAI 签发的 C2PA 内容凭证
+（`softwareAgent = ChatGPT / gpt-image`，`digitalSourceType = trainedAlgorithmicMedia`）；
+本仓发布的 WebP 是重新编码，不再携带该凭证，源文件留在贡献者处。
+`gq-star.svg` 是为本皮肤自绘的矢量遮罩，不是生成素材。
+
+**权利与责任。** 上述素材的版权与合规责任由贡献者（`stushansusu`）承担；贡献者
+声明有权按 CC BY-NC-SA 4.0 分发本皮肤及其素材。第三方如需商用其中美术，请另行确认。
 
 ## 预览
 
@@ -79,7 +94,8 @@
 
 ## 许可
 
-本皮肤按 CC BY-NC-SA 4.0 发布，见 `skin.json` 的 `licenseUrl`。
+本皮肤按 CC BY-NC-SA 4.0 发布，见 `skin.json` 的 `licenseUrl`。该许可是由贡献者
+授予，上述素材的版权与合规责任同样由贡献者承担。
 
 ## 安装
 

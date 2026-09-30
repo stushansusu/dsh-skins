@@ -77,11 +77,30 @@ pulls the whole column 16px left.
 `#C8871F` sits at 1.6:1 on flag red, which is invisible; the star gold lifts it
 45% toward white for 4.9:1 in light and 5.6:1 in dark.
 
-## Assets
+## Assets, provenance and responsibility
 
-`assets/` holds three pieces: the two backdrop paintings
-(`gq-light-bg.webp`, `gq-dark-bg.webp`, referenced by
-`contributes.backgroundMedia`) and the group-row star mask `gq-star.svg`.
+`assets/` holds three pieces.
+
+| File | What it is | Where it comes from |
+| --- | --- | --- |
+| `gq-light-bg.webp` | daylight backdrop (blue sky, Great Wall, autumn maples) | **AI-generated** |
+| `gq-dark-bg.webp` | Forbidden City night backdrop (fireworks, lanterns) | **AI-generated** |
+| `gq-star.svg` | five-point star mask for the workspace group rows | drawn for this skin (vector, not generated) |
+
+The two backdrops are **AI-generated artwork**, not hand-drawn originals. The
+contributor generated them on 2026-09-24 with OpenAI's **gpt-image** through the
+ChatGPT image service; the character 「鲸鱼娘」 shown in them is part of that same
+generated batch. The unmodified source PNGs carry the C2PA content credential
+issued by OpenAI
+(`softwareAgent = ChatGPT / gpt-image`, `digitalSourceType = trainedAlgorithmicMedia`);
+the WebPs shipped here are re-encodes that no longer carry that manifest, and the
+sources are retained by the contributor. `gq-star.svg` is a vector mask drawn
+for this skin, not generated.
+
+**Rights and responsibility.** Copyright and compliance responsibility for these
+assets rest with the contributor (`stushansusu`), who declares that they hold the
+right to distribute this skin and its assets under CC BY-NC-SA 4.0. Anyone
+reusing the artwork commercially must clear that separately.
 
 ## Preview
 
@@ -91,6 +110,8 @@ applied in the GUI.
 ## License
 
 This skin is released under CC BY-NC-SA 4.0. See `licenseUrl` in `skin.json`.
+The licence is granted by the contributor, who also carries the copyright and
+compliance responsibility for the assets described above.
 
 ## Install
 
