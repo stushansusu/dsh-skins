@@ -227,8 +227,10 @@ body[data-ds-dark-theme] [class*="sidebarCol"] {
 /* 品牌行：与顶栏同一条渐变，作为皮肤的签名 */
 [data-pane="sidebar"] [class*="logoRow"] {
   background: var(--miku-brand-bar) !important;
-  background-size: 200% 100% !important;
-  border-bottom: 2px solid var(--miku-ink-line) !important;
+  /* 100%：把整条色带完整铺出来。原来写 200% 又没有动画，只露出左半条 ——
+     色带永远停在「青→蓝」，右半段的品红一次都看不见，看着就是「渐变坏了」。 */
+  background-size: 100% 100% !important;
+  border-bottom: 1px solid var(--miku-ink-line) !important;
   box-shadow: none !important;
 }
 
@@ -251,9 +253,8 @@ body[data-ds-dark-theme] [class*="sidebarCol"] {
    皮肤塞进来的是一行两段字标（::before + ::after），所以必须做三件事，
    只改字号（旧写法）会让两段伪元素竖着叠、原文还在，总高超出 24px 被裁掉上缘 ——
    现象就是「左上角文字被遮挡」。 */
-[data-slot="sidebar.brand.name"] > * {
-  display: inline-flex;
-  flex-direction: row !important;      /* 关键：宿主默认是 column */
+[data-slot="sidebar.brand.name"] {
+  display: inline-flex !important;
   align-items: center !important;
   justify-content: flex-start !important;
   gap: 0 !important;
@@ -269,8 +270,8 @@ body[data-ds-dark-theme] [class*="sidebarCol"] {
   -webkit-text-fill-color: currentColor;
 }
 
-/* 原来那两行整个撤掉（它们的字号由 shell 的模块类写死，父级归零带不动它们）。 */
-[data-slot="sidebar.brand.name"] > * > * {
+/* 字标本体收掉：宽度改由下面两段伪元素撑。 */
+[data-slot="sidebar.brand.name"] > svg {
   display: none !important;
 }
 
@@ -284,7 +285,7 @@ button:has([data-slot="sidebar.brand.name"]) {
 }
 
 /* 第一段「DSH」= 代号铭牌：迷你机甲 keycap（斜切角 + 内嵌高光 + 细描边 + Bahnschrift 拉字距） */
-[data-slot="sidebar.brand.name"] > *::before {
+[data-slot="sidebar.brand.name"]::before {
   content: "DSH";
   flex: none;
   padding: 4px 7px 3px 8px;
@@ -304,7 +305,7 @@ button:has([data-slot="sidebar.brand.name"]) {
 }
 
 /* 第二段「初音未来」= 名号：20px 渐变字，左侧一根竖向拼缝分隔，整体带一点落影 */
-[data-slot="sidebar.brand.name"] > *::after {
+[data-slot="sidebar.brand.name"]::after {
   content: "初音未来";
   font-size: 20px;
   font-weight: 800;
@@ -350,14 +351,31 @@ button:has([data-slot="sidebar.brand.name"]) {
   overflow: hidden;
   clip-path: var(--miku-cut-sm);
   border-radius: 0 !important;
-  border: 2px solid transparent !important;
-  border-image: var(--miku-edge) 1 !important;
+  /* 原来是 2px 的渐变 border-image：那圈 135° 色带在一条窄按钮上只剩「左边青、
+     右边品红」两截，看着像描错了边。改成一条 1px 冷色边，厚度交给内嵌倒角。 */
+  border: 1px solid var(--miku-ink-soft) !important;
+  border-image: none !important;
   background: var(--miku-metal-2) !important;
   color: #12324f !important;
   font-family: var(--miku-display);
+  /* 字重与字距**只给标签**，不要写在按钮上：壳把快捷键（Ctrl + Alt + N）也渲染在
+     这同一颗按钮里，0.1em 的字距 + 700 会让那串 kbd 宽 11px、左移 11px，正好顶到
+     居中标签的尾巴上（实测快捷键 71 -> 82px、起点 182 -> 171，而标签右缘在 173），
+     现象就是「悬停时 新会话 和 Ctrl+Alt+N 叠在一起」。下面两条把它还原成壳的度量。 */
+  box-shadow: var(--miku-bevel) !important;
+}
+
+/* :not([class*="Mask"]) —— 壳那层包装叫 newSessionLabelMask，它也含 "newSessionLabel"，
+   不排掉的话字重与字距会落在包装上、再被里面的图标一起继承。 */
+[data-dsh-part="new-session"] [class*="newSessionLabel"]:not([class*="Mask"]) {
   font-weight: 700;
   letter-spacing: 0.1em;
-  box-shadow: var(--miku-bevel) !important;
+}
+
+[data-dsh-part="new-session"] [class*="Shortcut"],
+[data-dsh-part="new-session"] [class*="Shortcut"] * {
+  font-weight: 400;
+  letter-spacing: normal;
 }
 
 [data-dsh-part="new-session"]::before {
@@ -823,10 +841,15 @@ body[data-ds-dark-theme] [role="dialog"] {
   box-shadow: 0 6px 18px #12324f26 !important;
 }
 
-[class$="_mask"],
-[class*="Mask"] {
-  background: var(--dsw-alias-bg-mask-1) !important;
-}
+/* 原来这里有一条 [class$="_mask"], [class*="Mask"] 的通配，把整块遮罩刷成
+   --dsw-alias-bg-mask-1。两件事都不对：
+     ① 外壳自己就用这支 token 画真正的遮罩（._mask_o6lrb_18:after、
+        ._mask_1hos8_11），皮肤再刷一遍是多余的；
+     ② [class*="Mask"] 是 camelCase 通配，会把外壳别的 "…Mask" 组件一起打中 ——
+        侧栏「新会话」按钮里那颗 _2H3hWW_newSessionLabelMask（外壳只给它
+        flex:1 和一条悬停用的 mask-image，本来没有底色）因此被刷成一块深色方块，
+        压在图标与「新会话」文字后面，看着就是按钮脏了一块。
+   整条删掉：真正的遮罩由外壳自己上色，皮肤这边不需要插手。 */
 
 [class$="_fade"],
 [class*="Fade"] {
