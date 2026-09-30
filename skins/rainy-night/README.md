@@ -17,7 +17,7 @@ language, one colour apart.
   remap) + `patches.css` (L3 free selectors) + one video. No package.json, no build
   step, no hooks.
 - **A video background** (`backgroundMedia.type = "video"`): 1920x988, 851 frames,
-  35.46s, 32.49 MB (31.0 MiB) — the second skin in this repository to exercise that path.
+  35.46s, 16.97 MB (16.19 MiB) — the second skin in this repository to exercise that path.
 - **Dark only**: the same dark palette is declared for light and dark, and the skin is
   rendered identically whichever theme the system asks for.
 
@@ -52,39 +52,44 @@ first.
 | --- | --- |
 | cadence | `fps=24` — the master's duplicated frames are dropped, not encoded |
 | crop | `crop=1920:988:0:46` |
-| encode | **1920 native width** / 24fps / **CRF 19** / preset slow / **tune film** / level 5.1 |
+| encode | **1920 native width** / 24fps / **CRF 24** / preset slow / **tune film** / level 5.1 |
 | grade | **none** — the author's footage is not recoloured |
-| loop | the last 1.2s fades to pure black; the source's first frame is already black, so the join is black-to-black: **851 frames / 35.458s / 32.49 MB**, join difference **0.00** |
+| loop | the last 1.2s fades to pure black; the source's first frame is already black, so the join is black-to-black: **851 frames / 35.458s / 16.97 MB**, join difference **0.00** |
 
 The clip is a four-stage reveal, which is why it is kept whole: black -> animated
 outline -> a grid grows inside the outline -> a scan band converts the grid into the
 finished character -> about 28 seconds of finished scene.
 
-**The encode is deliberately lossy, and 32.5 MB is the size the author asked for.** The
+**The encode is deliberately lossy, and 16.97 MB is the size the store requires.** The
 first revision of this skin shipped a 48.5 MB / 10.94 Mbps encode of the 2026-09-27 export;
 that one blob was 41.7% of every byte in this repository and larger than every other skin's
-assets combined, and a repository with no Git LFS makes every clone pay for it. This is the
-2026-09-29 delivery of the same take at **CRF 19** — still native width, still one encode —
-which lands at 32.49 MB and encodes *better* than the leaner revision it replaces: SSIM
-0.991 against 0.984, because the newer master carries less grain for the encoder to spend
-bits on.
+assets combined, and a repository with no Git LFS makes every clone pay for it. A later
+revision answered that with 32.49 MB at CRF 19 — which the market refuses: a skin is
+published as a single zip asset and Cloudflare Workers caps one asset at **25 MiB
+(26,214,400 bytes)**, while that revision zipped to **33,027,261 bytes**, about 25% over.
+This is the same 2026-09-29 master at **CRF 24** — still native width, still one encode,
+still the same 851 frames and the same 1.2s tail fade — which lands at **16.97 MB** and zips
+to **17,414,034 bytes (16.61 MiB)**, roughly 8.4 MB inside the cap. What it gives up is
+visible in the SSIM column below and nowhere else: 0.9870 against 0.9917, for 48% less
+payload.
 
 | setting | bitrate | SSIM |
 | --- | --- | --- |
 | source stream, whole file | 7.11 Mbps | 1.0 |
-| **CRF 19 (shipped) — 32.49 MB whole file** | **7.33 Mbps (whole file)** | **0.9917** |
+| **CRF 24 (shipped) — 16.97 MB whole file** | **3.83 Mbps (whole file)** | **0.9870** |
+| CRF 19 (previous revision, 32.49 MB) | 7.33 Mbps (whole file) | 0.9917 |
 | CRF 17 | 9.62 Mbps (15-20s sample) | 0.9924 |
 | CRF 21 | 5.65 Mbps (15-20s sample) | 0.9892 |
 
-The shipped row is the whole file's own arithmetic (`32,494,969 bytes x 8 / 35.458 s`) and
-its SSIM is measured over all 822 picture frames (the 29 tail-fade frames excluded); the
-15-20s bright-picture window reads 0.9909 and the alternative rows are 5-second samples,
-which is the distinction the first revision's table got wrong — it advertised 12.21 Mbps
-for a file that measures 10.94. What the number is measured against matters too: this
-bake's master. At frame-aligned instants the 2026-09-27 export carries about 3% more
-high-frequency detail than the 2026-09-29 one, but the shipped CRF 19 encode keeps more of
-what it is given than the CRF 25 one does, so the picture on screen is not softer than the
-revision it replaces (a wash at t=25s, about 2% more detail at t=20s).
+The shipped row is the whole file's own arithmetic (`16,974,454 bytes x 8 / 35.458 s`) and
+its SSIM is measured over all 822 picture frames (the 29 tail-fade frames excluded),
+against this bake's own master put through the same cadence; the alternative rows are
+5-second samples, which is the distinction the first revision's table got wrong — it
+advertised 12.21 Mbps for a file that measures 10.94. What the number is measured against
+matters too: at frame-aligned instants the 2026-09-27 export carries about 3% more
+high-frequency detail than the 2026-09-29 one, which is why this CRF 24 revision still
+encodes better than the earlier CRF 25 revision of that export (0.9870 against 0.984) even
+though it is the leaner encode of the two the 2026-09-29 master has carried.
 
 Every other number in this README — the compositing regression, the contrast table, the
 screenshots — was measured on the first (CRF 17) bake of this same take. The shipped encode
