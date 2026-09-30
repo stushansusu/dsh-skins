@@ -1,0 +1,1117 @@
+/**
+ * 国庆 · 山河华灯 (National Day) — L3 atmosphere layer.
+ *
+ * Pure CSS, no hooks. The loader force-scopes every selector under
+ * html[data-dsh-skin="national-day"], so rules here are written unscoped on purpose.
+ *
+ * Every hook below is one the shell actually emits, verified against the
+ * installed shell and the loader's own surface registry — not guessed:
+ *   · canvas      body::after              the theme's ground
+ *   · sidebar     [data-slot="sidebar"], [data-dsh-surface="sidebar"],
+ *                 [data-pane="sidebar"], aside
+ *   · details     [data-slot="details"], [data-dsh-surface="details"]
+ *   · conversation [data-conversation-scroll], [data-chat-flow]
+ *   · rows        [data-chat-flow-kind="user" | "assistant-step" | ...]
+ *   · composer    [data-composer-card], [data-input-scroll],
+ *                 [data-composer-placeholder]
+ *   · hero        [data-phase="hero"]
+ *
+ * Deliberately NOT touched: html[data-dsh-wallpaper-active] and
+ * html[data-dsh-backdrop-active]. The loader owns those — it neutralises scene
+ * backgrounds behind a wallpaper and re-blurs the composer card itself — so the
+ * canvas rule below steps aside instead of fighting it.
+ */
+
+/* ── custom properties, per mode ─────────────────────────────────────────── */
+
+body {
+  --sk-ground: #F7F0E3;
+  --sk-pane: none;
+  --sk-wall: #EFE3CF;
+  --sk-wall-edge: #dac9ac52;
+  --sk-card-top: #fffcf5b8;
+  --sk-composer-ring: 0 0 0 3px #be2a2624;
+  --sk-bubble: #fdf4e5;
+  --sk-bubble-edge: #be2a2638;
+  --sk-approval-edge: #a81f1a73;
+}
+
+body[data-ds-dark-theme] {
+  --sk-ground: #0B1020;
+  --sk-pane: none;
+  --sk-wall: #1E2542;
+  --sk-wall-edge: #2e36545c;
+  --sk-card-top: #2e36544d;
+  --sk-composer-ring: 0 0 0 3px #e04a3c33;
+  --sk-bubble: #1d1c2d;
+  --sk-bubble-edge: #e04a3c47;
+  --sk-approval-edge: #e8604c80;
+}
+
+/* ── canvas: the theme's ground ──────────────────────────────────────────── */
+
+body::after {
+  content: '';
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background-color: var(--sk-ground);
+  background-image: var(--sk-pane);
+  background-repeat: no-repeat;
+  background-size: 100% 100%;
+}
+
+/* When the user runs a wallpaper, the ground layer must disappear entirely,
+   or it paints over the wallpaper. The loader sets these flags itself.
+   Must be written body[...]::after, NOT html[...] body::after: the loader force-scopes
+   every selector as a descendant of html[data-dsh-skin], so the html form becomes
+   html[data-dsh-skin] html[...] body::after and can never match (html is not a
+   descendant of itself). The rule was dead and the canvas painted over the user's
+   wallpaper. The crystal engine was fixed first (see the note further down); the
+   material and anime engines still carried the dead form, which is also why
+   verify() rejected all eleven of them and no theme could be rebuilt. */
+body[data-dsh-wallpaper-active]::after,
+body[data-dsh-backdrop-active]::after {
+  background-color: transparent;
+  background-image: none;
+}
+
+/* ── sidebar: the theme's material as a wall, not a fill ─────────────────── */
+
+/* [data-slot="sidebar"] is the renderer's slot anchor and carries
+   display:contents, so it has no box of its own — the painted element is its
+   child (the sidebar's .root column, a flex container). Style the narrow slot
+   variant for plugin-provided sidebars too. */
+[data-slot='sidebar'] > *,
+[data-dsh-surface='sidebar'],
+[data-pane='sidebar'] {
+  background-color: var(--sk-wall) !important;
+  background-image: none;
+  box-shadow: inset -1px 0 0 var(--sk-wall-edge);
+}
+
+body[data-ds-dark-theme] [data-slot='sidebar'] > *,
+body[data-ds-dark-theme] [data-dsh-surface='sidebar'],
+body[data-ds-dark-theme] [data-pane='sidebar'] {
+  background-image: none;
+}
+
+/* the sidebar's own workspace list keeps the wall colour, not a raised card */
+[data-slot='sidebar.workspaces'] {
+  background-color: transparent !important;
+}
+
+/* ── details pane ────────────────────────────────────────────────────────── */
+
+[data-slot='details'],
+[data-slot='details'] > *,
+[data-dsh-surface='details'],
+[data-pane='details'] {
+  background-color: #f7f0e3db !important;
+}
+
+body[data-ds-dark-theme] [data-slot='details'],
+body[data-ds-dark-theme] [data-slot='details'] > *,
+body[data-ds-dark-theme] [data-dsh-surface='details'],
+body[data-ds-dark-theme] [data-pane='details'] {
+  background-color: #0b1020db !important;
+}
+
+/* ── hero: the empty-session screen ──────────────────────────────────────── */
+
+[data-phase='hero'] {
+  position: relative;
+  background-image: none;
+  background-repeat: no-repeat;
+  background-size: 100% 100%;
+}
+
+body[data-ds-dark-theme] [data-phase='hero'] {
+  background-image: none;
+}
+
+/* ── composer: the theme's object ────────────────────────────────────────── */
+
+[data-composer-card] {
+  border-radius: 14px;
+  box-shadow: var(--sk-composer-ring), inset 0 1px 0 var(--sk-card-top);
+}
+
+body[data-ds-dark-theme] [data-composer-card] {
+  box-shadow: var(--sk-composer-ring), inset 0 1px 0 var(--sk-card-top);
+}
+
+/* the editable surface itself stays transparent so the card reads as one piece */
+[data-input-scroll] {
+  background-color: transparent;
+}
+
+[data-composer-placeholder] {
+  color: #7B6A52;
+}
+
+body[data-ds-dark-theme] [data-composer-placeholder] {
+  color: #A99C86;
+}
+
+/* ── conversation rows: the material edge ────────────────────────────────── */
+
+/* the user's own turn gets the metal; the assistant stays quiet so the reading
+   column does not turn into a stripe of colour */
+[data-chat-flow-kind='user'] {
+  box-shadow: inset 3px 0 0 var(--sk-bubble-edge);
+}
+
+[data-chat-flow-kind='assistant-step'] {
+  background-color: transparent;
+}
+
+/* tool / context rows are furniture: give them the paper's edge, not the ink's */
+[data-chat-flow-kind='tool-call'],
+[data-chat-flow-kind='context'] {
+  border-radius: 10px;
+  background-color: #efe3cf80;
+}
+
+body[data-ds-dark-theme] [data-chat-flow-kind='tool-call'],
+body[data-ds-dark-theme] [data-chat-flow-kind='context'] {
+  background-color: #1e254280;
+}
+
+/* ── selection carries the metal ─────────────────────────────────────────── */
+
+::selection {
+  background-color: #be2a2640;
+}
+
+body[data-ds-dark-theme] ::selection {
+  background-color: #e04a3c52;
+}
+
+/* ── approvals: the one place the warning ramp is allowed to shout ───────── */
+
+[data-approval-key],
+[data-question-key],
+[data-plan-review-key] {
+  border-radius: 12px;
+  box-shadow: inset 0 0 0 1px var(--sk-approval-edge), var(--dsw-shadow-lv2);
+}
+
+/* ── links keep the theme's metal rather than the shell's blue ───────────── */
+
+a {
+  color: #BE2A26;
+}
+
+body[data-ds-dark-theme] a {
+  color: #E04A3C;
+}
+
+/* ── scrollbars ──────────────────────────────────────────────────────────── */
+
+* {
+  scrollbar-color: #7b6a5259 transparent;
+}
+
+body[data-ds-dark-theme] * {
+  scrollbar-color: #a99c8666 transparent;
+}
+
+/* ── 暗色专用：钉死原生配色方案（材质引擎本来没有这条，anime 引擎有）────────
+   必须写 :root 而不是 html：作用域转换把每条选择器当成 skin root 的后代加前缀，
+   html { … } 会变成 html[data-dsh-skin] html { … }，永远匹配不上；
+   :root 被特判成 html[data-dsh-skin="<id>"] 本身，正好落在 html 元素上 ——
+   这正是 color-scheme 需要的位置（它必须作用在根元素上才管得住原生控件）。 */
+
+
+/* ── per-theme extra chrome ────────────────────────────────────────────────
+   A theme may append its own rules here — the frame, the workspace plaque, the
+   new-session plate. Kept as a *function* so it derives colours from the same
+   palette through the same alpha()/mix() helpers instead of hard-coding hexes.
+   verify() scans the result for the fragility patterns (hashed class names,
+   :global, nested :has, backticks, unresolved interpolation). */
+
+/* ══ 国庆 · 山河华灯 · 机壳 ═══════════════════════════════════════════════ */
+
+/* 让界面给画让路：材质引擎把侧栏写成 background-color: var(--sk-wall) !important
+   （--sk-wall = raised，不透明），详情栏写成 surf 的 86% —— 两处都是实色，底图一点都
+   看不见。这里换成同色系的一档玻璃：字仍然有底，画也还看得见。
+   下面两条与引擎那条**特异性相同、位置在它之后**，所以不需要 !important 也能赢；
+   留着 !important 是为了将来引擎改特异性时不会静默失效。 */
+
+[data-slot='sidebar'] > *,
+[data-dsh-surface='sidebar'],
+[data-pane='sidebar'] {
+  background-color: #efe3cf57 !important;
+}
+
+body[data-ds-dark-theme] [data-slot='sidebar'] > *,
+body[data-ds-dark-theme] [data-dsh-surface='sidebar'],
+body[data-ds-dark-theme] [data-pane='sidebar'] {
+  background-color: #1e254257 !important;
+}
+
+[data-slot='details'],
+[data-slot='details'] > *,
+[data-dsh-surface='details'],
+[data-pane='details'] {
+  background-color: #f7f0e36b !important;
+}
+
+body[data-ds-dark-theme] [data-slot='details'],
+body[data-ds-dark-theme] [data-slot='details'] > *,
+body[data-ds-dark-theme] [data-dsh-surface='details'],
+body[data-ds-dark-theme] [data-pane='details'] {
+  background-color: #0b10206b !important;
+}
+
+/* ── 外壳画框：把底让出来（Windows 桌面端）─────────────────────────────────
+   浏览器里 [data-dsh-frame] 的底是半透明的 --dsw-alias-bg-base，画还能透出来；
+   Windows 桌面端（DeepSeek Harness.exe）会命中
+   [data-windows-titlebar] .BynINW_frame，把整块画框刷成不透明的
+   --dsw-specific-sidebar-fill（本套是 raised 的 60%）。画框是流内元素，天然压在
+   contributes.backgroundMedia 那层 z-index -2 的画之上 —— 用户给的那张画就被糊掉
+   六成，白昼那张尤其明显。macOS 有 [data-platform=darwin] .BynINW_frame{background:0 0}
+   的对应处理，Windows 没有，所以这一条由皮肤自己补。
+   只置底色透明，不动任何几何；标题栏那条 ::before 横带保留（它是窗口拖拽区的底，
+   也压着原生菜单栏）。姊妹皮 pixel-anime / whale-fantasy / rainy-night 是同一条。 */
+body [data-phase],
+body [data-dsh-frame] {
+  background-color: transparent !important;
+}
+
+/* 栏间的分隔线：引擎给的是 --sk-wall-edge（line 的 32%），压在画上太淡，
+   这里按主题各提一档，让两栏读起来仍然是「两栏」而不是糊成一片。 */
+[data-slot='sidebar'] > *,
+[data-dsh-surface='sidebar'],
+[data-pane='sidebar'] {
+  box-shadow: inset -1px 0 0 #dac9ac8c;
+}
+
+body[data-ds-dark-theme] [data-slot='sidebar'] > *,
+body[data-ds-dark-theme] [data-dsh-surface='sidebar'],
+body[data-ds-dark-theme] [data-pane='sidebar'] {
+  box-shadow: inset -1px 0 0 #2e3654bf;
+}
+
+/* ── 输入卡单独加一档底 ────────────────────────────────────────────────────
+   卡片是唯一一个「没有底就没法用」的面：引擎给其它玻璃面都配了背景模糊，唯独
+   输入卡那层磨砂要等**会话里有正文**时才挂（backdrop-scene 的
+   html[data-dsh-backdrop-active][data-dsh-conversation-content] 那条），所以首屏上
+   卡片全靠自己那一档 alpha 撑着。而两张底图里正对输入卡的，偏偏是最花的地方 ——
+   白昼那张是角色的白裙与红旗，夜空那张是宫灯与宫殿亮部（实测那一带中位亮度 138）。
+   真壳读数：0.58 时占位符 3.82:1、右下角 High 只有 2.72:1。
+
+   **必须写非 alias 的命名空间。** 真壳里输入卡的规则是
+   .card { background: var(--dsw-specific-input-major) } —— 少了中间那截 alias。
+   而 skin.css 只发 --dsw-alias-specific-input-major（两种命名空间都发是 EXTRA_TOKENS
+   才有的待遇，alias 家族只有 alias 那一份）；真壳那条 --dsw-specific-input-major
+   是壳自己从 alias 转出来的，转出来的值**在 :root 上就已经定死**。所以把 alias 那支
+   在卡片上重下一遍毫无作用（实测：卡片上该变量确实变成了 0.76，backgroundColor
+   还是 0.58）。两支都写，读哪一支都不会落空。 */
+[data-composer-card] {
+  --dsw-alias-specific-input-major: #fffcf5c2;
+  --dsw-specific-input-major: #fffcf5c2;
+}
+
+body[data-ds-dark-theme] [data-composer-card] {
+  --dsw-alias-specific-input-major: #141a2eb8;
+  --dsw-specific-input-major: #141a2eb8;
+}
+
+/* ── 输入框下缘那条回纹金梁：已撤（用户 9-25：太丑了） ──────────────────────
+   试过的东西记在这里，免得下次又照着走一遍：
+     · 素材是用户给的 wirte-bg.png（8192x512 RGBA，文件名里 write 拼成了 wirte）：
+       朱红带面 + 金线回纹 + 上下细金线 + 两端如意云头，**外圈本来就透明**。
+     · 做法是卡片自己长高 46px（padding-bottom）+ 一条 ::after 按 100% 100% 铺，
+       实测卡高 114 → 160，卡内文字位置不动。
+     · **撤掉的原因是观感**，不是技术：一条 46px 高的满饱和朱红带压在输入框下缘太重，
+       而且卡片两端的 14px 圆角会把云头最下面那一小瓣切掉。
+   产物已按坑 22 挪进 _assets/national-day/src/（构建只扫顶层，不会进装机包）；生成脚本
+   scripts/prepare-gq-write-band.py 留着（改高度/改宽度都从这里出）。**恢复配方写在
+   HANDOVER.md 第 9 节**（故意不在这里写 url(assets/...) —— 注释里的 url 虽然会被
+   sheetAssets 先剥掉，但官方白名单是扫原文的，留一条指向不存在资产的 url 是白添风险）。
+   选型对比图：_sym/wb-scale-test.png（自然比例 vs 横铺 vs 压扁）。 */
+/* ── D. 工作区分组行的图标：文件夹 → 五角星（用户 9-25 要求） ────────────────
+   真壳里那个图标是 <span.NbsWpa_slot.NbsWpa_folder><svg width=16 height=16
+   fill="none" stroke-width="1"><path d="…"/></svg></span> —— 形状全在 path 的 d 里，
+   CSS 改不动它，只能整个替换。
+
+   **不能 display:none 藏掉那个 svg**：span 的宽度就是 svg 撑出来的（实测 16px，
+   后面再跟 6px gap 才是标题，所以标题在 x=42）。藏掉会让整列标题左移 16px。
+   所以走「svg 保留占位但不可见 + 星形画在 span 自己身上」：
+
+     形状   mask-image 给一张 assets/gq-star.svg（纯 alpha，颜色无关）
+     颜色   background-color: currentColor —— 继承 span 上的 color
+
+   于是上面 A3 那两条颜色规则（收起 = 枫金/烟花金，展开 = 旗红/宫灯红）自动生效，
+   不用出明暗四份位图。这是本套第二件、也是唯一一件自己画的矢量资产。 */
+[data-slot='sidebar.workspaces'] [role='treeitem'][aria-expanded] > span:first-child > svg {
+  visibility: hidden;
+}
+
+[data-slot='sidebar.workspaces'] [role='treeitem'][aria-expanded] > span:first-child {
+  background-color: currentColor;
+  -webkit-mask-image: url(assets/gq-star.svg);
+  mask-image: url(assets/gq-star.svg);
+  -webkit-mask-repeat: no-repeat;
+  mask-repeat: no-repeat;
+  -webkit-mask-position: center;
+  mask-position: center;
+  -webkit-mask-size: 15px 15px;
+  mask-size: 15px 15px;
+}
+
+/* ══ 白昼 · 秋山晴日 ═══════════════════════════════════════ */
+
+/* ── A. 工作区 ─────────────────────────────────────────────────────────────
+   真壳结构（probe-workspace.mjs 量的，选择器全走 ARIA / data-slot，不碰哈希类名）：
+     [data-slot='sidebar.workspaces']        display:contents 的插槽戳
+       > *                                   ._2ZFevW_root
+           > *:first-child                   ._2ZFevW_sectionHeader（「工作区」+ 三颗图标）
+           > *:last-child                    ._2ZFevW_listArea
+               > [role='tree']
+                   > div[role='treeitem'][aria-expanded]      工作区分组行 246x34
+                   > div[role='treeitem'][aria-selected]      会话行       246x32
+                   > button[aria-expanded]                    「展开其余 N 个会话」
+   两处位置选择器（> * > *:first-child）是分区标题，这里只有它一个标题。 */
+
+/* A1 · 分区标题：从灰字提成品牌色的小标 */
+[data-slot='sidebar.workspaces'] > * > *:first-child > span:first-child {
+  color: #BE2A26;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+}
+
+/* A2 · 标题右侧那三颗图标按钮（搜索 / 视图选项 / 添加工作区）：静息态留给引擎，只补悬停 */
+[data-slot='sidebar.workspaces'] > * > *:first-child button:hover {
+  background-color: #be2a261a;
+  color: #BE2A26;
+}
+
+/* A3 · 工作区分组行 = 一面**渐隐的五星红旗横幅**（用户 9-25）。
+      横向从左到右由实到无：最左边是接近纯色的旗红，到 88% 处彻底让出去 ——
+      星在旗杆那一头、红也从那一头起，这就是旗的读法。
+      **只做到 0.96 而不是 1.0**：全实心的话左边会和上面的图标抢眼，也不像「渐变」。
+
+      **这里不能再用纸样板块那道 1px 描边**：渐变到右边已经透明了，框还在，
+      会读成「一个断了边的框」。所以 box-shadow 只留给展开态那条左竖条。
+
+      文字是暖墨（浅色主题），所以红色中段只能压到 0.32 上下 —— 实测文字中轴落在
+      35%~40% 那一段，合成后暖墨还有 6:1 以上；再深就掉到 4.5 以下了。 */
+[data-slot='sidebar.workspaces'] [role='treeitem'][aria-expanded] {
+  background-image: linear-gradient(90deg,
+    #be2a26f5 0%,
+    #be2a26b3 16%,
+    #be2a2652 38%,
+    #be2a261a 62%,
+    #be2a2600 88%);
+  box-shadow: none;
+  font-weight: 500;
+}
+
+/* 旗上的金星比配色里的金更亮 —— 背景变成红之后，原来的枫金（#C8871F）压在红上
+   只有 1.6:1，等于消失。这里把强调色往白里提 45%，量到 3.5:1（浅色）/ 5.6:1（暗色），
+   都过了图标需要的 3:1。 */
+[data-slot='sidebar.workspaces'] [role='treeitem'][aria-expanded] > span:first-child {
+  color: #e1bd84fa;
+}
+
+/* A3b · 文字居中。
+      projectText 是**个 flex 容器**（disp=flex gap=2px），所以居中要用 justify-content，
+      光写 text-align 不动它。
+      左边星形占 16 + 6(gap) = 22px，这里补同等的一份 padding-right，文字中轴才正好
+      落在整行的中轴上（不补的话会右偏 11px，量得出来）。 */
+[data-slot='sidebar.workspaces'] [role='treeitem'][aria-expanded] {
+  position: relative;
+}
+
+[data-slot='sidebar.workspaces'] [role='treeitem'][aria-expanded] > span:nth-child(3) {
+  justify-content: center;
+  text-align: center;
+  padding-right: 22px;
+}
+
+/* A3c · hover 才出现的那两颗按钮（⋮ 与「+」）改成绝对定位。
+      留它们在流里的话，projectText 是 flex:1 1 0%，会被抢走 48px —— 居中的文字
+      每悬停一次就向左跳 24px。绝对定位之后文字一格不动，按钮浮在右端。
+      （上美影那条坑 26 是反过来的：别让自己的浮层吃掉按钮的点击。这次是把按钮自己
+      提出来，所以不存在命中问题。） */
+[data-slot='sidebar.workspaces'] [role='treeitem'][aria-expanded] > span:last-child {
+  position: absolute;
+  right: 8px;
+  top: 50%;
+  transform: translateY(-50%);
+}
+
+/* 收起的分组行：悬停时红再压深一档（用 aria-expanded='false' 把展开中那一行让开，
+   否则同为 :hover 的规则特异性更高，会把展开态的左竖条盖掉） */
+[data-slot='sidebar.workspaces'] [role='treeitem'][aria-expanded='false']:hover {
+  background-image: linear-gradient(90deg,
+    #be2a26ff 0%,
+    #be2a26cc 18%,
+    #be2a2666 42%,
+    #be2a2621 66%,
+    #be2a2600 92%);
+}
+
+/* 展开中的那一行：同一面旗，压得更实 + 左侧 3px **金星色**竖条。
+   竖条必须是金星色而不是品牌色 —— 背景本来就是品牌红，同色竖条等于没画
+   （第一版就是这样，实测整行和收起态分不出来）。星形也不再转品牌色。 */
+[data-slot='sidebar.workspaces'] [role='treeitem'][aria-expanded='true'] {
+  background-image: linear-gradient(90deg,
+    #be2a26ff 0%,
+    #be2a26d6 20%,
+    #be2a2670 44%,
+    #be2a2624 68%,
+    #be2a2600 94%);
+  box-shadow: inset 3px 0 0 #e1bd84f2;
+}
+
+[data-slot='sidebar.workspaces'] [role='treeitem'][aria-expanded='true']:hover {
+  background-image: linear-gradient(90deg,
+    #be2a26ff 0%,
+    #be2a26eb 20%,
+    #be2a2685 44%,
+    #be2a262e 68%,
+    #be2a2600 94%);
+  box-shadow: inset 3px 0 0 #e1bd84ff;
+}
+
+/* A4 · 会话行：静息时是松一档的正文色（层级让给分组行），悬停浮起来，
+      选中的那条给品牌底 + 左竖条。引擎自己给的选中底只有 brand 的 10%，压在画上读不出来。 */
+[data-slot='sidebar.workspaces'] [role='treeitem'][aria-selected] {
+  background-color: transparent;
+  color: #3e3225;
+}
+
+[data-slot='sidebar.workspaces'] [role='treeitem'][aria-selected] > span:first-child {
+  color: #7b6a52e6;
+}
+
+[data-slot='sidebar.workspaces'] [role='treeitem'][aria-selected='false']:hover {
+  background-color: #be2a2614;
+  color: #241A11;
+}
+
+[data-slot='sidebar.workspaces'] [role='treeitem'][aria-selected='true'] {
+  background-color: #be2a2621;
+  color: #241A11;
+  font-weight: 500;
+  box-shadow: inset 3px 0 0 #be2a26e6;
+}
+
+[data-slot='sidebar.workspaces'] [role='treeitem'][aria-selected='true'] > span:first-child {
+  color: #BE2A26;
+}
+
+/* A5 · 「展开其余 N 个会话」：这颗按钮在 [role='tree'] 里，所以不会被分区标题那颗搜索按钮蹭到 */
+[data-slot='sidebar.workspaces'] [role='tree'] button[aria-expanded] {
+  color: #6f5f49;
+  letter-spacing: 0.02em;
+}
+
+[data-slot='sidebar.workspaces'] [role='tree'] button[aria-expanded]:hover {
+  color: #BE2A26;
+  background-color: #be2a2614;
+}
+
+/* ── B. 输入卡 ─────────────────────────────────────────────────────────────
+   卡片那一档底在下面「输入卡单独加一档底」那节（specific-input-major 换命名空间）。
+   这一节管边、字、以及下缘那排药丸。 */
+
+/* B1 · 卡片：一圈品牌细边 + 一点投影。引擎给的是 brand 0.14 的三像素圆环，
+      压在画上既不成边也不成光；换成 1px 实边 + 悬停/聚焦时的 4px 柔环。 */
+[data-composer-card] {
+  box-shadow:
+    0 0 0 1px #be2a2642,
+    0 18px 40px -26px #0000008c,
+    inset 0 1px 0 #fffcf5d9;
+}
+
+[data-composer-card]:focus-within {
+  box-shadow:
+    0 0 0 1px #be2a2680,
+    0 0 0 4px #be2a261f,
+    0 18px 40px -26px #0000008c,
+    inset 0 1px 0 #fffcf5d9;
+}
+
+/* B2 · 卡片里的小字。工具栏那几颗字没有自己的 data 钩子，颜色是**继承**
+      label-secondary / label-caption 来的 —— 所以在卡片上重下这两支即可一次生效，
+      不用去追哈希类名。实测最弱的两处就是右下角的模型名与 High。 */
+[data-composer-card] {
+  --dsw-alias-label-secondary: #5d4f3c;
+  --dsw-alias-label-caption: #6f5f49;
+  --dsw-alias-label-tertiary: #6f5f49;
+}
+
+[data-composer-card] [data-composer-placeholder] {
+  color: #5d4f3c;
+}
+
+[data-composer-input] {
+  caret-color: #BE2A26;
+}
+
+/* B3 · 下缘那排药丸：工作区选择 / Agent 预设 / 模型 / 访问模式。
+      四颗都用 aria-haspopup=menu 或官方插槽命中，不碰 aria-label（那是中文文案）。 */
+[data-slot='conversation.composer'] button[aria-haspopup='menu'],
+[data-slot='conversation.input.permission'] button {
+  border-radius: 999px;
+  background-color: #fffcf580;
+  box-shadow: inset 0 0 0 1px #dac9aceb;
+  color: #5d4f3c;
+  transition: background-color 0.12s ease, box-shadow 0.12s ease, color 0.12s ease;
+}
+
+[data-slot='conversation.composer'] button[aria-haspopup='menu']:hover,
+[data-slot='conversation.input.permission'] button:hover {
+  background-color: #be2a261f;
+  box-shadow: inset 0 0 0 1px #be2a2661;
+  color: #BE2A26;
+}
+
+/* B4 · 加号那颗是工具栏里的主动作，单独给品牌色 */
+[data-slot='conversation.composer'] button[aria-haspopup='listbox'] {
+  background-color: #be2a261f;
+  box-shadow: inset 0 0 0 1px #be2a264d;
+  color: #BE2A26;
+  transition: background-color 0.12s ease, box-shadow 0.12s ease;
+}
+
+[data-slot='conversation.composer'] button[aria-haspopup='listbox']:hover {
+  background-color: #be2a2633;
+  box-shadow: inset 0 0 0 1px #be2a2699;
+}
+
+/* B5 · 引用 chip（挂到对话里的文件/指令）。引擎的材质层没管它，这里补上，
+      否则它在两张画上都是默认灰底。 */
+[data-dsh-part='composer-chip'] {
+  border-radius: 999px;
+  background-color: #be2a261a;
+  box-shadow: inset 0 0 0 1px #be2a264d;
+}
+
+/* ── C. 侧栏上半那三条入口：只补悬停，静息态留给引擎（用户点名的是工作区与输入卡） */
+[data-dsh-part='new-session'], [data-dsh-part='sidebar-entry'] {
+  border-radius: 10px;
+  transition: background-color 0.12s ease, box-shadow 0.12s ease;
+}
+
+[data-dsh-part='new-session']:hover, [data-dsh-part='sidebar-entry']:hover {
+  background-color: #be2a261a;
+  box-shadow: inset 0 0 0 1px #be2a2661;
+}
+
+/* ── D. 侧栏左上角品牌行：DSH 本地构建 → 鲸鱼娘·人民万岁 ────────────────────
+   真壳结构（probe-brand.mjs 的 nameSlotHtml 原样）：
+     div.logoRow[data-window-drag]
+       button.brand[aria-label=新建会话]      216x24 @(16,24)   overflow:hidden
+         span.brandIdentity
+           span.brandMark > div[data-slot=sidebar.brand.mark][display:contents] > svg 24x17.66
+           span.brandText
+             div[data-slot=sidebar.brand.name][display:contents]
+               span.localBuildBrand                  ← **中间这一层是存在的**
+                 span.localBuildTitle  "DSH 本地构建"   12px / lh13
+                 span.buildVersion     "0.1.7-rc.2-…"   6px  / lh10  ← 壳给它一个药丸底
+   老交接说「两种写法都写上」，但**这个壳里有 wrapper** —— 见下面那条注释。
+
+   **整块只有 24px 高而且 overflow:hidden**：标题 13 + 版号 10 = 23，只剩 1px 余量。
+   所以字号只能在这 24px 里排 —— 标题 12.5/13、版号 8/10（行高不变，高度就不会涨）。
+   想再放大得先把那个 button 撑高，而它只有哈希类名（唯一的钩子是 button:has()），
+   不值得为 2px 去赌 :has 在真壳里会不会生效（老交接记过它哑过一次）。
+
+   替换文字**不能动原来的行盒度量**。按老交接的配方写「原字 font-size:0 + ::after
+   display:block」，结果整块基线一变、上移 7px，标题顶到 overflow:hidden 外面被切掉
+   （实测 title 跑到 y=17，按钮是 24..48）。所以：**原文留着占位、只把它藏起来，
+   新字用绝对定位的 ::after 盖上去** —— 行盒一点不动。
+
+   藏原文用 visibility（不参与布局），**但没有再试 color:transparent**：
+   -webkit-text-fill-color 是继承属性、初值 currentColor，谁盖谁不好判定；
+   visibility 的行为是确定的。
+
+   ⚠ **两套选择器都写，但那套「直系」的必须加判别器。**
+   真壳里插槽的第一层是包住两行的 span.localBuildBrand（它就是插槽的**唯一**元素子节点），
+   所以「> span:first-child」命中的是**它**，会造成两种坏结果：
+     ① 只写藏不写放 —— 版本号跟着一起消失（实测 buildVersion 的 computed visibility
+        也成了 hidden）；
+     ② ::after 也被加到 wrapper 上 —— 于是同一条替换字渲染两遍，两层错位叠在一起
+        （放大 8 倍看得清清楚楚）。
+   判别器用 :not(:only-child)：
+     · 有 wrapper 时，wrapper 是插槽的唯一元素子节点 → 被排除，只剩「隔一层」那套命中标题；
+     · 没有 wrapper 时（老壳），标题是 first-child 但不是 only-child → 那套命中。
+   两种结构都成立，而且**不需要 :has()**（老交接记过 :has 在真壳里哑过一次）。
+
+   （这段注释里**不能用反引号** —— 整个 gqPatches 是塞进模板字面量的，
+     反引号会把字符串截断、构建直接 SyntaxError。交接文档里记过这条。
+     同理注释只能闭合一次：说明写在收尾符号之后的话，那些星号会变成裸 CSS。） */
+
+/* 0.1.7 的插槽里是 span.localBuildBrand > (标题 + 版号)，本壳换成了一枚【单个 svg
+   字标】（156x24，data-slot 那层是 display:contents）。两件事因此都变了：
+     ① 旧那套 “> span:first-child” 一条都命中不到 —— 整段替换是死规则；
+     ② display:contents 的元素不生成盒子，::after / ::before 一律不渲染，
+        所以替换字不能挂在插槽自己身上，得先把它变回盒子。
+   做法：把插槽从 display:contents 改成 inline-flex（父级本来就是 flex，行盒度量与
+   原来那枚 156x24 的 svg 一致，不会动布局），原 svg 保留占位、只 visibility:hidden
+   （不参与绘制、仍参与布局），替换字用绝对定位盖上去。全程不碰行盒，也就不会像老
+   配方那样把 24px 高、overflow:hidden 的按钮顶破。
+   ⚠ 不用 :has()：老交接记过它在真壳里整条哑掉，而且不报错。 */
+[data-slot='sidebar.brand.name'] {
+  display: inline-flex !important;
+  align-items: center;
+  position: relative;
+}
+
+[data-slot='sidebar.brand.name'] > svg {
+  visibility: hidden;
+}
+
+[data-slot='sidebar.brand.name']::after {
+  content: '鲸鱼娘·人民万岁';
+  position: absolute;
+  left: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  font-family: var(--national-day-font-display);
+  font-size: 12.5px;
+  font-weight: 700;
+  line-height: 13px;
+  letter-spacing: 0.06em;
+  white-space: nowrap;
+  color: #241A11;
+  -webkit-text-fill-color: #241A11;
+}
+
+/* ── E. 会话视图：阅读纱 + 次要文字 + 会话头 + 搜索框展开态 ──────────────────
+   首屏是一张空画，文字只有标题与输入卡，不需要压暗；真会话里正文与过程行直接压在
+   画上。加纱之前实测（1600x1000，把文字藏起来只拍底，再按 WCAG 算）：
+     白昼  37 段文字里 34 段低于 3:1，最差 2.06:1（过程行 13px 小字）
+     夜空  6 段低于 3:1，最差 2.55:1
+   所以这一节做两件事：给会话视图补一层纱（首屏不加），再把会话里那三支次要文字
+   令牌按「纱之后的地面」重下一档。 */
+
+/* E1 · 阅读纱。判据用 data-content-phase 的取值（首屏 hero / 会话 active），而不是
+   给整个滚动容器永久加纱 —— 那样首屏那张画也会被一起压暗。
+   ⚠ 别用 :has()：中秋那套实测过，真壳里这条会整条哑掉，而且不报错。
+   纱用 background-attachment: fixed 钉在视口上，滚动时不跟着内容走。 */
+[data-conversation-content]:not([data-content-phase='hero']) {
+  background-image: linear-gradient(180deg, #fffcf557 0%, #fffcf575 100%);
+  background-repeat: no-repeat;
+  background-size: 100% 100%;
+  background-position: 0 0;
+  background-attachment: fixed;
+}
+
+/* E2 · 会话里的次要文字。引擎那三支 label 是按「有不透明底的卡片」配的，直接压在画上
+   只有 2 到 3 比 1；这里在会话内容这一层把三支重下（继承属性，一次覆盖整棵子树）。
+   正文的 label-primary 不动 —— 它本来就是 ink，压在白昼的亮画上还有 14:1。 */
+[data-conversation-content] {
+  --dsw-alias-label-secondary: #514433;
+  --dsw-alias-label-caption: #473a2b;
+  --dsw-alias-label-tertiary: #473a2b;
+}
+
+/* E3 · 会话头部：壳给的只有一根 1px 下缘线，压在画上读不出「这是头部」。补一档主题
+   玻璃 + 一根品牌色下缘；引擎那条 border 要一起收掉，否则两根线叠成 2px。
+   选中标签的品牌红是壳自己给的（--dsw-alias-state-business-primary），不用管。 */
+[data-slot='conversation.session.header'] > header {
+  background-color: #fffcf5bd !important;
+  border-bottom: 0 !important;
+  box-shadow: inset 0 -1px 0 #be2a266b;
+}
+
+/* E4 · 工作区搜索框的展开态：壳给的是一颗无底的 input，展开后直接浮在画上。给一层
+   纸底 + 品牌色细边。选择器只走插槽里的 input，不碰哈希类名；折叠时那颗 input 只有
+   4px 宽，被外壳自己的 28px 圆钮裁掉，不会露出半截底色。 */
+[data-slot='sidebar.workspaces'] input {
+  background-color: #fffcf5e6;
+  border-radius: 9px;
+  box-shadow: inset 0 0 0 1px #be2a2642;
+  color: #241A11;
+  -webkit-text-fill-color: #241A11;
+  padding: 0 8px;
+}
+
+[data-slot='sidebar.workspaces'] input::placeholder {
+  color: #5a4c39;
+  -webkit-text-fill-color: #5a4c39;
+}
+
+/* ══ 夜空 · 故宫夜宴 ═══════════════════════════════════════ */
+
+/* ── A. 工作区 ─────────────────────────────────────────────────────────────
+   真壳结构（probe-workspace.mjs 量的，选择器全走 ARIA / data-slot，不碰哈希类名）：
+     [data-slot='sidebar.workspaces']        display:contents 的插槽戳
+       > *                                   ._2ZFevW_root
+           > *:first-child                   ._2ZFevW_sectionHeader（「工作区」+ 三颗图标）
+           > *:last-child                    ._2ZFevW_listArea
+               > [role='tree']
+                   > div[role='treeitem'][aria-expanded]      工作区分组行 246x34
+                   > div[role='treeitem'][aria-selected]      会话行       246x32
+                   > button[aria-expanded]                    「展开其余 N 个会话」
+   两处位置选择器（> * > *:first-child）是分区标题，这里只有它一个标题。 */
+
+/* A1 · 分区标题：从灰字提成品牌色的小标 */
+body[data-ds-dark-theme] [data-slot='sidebar.workspaces'] > * > *:first-child > span:first-child {
+  color: #E04A3C;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+}
+
+/* A2 · 标题右侧那三颗图标按钮（搜索 / 视图选项 / 添加工作区）：静息态留给引擎，只补悬停 */
+body[data-ds-dark-theme] [data-slot='sidebar.workspaces'] > * > *:first-child button:hover {
+  background-color: #e04a3c29;
+  color: #E04A3C;
+}
+
+/* A3 · 工作区分组行 = 一面**渐隐的五星红旗横幅**（用户 9-25）。
+      横向从左到右由实到无：最左边是接近纯色的旗红，到 88% 处彻底让出去 ——
+      星在旗杆那一头、红也从那一头起，这就是旗的读法。
+      **只做到 0.96 而不是 1.0**：全实心的话左边会和上面的图标抢眼，也不像「渐变」。
+
+      **这里不能再用纸样板块那道 1px 描边**：渐变到右边已经透明了，框还在，
+      会读成「一个断了边的框」。所以 box-shadow 只留给展开态那条左竖条。
+
+      文字是暖墨（浅色主题），所以红色中段只能压到 0.32 上下 —— 实测文字中轴落在
+      35%~40% 那一段，合成后暖墨还有 6:1 以上；再深就掉到 4.5 以下了。 */
+body[data-ds-dark-theme] [data-slot='sidebar.workspaces'] [role='treeitem'][aria-expanded] {
+  background-image: linear-gradient(90deg,
+    #e04a3ceb 0%,
+    #e04a3ca8 16%,
+    #e04a3c4d 38%,
+    #e04a3c17 62%,
+    #e04a3c00 88%);
+  box-shadow: none;
+  font-weight: 500;
+}
+
+/* 旗上的金星比配色里的金更亮 —— 背景变成红之后，原来的枫金（#C8871F）压在红上
+   只有 1.6:1，等于消失。这里把强调色往白里提 45%，量到 3.5:1（浅色）/ 5.6:1（暗色），
+   都过了图标需要的 3:1。 */
+body[data-ds-dark-theme] [data-slot='sidebar.workspaces'] [role='treeitem'][aria-expanded] > span:first-child {
+  color: #f8dfa5fa;
+}
+
+/* A3b · 文字居中。
+      projectText 是**个 flex 容器**（disp=flex gap=2px），所以居中要用 justify-content，
+      光写 text-align 不动它。
+      左边星形占 16 + 6(gap) = 22px，这里补同等的一份 padding-right，文字中轴才正好
+      落在整行的中轴上（不补的话会右偏 11px，量得出来）。 */
+body[data-ds-dark-theme] [data-slot='sidebar.workspaces'] [role='treeitem'][aria-expanded] {
+  position: relative;
+}
+
+body[data-ds-dark-theme] [data-slot='sidebar.workspaces'] [role='treeitem'][aria-expanded] > span:nth-child(3) {
+  justify-content: center;
+  text-align: center;
+  padding-right: 22px;
+}
+
+/* A3c · hover 才出现的那两颗按钮（⋮ 与「+」）改成绝对定位。
+      留它们在流里的话，projectText 是 flex:1 1 0%，会被抢走 48px —— 居中的文字
+      每悬停一次就向左跳 24px。绝对定位之后文字一格不动，按钮浮在右端。
+      （上美影那条坑 26 是反过来的：别让自己的浮层吃掉按钮的点击。这次是把按钮自己
+      提出来，所以不存在命中问题。） */
+body[data-ds-dark-theme] [data-slot='sidebar.workspaces'] [role='treeitem'][aria-expanded] > span:last-child {
+  position: absolute;
+  right: 8px;
+  top: 50%;
+  transform: translateY(-50%);
+}
+
+/* 收起的分组行：悬停时红再压深一档（用 aria-expanded='false' 把展开中那一行让开，
+   否则同为 :hover 的规则特异性更高，会把展开态的左竖条盖掉） */
+body[data-ds-dark-theme] [data-slot='sidebar.workspaces'] [role='treeitem'][aria-expanded='false']:hover {
+  background-image: linear-gradient(90deg,
+    #e04a3cfa 0%,
+    #e04a3cc2 18%,
+    #e04a3c61 42%,
+    #e04a3c1f 66%,
+    #e04a3c00 92%);
+}
+
+/* 展开中的那一行：同一面旗，压得更实 + 左侧 3px **金星色**竖条。
+   竖条必须是金星色而不是品牌色 —— 背景本来就是品牌红，同色竖条等于没画
+   （第一版就是这样，实测整行和收起态分不出来）。星形也不再转品牌色。 */
+body[data-ds-dark-theme] [data-slot='sidebar.workspaces'] [role='treeitem'][aria-expanded='true'] {
+  background-image: linear-gradient(90deg,
+    #e04a3cff 0%,
+    #e04a3ccc 20%,
+    #e04a3c66 44%,
+    #e04a3c21 68%,
+    #e04a3c00 94%);
+  box-shadow: inset 3px 0 0 #f8dfa5f2;
+}
+
+body[data-ds-dark-theme] [data-slot='sidebar.workspaces'] [role='treeitem'][aria-expanded='true']:hover {
+  background-image: linear-gradient(90deg,
+    #e04a3cff 0%,
+    #e04a3ce0 20%,
+    #e04a3c7a 44%,
+    #e04a3c29 68%,
+    #e04a3c00 94%);
+  box-shadow: inset 3px 0 0 #f8dfa5ff;
+}
+
+/* A4 · 会话行：静息时是松一档的正文色（层级让给分组行），悬停浮起来，
+      选中的那条给品牌底 + 左竖条。引擎自己给的选中底只有 brand 的 10%，压在画上读不出来。 */
+body[data-ds-dark-theme] [data-slot='sidebar.workspaces'] [role='treeitem'][aria-selected] {
+  background-color: transparent;
+  color: #e1d8c9;
+}
+
+body[data-ds-dark-theme] [data-slot='sidebar.workspaces'] [role='treeitem'][aria-selected] > span:first-child {
+  color: #a99c86e6;
+}
+
+body[data-ds-dark-theme] [data-slot='sidebar.workspaces'] [role='treeitem'][aria-selected='false']:hover {
+  background-color: #e04a3c1f;
+  color: #F4EDE0;
+}
+
+body[data-ds-dark-theme] [data-slot='sidebar.workspaces'] [role='treeitem'][aria-selected='true'] {
+  background-color: #e04a3c33;
+  color: #F4EDE0;
+  font-weight: 500;
+  box-shadow: inset 3px 0 0 #e04a3ce6;
+}
+
+body[data-ds-dark-theme] [data-slot='sidebar.workspaces'] [role='treeitem'][aria-selected='true'] > span:first-child {
+  color: #E04A3C;
+}
+
+/* A5 · 「展开其余 N 个会话」：这颗按钮在 [role='tree'] 里，所以不会被分区标题那颗搜索按钮蹭到 */
+body[data-ds-dark-theme] [data-slot='sidebar.workspaces'] [role='tree'] button[aria-expanded] {
+  color: #b4a793;
+  letter-spacing: 0.02em;
+}
+
+body[data-ds-dark-theme] [data-slot='sidebar.workspaces'] [role='tree'] button[aria-expanded]:hover {
+  color: #E04A3C;
+  background-color: #e04a3c1f;
+}
+
+/* ── B. 输入卡 ─────────────────────────────────────────────────────────────
+   卡片那一档底在下面「输入卡单独加一档底」那节（specific-input-major 换命名空间）。
+   这一节管边、字、以及下缘那排药丸。 */
+
+/* B1 · 卡片：一圈品牌细边 + 一点投影。引擎给的是 brand 0.14 的三像素圆环，
+      压在画上既不成边也不成光；换成 1px 实边 + 悬停/聚焦时的 4px 柔环。 */
+body[data-ds-dark-theme] [data-composer-card] {
+  box-shadow:
+    0 0 0 1px #e04a3c57,
+    0 18px 40px -26px #000000d9,
+    inset 0 1px 0 #2e3654d9;
+}
+
+body[data-ds-dark-theme] [data-composer-card]:focus-within {
+  box-shadow:
+    0 0 0 1px #e04a3c99,
+    0 0 0 4px #e04a3c29,
+    0 18px 40px -26px #000000d9,
+    inset 0 1px 0 #2e3654d9;
+}
+
+/* B2 · 卡片里的小字。工具栏那几颗字没有自己的 data 钩子，颜色是**继承**
+      label-secondary / label-caption 来的 —— 所以在卡片上重下这两支即可一次生效，
+      不用去追哈希类名。实测最弱的两处就是右下角的模型名与 High。 */
+body[data-ds-dark-theme] [data-composer-card] {
+  --dsw-alias-label-secondary: #c3b8a5;
+  --dsw-alias-label-caption: #b4a793;
+  --dsw-alias-label-tertiary: #b4a793;
+}
+
+body[data-ds-dark-theme] [data-composer-card] [data-composer-placeholder] {
+  color: #c3b8a5;
+}
+
+body[data-ds-dark-theme] [data-composer-input] {
+  caret-color: #E04A3C;
+}
+
+/* B3 · 下缘那排药丸：工作区选择 / Agent 预设 / 模型 / 访问模式。
+      四颗都用 aria-haspopup=menu 或官方插槽命中，不碰 aria-label（那是中文文案）。 */
+body[data-ds-dark-theme] [data-slot='conversation.composer'] button[aria-haspopup='menu'],
+body[data-ds-dark-theme] [data-slot='conversation.input.permission'] button {
+  border-radius: 999px;
+  background-color: #141a2e75;
+  box-shadow: inset 0 0 0 1px #2e3654e6;
+  color: #c3b8a5;
+  transition: background-color 0.12s ease, box-shadow 0.12s ease, color 0.12s ease;
+}
+
+body[data-ds-dark-theme] [data-slot='conversation.composer'] button[aria-haspopup='menu']:hover,
+body[data-ds-dark-theme] [data-slot='conversation.input.permission'] button:hover {
+  background-color: #e04a3c2e;
+  box-shadow: inset 0 0 0 1px #e04a3c80;
+  color: #E04A3C;
+}
+
+/* B4 · 加号那颗是工具栏里的主动作，单独给品牌色 */
+body[data-ds-dark-theme] [data-slot='conversation.composer'] button[aria-haspopup='listbox'] {
+  background-color: #e04a3c2e;
+  box-shadow: inset 0 0 0 1px #e04a3c70;
+  color: #E04A3C;
+  transition: background-color 0.12s ease, box-shadow 0.12s ease;
+}
+
+body[data-ds-dark-theme] [data-slot='conversation.composer'] button[aria-haspopup='listbox']:hover {
+  background-color: #e04a3c47;
+  box-shadow: inset 0 0 0 1px #e04a3c99;
+}
+
+/* B5 · 引用 chip（挂到对话里的文件/指令）。引擎的材质层没管它，这里补上，
+      否则它在两张画上都是默认灰底。 */
+body[data-ds-dark-theme] [data-dsh-part='composer-chip'] {
+  border-radius: 999px;
+  background-color: #e04a3c29;
+  box-shadow: inset 0 0 0 1px #e04a3c66;
+}
+
+/* ── C. 侧栏上半那三条入口：只补悬停，静息态留给引擎（用户点名的是工作区与输入卡） */
+body[data-ds-dark-theme] [data-dsh-part='new-session'], [data-dsh-part='sidebar-entry'] {
+  border-radius: 10px;
+  transition: background-color 0.12s ease, box-shadow 0.12s ease;
+}
+
+body[data-ds-dark-theme] [data-dsh-part='new-session']:hover, [data-dsh-part='sidebar-entry']:hover {
+  background-color: #e04a3c29;
+  box-shadow: inset 0 0 0 1px #e04a3c80;
+}
+
+/* ── D. 侧栏左上角品牌行：DSH 本地构建 → 鲸鱼娘·人民万岁 ────────────────────
+   真壳结构（probe-brand.mjs 的 nameSlotHtml 原样）：
+     div.logoRow[data-window-drag]
+       button.brand[aria-label=新建会话]      216x24 @(16,24)   overflow:hidden
+         span.brandIdentity
+           span.brandMark > div[data-slot=sidebar.brand.mark][display:contents] > svg 24x17.66
+           span.brandText
+             div[data-slot=sidebar.brand.name][display:contents]
+               span.localBuildBrand                  ← **中间这一层是存在的**
+                 span.localBuildTitle  "DSH 本地构建"   12px / lh13
+                 span.buildVersion     "0.1.7-rc.2-…"   6px  / lh10  ← 壳给它一个药丸底
+   老交接说「两种写法都写上」，但**这个壳里有 wrapper** —— 见下面那条注释。
+
+   **整块只有 24px 高而且 overflow:hidden**：标题 13 + 版号 10 = 23，只剩 1px 余量。
+   所以字号只能在这 24px 里排 —— 标题 12.5/13、版号 8/10（行高不变，高度就不会涨）。
+   想再放大得先把那个 button 撑高，而它只有哈希类名（唯一的钩子是 button:has()），
+   不值得为 2px 去赌 :has 在真壳里会不会生效（老交接记过它哑过一次）。
+
+   替换文字**不能动原来的行盒度量**。按老交接的配方写「原字 font-size:0 + ::after
+   display:block」，结果整块基线一变、上移 7px，标题顶到 overflow:hidden 外面被切掉
+   （实测 title 跑到 y=17，按钮是 24..48）。所以：**原文留着占位、只把它藏起来，
+   新字用绝对定位的 ::after 盖上去** —— 行盒一点不动。
+
+   藏原文用 visibility（不参与布局），**但没有再试 color:transparent**：
+   -webkit-text-fill-color 是继承属性、初值 currentColor，谁盖谁不好判定；
+   visibility 的行为是确定的。
+
+   ⚠ **两套选择器都写，但那套「直系」的必须加判别器。**
+   真壳里插槽的第一层是包住两行的 span.localBuildBrand（它就是插槽的**唯一**元素子节点），
+   所以「> span:first-child」命中的是**它**，会造成两种坏结果：
+     ① 只写藏不写放 —— 版本号跟着一起消失（实测 buildVersion 的 computed visibility
+        也成了 hidden）；
+     ② ::after 也被加到 wrapper 上 —— 于是同一条替换字渲染两遍，两层错位叠在一起
+        （放大 8 倍看得清清楚楚）。
+   判别器用 :not(:only-child)：
+     · 有 wrapper 时，wrapper 是插槽的唯一元素子节点 → 被排除，只剩「隔一层」那套命中标题；
+     · 没有 wrapper 时（老壳），标题是 first-child 但不是 only-child → 那套命中。
+   两种结构都成立，而且**不需要 :has()**（老交接记过 :has 在真壳里哑过一次）。
+
+   （这段注释里**不能用反引号** —— 整个 gqPatches 是塞进模板字面量的，
+     反引号会把字符串截断、构建直接 SyntaxError。交接文档里记过这条。
+     同理注释只能闭合一次：说明写在收尾符号之后的话，那些星号会变成裸 CSS。） */
+
+/* 0.1.7 的插槽里是 span.localBuildBrand > (标题 + 版号)，本壳换成了一枚【单个 svg
+   字标】（156x24，data-slot 那层是 display:contents）。两件事因此都变了：
+     ① 旧那套 “> span:first-child” 一条都命中不到 —— 整段替换是死规则；
+     ② display:contents 的元素不生成盒子，::after / ::before 一律不渲染，
+        所以替换字不能挂在插槽自己身上，得先把它变回盒子。
+   做法：把插槽从 display:contents 改成 inline-flex（父级本来就是 flex，行盒度量与
+   原来那枚 156x24 的 svg 一致，不会动布局），原 svg 保留占位、只 visibility:hidden
+   （不参与绘制、仍参与布局），替换字用绝对定位盖上去。全程不碰行盒，也就不会像老
+   配方那样把 24px 高、overflow:hidden 的按钮顶破。
+   ⚠ 不用 :has()：老交接记过它在真壳里整条哑掉，而且不报错。 */
+body[data-ds-dark-theme] [data-slot='sidebar.brand.name'] {
+  display: inline-flex !important;
+  align-items: center;
+  position: relative;
+}
+
+body[data-ds-dark-theme] [data-slot='sidebar.brand.name'] > svg {
+  visibility: hidden;
+}
+
+body[data-ds-dark-theme] [data-slot='sidebar.brand.name']::after {
+  content: '鲸鱼娘·人民万岁';
+  position: absolute;
+  left: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  font-family: var(--national-day-font-display);
+  font-size: 12.5px;
+  font-weight: 700;
+  line-height: 13px;
+  letter-spacing: 0.06em;
+  white-space: nowrap;
+  color: #F4EDE0;
+  -webkit-text-fill-color: #F4EDE0;
+}
+
+/* ── E. 会话视图：阅读纱 + 次要文字 + 会话头 + 搜索框展开态 ──────────────────
+   首屏是一张空画，文字只有标题与输入卡，不需要压暗；真会话里正文与过程行直接压在
+   画上。加纱之前实测（1600x1000，把文字藏起来只拍底，再按 WCAG 算）：
+     白昼  37 段文字里 34 段低于 3:1，最差 2.06:1（过程行 13px 小字）
+     夜空  6 段低于 3:1，最差 2.55:1
+   所以这一节做两件事：给会话视图补一层纱（首屏不加），再把会话里那三支次要文字
+   令牌按「纱之后的地面」重下一档。 */
+
+/* E1 · 阅读纱。判据用 data-content-phase 的取值（首屏 hero / 会话 active），而不是
+   给整个滚动容器永久加纱 —— 那样首屏那张画也会被一起压暗。
+   ⚠ 别用 :has()：中秋那套实测过，真壳里这条会整条哑掉，而且不报错。
+   纱用 background-attachment: fixed 钉在视口上，滚动时不跟着内容走。 */
+body[data-ds-dark-theme] [data-conversation-content]:not([data-content-phase='hero']) {
+  background-image: linear-gradient(180deg, #141a2e4d 0%, #141a2e70 100%);
+  background-repeat: no-repeat;
+  background-size: 100% 100%;
+  background-position: 0 0;
+  background-attachment: fixed;
+}
+
+/* E2 · 会话里的次要文字。引擎那三支 label 是按「有不透明底的卡片」配的，直接压在画上
+   只有 2 到 3 比 1；这里在会话内容这一层把三支重下（继承属性，一次覆盖整棵子树）。
+   正文的 label-primary 不动 —— 它本来就是 ink，压在白昼的亮画上还有 14:1。 */
+body[data-ds-dark-theme] [data-conversation-content] {
+  --dsw-alias-label-secondary: #d5cbba;
+  --dsw-alias-label-caption: #cbc0af;
+  --dsw-alias-label-tertiary: #cbc0af;
+}
+
+/* E3 · 会话头部：壳给的只有一根 1px 下缘线，压在画上读不出「这是头部」。补一档主题
+   玻璃 + 一根品牌色下缘；引擎那条 border 要一起收掉，否则两根线叠成 2px。
+   选中标签的品牌红是壳自己给的（--dsw-alias-state-business-primary），不用管。 */
+body[data-ds-dark-theme] [data-slot='conversation.session.header'] > header {
+  background-color: #141a2e9e !important;
+  border-bottom: 0 !important;
+  box-shadow: inset 0 -1px 0 #e04a3c8c;
+}
+
+/* E4 · 工作区搜索框的展开态：壳给的是一颗无底的 input，展开后直接浮在画上。给一层
+   纸底 + 品牌色细边。选择器只走插槽里的 input，不碰哈希类名；折叠时那颗 input 只有
+   4px 宽，被外壳自己的 28px 圆钮裁掉，不会露出半截底色。 */
+body[data-ds-dark-theme] [data-slot='sidebar.workspaces'] input {
+  background-color: #141a2ec7;
+  border-radius: 9px;
+  box-shadow: inset 0 0 0 1px #e04a3c57;
+  color: #F4EDE0;
+  -webkit-text-fill-color: #F4EDE0;
+  padding: 0 8px;
+}
+
+body[data-ds-dark-theme] [data-slot='sidebar.workspaces'] input::placeholder {
+  color: #A99C86;
+  -webkit-text-fill-color: #A99C86;
+}
+

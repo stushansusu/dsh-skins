@@ -1,0 +1,51 @@
+{
+  "$schema": "https://schemas.linxin666.org/dsh-skin/v2.json",
+  "skinManifestVersion": 2,
+  "id": "national-day",
+  "name": "国庆 · 山河华灯",
+  "nameEn": "National Day",
+  "version": "1.0.0",
+  "author": "stushansusu",
+  "tagline": "白昼长城秋色 · 夜空故宫烟花 · 五星红旗 · 宫灯万盏",
+  "description": "国庆的一路：底图是用户给的一对画（白昼 · 蓝天长城与漫山红枫；夜空 · 故宫角楼与烟花宫灯），浅色走白昼、暗色走夜空，**两套配色各自从对应的那张画里取**——浅色是宣纸暖白配旗红与枫金，暗色是夜空靛配宫灯红与烟花金，不是同一套值的明暗孪生。界面先给画让路（侧栏与详情栏从实色墙换成玻璃），再把工作区分组行做成**一面面渐隐的五星红旗横幅**（旗红左实右无 + 金星 + 名字居中），输入卡一圈品牌细边、下缘四颗药丸统一成胶囊、卡内小字提亮一档。强调色浅色取旗红 #BE2A26，暗色取宫灯红 #E04A3C。",
+  "tags": [
+    "chinese",
+    "national-day",
+    "guoqing",
+    "flag",
+    "great-wall",
+    "forbidden-city",
+    "fireworks",
+    "lantern",
+    "autumn",
+    "red",
+    "gold",
+    "dual-theme",
+    "photo-background"
+  ],
+  "accent": "#BE2A26",
+  "order": 47,
+  "license": "CC BY-NC-SA 4.0",
+  "licenseUrl": "https://creativecommons.org/licenses/by-nc-sa/4.0/",
+  "attribution": "皮肤工程、assets/ 中的两张背景画（gq-light-bg.webp / gq-dark-bg.webp）与五角星遮罩 gq-star.svg 均由作者 stushansusu 提供，按 CC BY-NC-SA 4.0 发布。",
+  "preview": {
+    "light": "preview/light.jpg",
+    "dark": "preview/dark.jpg"
+  },
+  "contributes": {
+    "stylesheet": "skin.css",
+    "patches": "patches.css",
+    "backgroundMedia": {
+      "light": {
+        "type": "image",
+        "src": "assets/gq-light-bg.webp",
+        "scrim": "linear-gradient(180deg, rgba(255,252,244,0.00) 0%, rgba(255,252,244,0.10) 30%, rgba(255,252,244,0.14) 54%, rgba(255,250,240,0.26) 100%)"
+      },
+      "dark": {
+        "type": "image",
+        "src": "assets/gq-dark-bg.webp",
+        "scrim": "linear-gradient(180deg, rgba(6,7,16,0.30) 0%, rgba(6,7,16,0.16) 28%, rgba(6,7,16,0.22) 52%, rgba(6,7,16,0.48) 100%)"
+      }
+    }
+  }
+}
