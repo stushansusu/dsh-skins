@@ -1,0 +1,52 @@
+{
+  "$schema": "https://schemas.linxin666.org/dsh-skin/v2.json",
+  "skinManifestVersion": 2,
+  "id": "xinghai-heart",
+  "name": "星海之心",
+  "nameEn": "Heart of the Starry Sea",
+  "version": "1.0.0",
+  "author": "stushansusu",
+  "tagline": "深海星图 · 星蓝 × 暖金 · 点状密星场 · 低饱和电影光",
+  "description": "星海之心：背景是用户 2026-10-01 交付的视频 —— 一片深蓝的星海从纯黑里一点一点亮起来，满场段是密集的点状星（p99.5 以上的亮点 400-580 个、中位尺寸只有 2px）加一处亮核。配色全部从画面逐帧实测量出来 —— 面板取「夜」#04163A 那一带的深处 #081A3C，正文取最亮 1% #9ACAE6 提亮后的 #E9F2FB，牌子取星蓝 #2960A9 与亮星 #60A0D2 之间的 #4FA6E8。全片 hue 有 76.9% 落在 210-240、R−B ≈ −46，**暖色像素占 0.000%**，所以强调色 暖金 #F2C46A 只能来自界面 —— 它只给「活着」的地方：当前行、聚焦中的输入卡、链接、悬停的图标、新会话的四角括号。语言是「深海的星图：冷的是海，暖的是心」：面全是薄玻璃（背后永远是正在发亮的星海），骨架是 1px 星蓝细线，全屏唯一的实心是新会话那颗星蓝到暖金的按钮。**暗色专用**，左上角品牌行换成「星海之心」。",
+  "tags": [
+    "xinghai-heart",
+    "starfield",
+    "deep-sea",
+    "nebula",
+    "navy-gold",
+    "warm-cool",
+    "point-stars",
+    "low-saturation",
+    "cinematic",
+    "hologram",
+    "hud",
+    "video-background",
+    "dark",
+    "dark-only"
+  ],
+  "accent": "#4FA6E8",
+  "order": 50,
+  "preview": {
+    "light": "preview/light.jpg",
+    "dark": "preview/dark.jpg"
+  },
+  "contributes": {
+    "stylesheet": "skin.css",
+    "patches": "patches.css",
+    "backgroundMedia": {
+      "light": {
+        "type": "video",
+        "src": "assets/xinghai-heart-loop.mp4",
+        "scrim": "linear-gradient(180deg, rgba(3,8,26,0) 0%, rgba(3,8,26,0) 54%, rgba(3,8,26,0.12) 72%, rgba(3,8,26,0.30) 88%, rgba(3,8,26,0.38) 100%), linear-gradient(90deg, rgba(3,8,26,0.01) 0%, rgba(3,8,26,0.06) 16%, rgba(3,8,26,0.20) 30%, rgba(3,8,26,0.24) 100%)"
+      },
+      "dark": {
+        "type": "video",
+        "src": "assets/xinghai-heart-loop.mp4",
+        "scrim": "linear-gradient(180deg, rgba(3,8,26,0) 0%, rgba(3,8,26,0) 54%, rgba(3,8,26,0.12) 72%, rgba(3,8,26,0.30) 88%, rgba(3,8,26,0.38) 100%), linear-gradient(90deg, rgba(3,8,26,0.01) 0%, rgba(3,8,26,0.06) 16%, rgba(3,8,26,0.20) 30%, rgba(3,8,26,0.24) 100%)"
+      }
+    }
+  },
+  "license": "CC BY-NC-SA 4.0",
+  "licenseUrl": "https://creativecommons.org/licenses/by-nc-sa/4.0/",
+  "attribution": "皮肤工程（skin.css / patches.css 的全部机壳规则、调色板、几何与「以点代线」的装饰语言）由 stushansusu 原创。背景视频：源片为作者 2026-10-01 交付的星海素材（星海之心.mp4，22.64s / 679 帧 / 1920x1080 / 30fps / HEVC 7.42 Mbps），无黑边、未裁切。构建时用 bake-xh-loop.py 保持 30fps 原生（不抽帧）与 1920 原生宽，CRF 21 / preset slow / tune film 重编一次，并把尾部 1.2s 淡出到纯黑以接回纯黑的首帧（679 帧 / 22.633s / 14.26 MB / 回接差 0.00 / 与源片 SSIM 0.9932）。体积由商店的硬限制定：上架资产是单个 zip，Cloudflare Workers 单文件上限 25 MiB（26,214,400 字节）。本皮肤为非官方、非商业作品，与本仓库无隶属关系。"
+}
