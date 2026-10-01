@@ -122,13 +122,13 @@ body [data-pane='details'] {
 
 [data-phase='hero'] {
   position: relative;
-  background-image:radial-gradient(circle at 50% 30%, transparent 0 168px, #9acae616 168px 169px, transparent 169px),radial-gradient(circle at 50% 30%, transparent 0 104px, #9acae60e 104px 105px, transparent 105px),radial-gradient(circle at 14% 12%, #9acae657 0 1.5px, transparent 2.1px),radial-gradient(circle at 23% 20%, #9acae63d 0 1.1px, transparent 1.7px),radial-gradient(circle at 34% 11%, #9acae675 0 1.8px, transparent 2.4px),radial-gradient(circle at 43% 21%, #9acae642 0 1.2px, transparent 1.8px),radial-gradient(circle at 57% 9%, #9acae666 0 1.6px, transparent 2.2px),radial-gradient(circle at 66% 18%, #9acae63d 0 1.1px, transparent 1.7px),radial-gradient(circle at 76% 12%, #9acae680 0 1.9px, transparent 2.5px),radial-gradient(circle at 87% 23%, #9acae647 0 1.3px, transparent 1.9px),radial-gradient(circle at 20% 41%, #9acae642 0 1.2px, transparent 1.8px),radial-gradient(circle at 33% 35%, #9acae64d 0 1.4px, transparent 2px),radial-gradient(circle at 67% 37%, #9acae64d 0 1.4px, transparent 2px),radial-gradient(circle at 80% 43%, #9acae63d 0 1.2px, transparent 1.8px),radial-gradient(circle at 50% 30%, #f2c46a1c 0 30px, transparent 30px),radial-gradient(circle at 50% 30%, #f2c46af2 0 2.4px, transparent 3px);
+  background-image: none;
   background-repeat: no-repeat;
   background-size: 100% 100%;
 }
 
 body [data-phase='hero'] {
-  background-image:radial-gradient(circle at 50% 30%, transparent 0 168px, #9acae616 168px 169px, transparent 169px),radial-gradient(circle at 50% 30%, transparent 0 104px, #9acae60e 104px 105px, transparent 105px),radial-gradient(circle at 14% 12%, #9acae657 0 1.5px, transparent 2.1px),radial-gradient(circle at 23% 20%, #9acae63d 0 1.1px, transparent 1.7px),radial-gradient(circle at 34% 11%, #9acae675 0 1.8px, transparent 2.4px),radial-gradient(circle at 43% 21%, #9acae642 0 1.2px, transparent 1.8px),radial-gradient(circle at 57% 9%, #9acae666 0 1.6px, transparent 2.2px),radial-gradient(circle at 66% 18%, #9acae63d 0 1.1px, transparent 1.7px),radial-gradient(circle at 76% 12%, #9acae680 0 1.9px, transparent 2.5px),radial-gradient(circle at 87% 23%, #9acae647 0 1.3px, transparent 1.9px),radial-gradient(circle at 20% 41%, #9acae642 0 1.2px, transparent 1.8px),radial-gradient(circle at 33% 35%, #9acae64d 0 1.4px, transparent 2px),radial-gradient(circle at 67% 37%, #9acae64d 0 1.4px, transparent 2px),radial-gradient(circle at 80% 43%, #9acae63d 0 1.2px, transparent 1.8px),radial-gradient(circle at 50% 30%, #f2c46a1c 0 30px, transparent 30px),radial-gradient(circle at 50% 30%, #f2c46af2 0 2.4px, transparent 3px);
+  background-image: none;
 }
 
 /* ── composer: the theme's object ────────────────────────────────────────── */

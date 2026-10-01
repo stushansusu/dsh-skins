@@ -56,12 +56,14 @@ footage:
 | radius | 8-12px soft corners | **3px chart-like hard edges** |
 | section labels | warm gold (same as state) | **bright star** — gold is state-only now |
 | brand row | 2px gold bar | **four-point star mark** (cross plus centre dot) |
-| empty session | nothing drawn | **a faint star chart**: two rings, a 12-star chain, one warm heart |
+| empty session | nothing drawn | **nothing drawn** - the footage is the picture |
 
-The star chart on the empty session is pure CSS: the engine forces
-background-size: 100% 100% after this rule, so positions go inside each layer's
-circle at X% Y% instead of a position list — 16 radial-gradient layers
-(2 rings, 12 stars, 1 halo, 1 heart).
+The empty session draws nothing. An earlier revision put a faint star chart there
+(two concentric rings, 12 star points and a 2.4 px warm heart, 16 radial-gradient
+layers). Review removed it: on this footage the whole first screen carries only
+304 warm pixels (0.018 %), and that single saturated warm dot plus its rings read
+as a gold circle decoration rather than as a star chart. The footage is the
+picture on the empty session, as in the sibling skins.
 
 ## The soft readability layer
 
