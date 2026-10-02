@@ -1820,3 +1820,56 @@ body [data-composer-stats] span {
   -webkit-text-fill-color: #b7cce3;
 }
 
+/* ══════════════════════════════════════════════════════════════════════════
+   16 · 明暗统一：把「写死的白」压回本皮
+   ══════════════════════════════════════════════════════════════════════════
+   用户报「明亮主题下弹窗是白底」。查下来本皮的 token 层其实是**完整的** ——
+   把壳里所有 var(--dsw-*, 白色) 的兜底逐个对过（probe-xh-fallback.mjs）：
+   12 个被白色兜底的 token 里，**11 个都解析成了本皮的暗色**，只有 1 个是空的。
+   所以白底不是「没覆盖到」，而是**有人把白色写死了**，token 再全也管不了。
+   实测两处（probe-xh-hardwhite.mjs，扫全部已加载 CSS + 注入的 style 标签）：
+
+     option / optgroup …… 插件 dsh-free-search 写死 background:#ffffff
+     --dsw-alias-state-warning-tertiary …… **未定义**，兜底 #feebd3（米白，L 0.93）
+
+   这一节按**通用钩子**收拾，不去点插件的类名（那些是 CSS-Modules 哈希或插件私有名，
+   第 14 节已经吃过这个亏）：
+     · 原生下拉项是**全应用共用**的控件，option/optgroup 一条规则就够，
+       不必知道是哪个插件写的白 —— 而且它正好就是用户看到的那个「弹窗」；
+     · 弹窗用 role/aria 这类 ARIA 钩子，任何插件、任何框架都躲不开。 */
+
+/* ① 原生下拉项：全应用统一。写死 #ffffff 的插件（dsh-free-search 等）也一并收回来。
+      这两个元素是 UA 接管的，必须用 !important 才压得住插件里的硬编码。 */
+body option,
+body optgroup {
+  background-color: #122A55 !important;
+  color: #E9F2FB !important;
+}
+/* 聚焦时的白底同理：插件把它写成 #ffffff，这里给回本皮的玻璃。 */
+body select:focus-visible,
+body input:focus-visible {
+  background-color: #081a3cb8 !important;
+  color: #E9F2FB !important;
+}
+
+/* ② 弹窗：用 ARIA 钩子，覆盖**所有**插件的自绘弹窗。
+      很多插件自带一套「亮色优先」的样式表（本部署里 dsh-free-search 的 .dshfs-card
+      是 rgba(255,255,255,.72)，等于一块白卡），它们不看本皮的肤色 —— 这里按 ARIA 兜住。
+      用**带 alpha 的玻璃**而不是实心：万一弹窗内部已经有一层自己的底，
+      叠一层半透明只会把它压暗一点，不会平掉它的层次。 */
+body [role='dialog'],
+body [aria-modal='true'] {
+  background-color: #081a3cdb !important;
+  color: #E9F2FB !important;
+  border-color: #1f4c8ea8 !important;
+}
+
+/* ③ 补上那个**未定义**的 token。
+      它被当一个「警示底色」用（body[data-dsh-skin-center] .TJMolG_badgeWarning），
+      未定义时兜底 #feebd3 —— 在深色皮肤里就是一块米白。给它本皮的暖金淡底，
+      上面压暖金/正文字都够对比。**只补这一个**：另外几个 state-*-tertiary 都有定义，
+      乱补会盖掉壳自己的暗色值。 */
+body {
+  --dsw-alias-state-warning-tertiary: #f2c46a2e;
+}
+

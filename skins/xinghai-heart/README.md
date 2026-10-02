@@ -116,3 +116,17 @@ five states). The official gate passes with zero warnings.
   engineering; **rights remain with the original rights holder**.
 - **Personal, non-commercial use only. Unofficial work, not affiliated with this
   repository.**
+
+
+## Light and dark are the same picture
+
+The skin is dark-only, and this revision closes the last places where that was not
+true. Every token the shell references with a light fallback was audited: of the 12,
+11 already resolved to this skin's dark values, and one
+(--dsw-alias-state-warning-tertiary) was undefined, so its pale fallback showed
+through; it is now defined. What remained were values plugins had written literally -
+a hardcoded #ffffff on native dropdown items and on focus states - which no token can
+reach. So native option/optgroup and focus states are pinned to the skin's own
+surfaces by one set of hook-free rules, and any dialog (role/aria-modal) gets the
+skin's glass. Measured after the change: zero surfaces above 0.55 luminance anywhere
+in the shell, and the dropdown items render rgb(18,42,85) on rgb(233,242,251).
