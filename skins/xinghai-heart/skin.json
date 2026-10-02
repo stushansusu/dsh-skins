@@ -27,8 +27,8 @@
   "accent": "#4FA6E8",
   "order": 50,
   "preview": {
-    "light": "preview/xinghai-heart-preview.jpg",
-    "dark": "preview/xinghai-heart-preview.jpg"
+    "light": "preview/light.jpg",
+    "dark": "preview/dark.jpg"
   },
   "contributes": {
     "stylesheet": "skin.css",
@@ -45,5 +45,8 @@
         "scrim": "linear-gradient(180deg, rgba(3,8,26,0) 0%, rgba(3,8,26,0) 54%, rgba(3,8,26,0.12) 72%, rgba(3,8,26,0.30) 88%, rgba(3,8,26,0.38) 100%), linear-gradient(90deg, rgba(3,8,26,0.01) 0%, rgba(3,8,26,0.06) 16%, rgba(3,8,26,0.20) 30%, rgba(3,8,26,0.24) 100%)"
       }
     }
-  }
+  },
+  "license": "CC BY-NC-SA 4.0",
+  "licenseUrl": "https://creativecommons.org/licenses/by-nc-sa/4.0/",
+  "attribution": "皮肤工程（skin.css / patches.css 的全部机壳规则、调色板、几何与「以点代线」的装饰语言）由 stushansusu 原创。背景视频：作者声明为自有的 AI 生成素材 —— 由生成式视频模型渲染（与作者「雨夜」那套的产线同一条：作者自撰提示词、自备参考图，非转载、不含第三方素材），再由作者在剪映专业版剪出并交付；源文件内嵌该次导出的元数据（product=lv、os=windows、editType=default、videoId 5360006b-7b52-417b-ab72-156b8a38411c）。交付的源片为 22.64s / 679 帧 / 1920x1080 / 30fps / HEVC 7.42 Mbps / 21.19 MB，无黑边、未裁切。构建时用 bake-xh-loop.py 保持 30fps 原生（不抽帧）与 1920 原生宽，CRF 21 / preset slow / tune film 重编一次，并把尾部 1.2s 淡出到纯黑以接回纯黑的首帧（679 帧 / 22.633s / 14.26 MB / 回接差 0.00 / 与源片 SSIM 0.9932）。体积由商店的硬限制定：上架资产是单个 zip，Cloudflare Workers 单文件上限 25 MiB（26,214,400 字节）。美术素材不在 CC BY-NC-SA 4.0 的授权范围内，权利归原权利人所有；本皮肤仅限个人非商业使用，为非官方作品，与本仓库无隶属或关联关系。"
 }
