@@ -101,7 +101,18 @@ five states). The official gate passes with zero warnings.
 
 ## Attribution and licence
 
-See the attribution field in skin.json. The skin engineering is the author's own; the
-footage was delivered by the author. Licensed CC BY-NC-SA 4.0 for the engineering; the
-artwork is carved out of that grant. This is an unofficial, non-commercial work with no
-affiliation to this repository.
+- **Skin engineering** (skin.css, patches.css, the palette, the geometry and the
+  point-based decoration language): original work by the author, stushansusu.
+- **Footage: AI-generated.** The author declares the background video is a
+  generative-video-model render, from the same pipeline as their 雨夜 (Whale
+  Girl - Rainy Night) skin: the author's own prompts and reference images, not a
+  repost, no third-party material. It was cut and delivered from CapCut /
+  JianYing desktop, and the source file carries that export metadata
+  (product=lv, os=windows, editType=default, videoId
+  5360006b-7b52-417b-ab72-156b8a38411c).
+- The shipped loop is derived from that source with bake-xh-loop.py; the numbers
+  are in the background-video section above.
+- The artwork is carved out of the CC BY-NC-SA 4.0 grant that covers the
+  engineering; **rights remain with the original rights holder**.
+- **Personal, non-commercial use only. Unofficial work, not affiliated with this
+  repository.**
