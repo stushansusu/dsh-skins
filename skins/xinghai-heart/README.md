@@ -152,3 +152,13 @@ its surroundings, so it did not read as a control. It now uses the skin's ink at
 500 with the star-azure hairline that this skin reserves for interactive elements
 (measured 12.76:1 against its surface), and the access-mode switcher beside it is
 lifted the same way.
+
+
+A note on how that one was caught. The switcher lives in the composer, where an earlier
+rule of this skin sets **every** aria-haspopup button's fill with !important. The new value
+therefore had to carry !important as well - without it the declaration lost the cascade
+silently, which is exactly what the first attempt did: the label colour, the weight and the
+border changed, the fill did not. The menu that opens from that switcher is covered too;
+its role=menu container paints transparent and the visible surface sits on an unnamed
+child, so that surface is pinned by ARIA (menu/listbox plus their items) rather than by
+class, the same discipline as elsewhere in this skin.

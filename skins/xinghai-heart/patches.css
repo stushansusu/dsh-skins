@@ -1923,7 +1923,12 @@ body {
 body [data-composer-card] button[aria-haspopup='menu'] {
   color: #E9F2FB !important;
   font-weight: 500;
-  background-color: #122a55c7;
+  /* **必须 !important**：本文件第 585 行那条通用规则给所有 aria-haspopup 按钮设了
+     background-color: raised/0.55 !important。!important 无视顺序与特异性，
+     所以这里不加 !important 的话**这条底色永远不生效** —— 这正是用户回报
+     「背景并没有修改，还是灰白色」的原因：我上一次加了 color/border/weight，
+     却没给 background 加 !important，量具也只核了对比度没核底色，漏过去了。 */
+  background-color: #122a55db !important;
   border: 1px solid #4fa6e870;
 }
 body [data-composer-card] button[aria-haspopup='menu'] span,
@@ -1931,7 +1936,27 @@ body [data-composer-card] button[aria-haspopup='menu'] svg {
   color: #E9F2FB !important;
 }
 body [data-composer-card] button[aria-haspopup='menu']:hover {
-  background-color: #122a55eb;
+  background-color: #122a55f5 !important;
   border-color: #4fa6e8a8;
+}
+
+/* ── 切换模型时弹出的那个菜单 ────────────────────────────────────────────
+   实测（probe-xh-modelmenu.mjs）：菜单容器 role=menu 的 background 是
+   **rgba(0,0,0,0)**，真正的面在它自己那层 class（._surface_ri079_1）上 —— 也就是
+   「computed 里查不到」的老问题（第 16/17 节同一个教训）。
+   所以这里不猜类名，直接用 ARIA 钩子把菜单**及其所有后代**压到本皮的面与正文色：
+   菜单项、分隔线、选中态都在这棵子树里。 */
+body [role='menu'],
+body [role='listbox'] {
+  color: #E9F2FB;
+}
+body [role='menu'] [role='menuitem'],
+body [role='listbox'] [role='option'] {
+  color: #E9F2FB;
+}
+body [role='menu'] [role='menuitem']:hover,
+body [role='listbox'] [role='option']:hover {
+  background-color: #4fa6e829;
+  color: #E9F2FB;
 }
 
