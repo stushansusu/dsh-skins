@@ -130,3 +130,25 @@ reach. So native option/optgroup and focus states are pinned to the skin's own
 surfaces by one set of hook-free rules, and any dialog (role/aria-modal) gets the
 skin's glass. Measured after the change: zero surfaces above 0.55 luminance anywhere
 in the shell, and the dropdown items render rgb(18,42,85) on rgb(233,242,251).
+
+
+## Follow-up: the changes card, and the composer's model switcher
+
+Two more places where "light" leaked in, plus a contrast fix.
+
+The changes card (the row you click to see what changed) was white because the shell
+switches that card with a **paired variable keyed on body[data-ds-dark-theme]**:
+--changes-fill is var(--dsw-static-neutral-50) (#fafafa) in the light branch and
+var(--dsw-static-neutral-850) in the dark one. Because this shell runs in the light
+theme, the dark branch never applied - and no alias token can reach it, because those
+values are static tokens and the selectors carry the theme precondition. The same
+pattern covers the deliverable card and the plan card. So the three static tokens the
+surfaces read are re-pointed at this skin's own surfaces. Verified by rebuilding the
+card's markup with the shell's own class names on the live page: the header now renders
+rgb(18,42,85) instead of #fafafa.
+
+The composer's model switcher was 11px at weight 400 with a fill barely lighter than
+its surroundings, so it did not read as a control. It now uses the skin's ink at weight
+500 with the star-azure hairline that this skin reserves for interactive elements
+(measured 12.76:1 against its surface), and the access-mode switcher beside it is
+lifted the same way.

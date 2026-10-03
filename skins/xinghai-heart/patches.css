@@ -1873,3 +1873,65 @@ body {
   --dsw-alias-state-warning-tertiary: #f2c46a2e;
 }
 
+/* ══════════════════════════════════════════════════════════════════════════
+   17 · 壳自己的「明暗两套变量」，是本皮白底的真凶
+   ══════════════════════════════════════════════════════════════════════════
+   用户贴出了白底元素：button.kuvljq_header（变更卡的「查看」行）。
+   查壳 CSS 才看清它对这种卡片用的是一套**成对变量**：
+
+     .kuvljq_card  { --changes-fill: var(--dsw-static-neutral-50) }                 -> #fafafa
+     body .kuvljq_card { --changes-fill: var(--dsw-static-neutral-850) } -> #212123
+     .kuvljq_header { background: var(--changes-fill) }
+
+   **这一套是靠 body 切的，而壳跑在明亮主题下，那条分支永远不生效。**
+   这就是为什么第 16 节把 alias token 钉得再全也没用：这些值取自 **static token**，
+   且选择器本身就带主题前提。同一套写法还有三处（都已核对）：
+     --changes-fill / --changes-hover        变更卡
+     --deliverable-fill / --deliverable-hover 交付卡
+     --plan-card-fill / --plan-card-hover     计划卡
+     .kuvljq_tile、.flL80G_fileIcon 的底     color-mix(neutral-00 50%, transparent)
+
+   **为什么从 static token 下手**：那几个 --*-fill 是声明在卡片**自己身上**的，
+   挂在 body 上会被局部声明盖掉（继承斗不过局部，!important 也不行）；
+   卡片又没有 data 钩子（壳 JS 里只有 data-file-type-mark），类名是 CSS-Modules 哈希，
+   本工程的守卫也不允许。所以唯一干净的杠杆就是它们读的那几个 static token。
+   **已核对用途**（probe-xh-static.mjs，扫全部已加载 CSS + 注入 style）：
+     neutral-50  4 处，全是表面底（内联代码底 / 三张卡的 fill）
+     neutral-100 4 处，全是表面底（三张卡的 hover）
+     neutral-00  5 处，都是 color-mix 到 transparent 的淡色块（两张卡的图标块 + 一处微光）
+   也就是**没有一个**被当「白字 / 白图标」用 —— 所以在这里把它们改暗是安全的。 */
+
+body {
+  /* 对应暗色分支的 neutral-850 / neutral-800，但换成**本皮的色**而不是壳的中性灰：
+     壳那两档是 #212123 / #292929，压在这套蓝调玻璃上会显脏。 */
+  --dsw-static-neutral-50: #122A55;
+  --dsw-static-neutral-100: #17386d;
+  /* neutral-00 是纯白，被 color-mix(... 50%, transparent) 当淡色块用；
+     直接改成低透明度白，让那个 50% 落到暗色分支 5% 的强度 ——
+     这样图标块的浓淡与暗色主题一致，不必去动那两条分支。 */
+  --dsw-static-neutral-00: #e9f2fb17;
+}
+
+/* ── 输入卡里的「模型 / 访问模式」切换器：用户说对比度不明显 ──────────────
+   实测它长这样（probe-xh-kuvljq.mjs）：
+     button.wq12jW_trigger  aria-haspopup=menu  11px / weight 400
+     color rgb(189,208,230)   bg rgba(18,42,85,.55)   border 1px rgba(31,76,142,.55)
+   11px + 400 的字重配上「比周围只亮一点点」的底，作为**可点控件**太弱了。
+   按本皮的语言给成「星蓝描边 + 正文色 + 中等字重」：星蓝正是本皮给交互件的颜色，
+   而暖金留给状态，不抢。用 aria-haspopup 钩住（语言无关），
+   顺带把同排的「访问模式」也一起提上来，两者本来就是同类控件。 */
+body [data-composer-card] button[aria-haspopup='menu'] {
+  color: #E9F2FB !important;
+  font-weight: 500;
+  background-color: #122a55c7;
+  border: 1px solid #4fa6e870;
+}
+body [data-composer-card] button[aria-haspopup='menu'] span,
+body [data-composer-card] button[aria-haspopup='menu'] svg {
+  color: #E9F2FB !important;
+}
+body [data-composer-card] button[aria-haspopup='menu']:hover {
+  background-color: #122a55eb;
+  border-color: #4fa6e8a8;
+}
+
