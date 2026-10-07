@@ -16,8 +16,9 @@ workspace needs texture, and a single ink gradient under the workspace rows.
 | id | shuimo-danqing (order 51) |
 | name | 鲸鱼娘 · 水墨丹青 / Whale Girl - Ink Wash |
 | theme | **dark-only** - the light half renders the same dark palette |
-| background | assets/shuimo-danqing-loop.mp4 - 608 frames / 25.333 s / 1920x1080 / 24 fps / H.264 / 24.20 MB |
-| codec | **H.264, transcoded from the delivered HEVC** - HEVC support in the Chromium family is platform-dependent (measured on one machine: Edge 123 says no, Chrome 154 says yes), and the desktop shell this skin installs into is Electron. Everything except the codec is untouched, so the loop point is still a **hard cut** (seam 171.06 against a p95 frame step of 8.70) |
+| background | assets/shuimo-danqing-loop.mp4 - 608 frames / 25.333 s / 1920x1080 / 24 fps / H.264 / 21.54 MB |
+| loop | **seamless by construction**: the last 1.2 s cross-dissolves into a clone of frame 0, so the final frame is pixel-identical to the first - **seam 0.01** against a p95 frame step of 8.70 |
+| codec | **H.264, re-encoded from the delivered HEVC** - HEVC support in the Chromium family is platform-dependent (measured on one machine: Edge 123 says no, Chrome 154 says yes), and the desktop shell this skin installs into is Electron. The encoder had to change anyway, so the loop is seamed in the same pass; frame count, frame rate, duration and resolution are all untouched |
 | textures | assets/sm-paper-grain.webp (2.9 % paper veil), sm-paper-grain-strong.webp (5.7 %) - both procedural, 256x256, lossless |
 | fonts | Noto Serif SC / SimSun for prose, KaiTi for headings, Cascadia Mono for readouts |
 
@@ -43,26 +44,28 @@ question on the same machine:
 | Chrome 154 | probably | probably |
 
 The desktop shell the skin installs into is Electron, which behaves like the first row:
-with the HEVC copy installed, the background rendered a frame and stopped. So the skin
-ships a **codec-only transcode** (`bake-sm-loop.py transcode`, CRF 19 / preset slow /
-tune film) - **frame count, frame rate, duration, resolution and the loop behaviour are
-all untouched**; nothing is baked, nothing is crossfaded, nothing is retimed. The cost
-is one generation of encoding: SSIM **0.9936** against the source.
+with the HEVC copy installed, the background rendered a frame and stopped.
 
-The loop point is therefore still a hard cut, and it is measured: the clip ends on ink
-(mean 67.6) and starts on paper (mean 237.8), so the seam is **171.06** where the p95
-frame-to-frame step is 8.70. A seamless variant exists and is one command away
-(`bake-sm-loop.py bake`), which cross-dissolves the tail into a clone of frame 0
-(`trim` one frame plus `tpad stop_mode=clone`) so the last frame is byte-identical to
-the first: on this source that measures **21.54 MB / seam 0.01 / SSIM 0.9930**. It is
-not what ships. Getting that path right took three attempts; the two failures are
-recorded as `seam 9.84` (reusing the opening 1.2 s, which itself drifts) and
+So the encoder had to change - and once one re-encode is unavoidable, the loop point is
+seamed in the same pass. The shipped file comes out of `bake-sm-loop.py bake`
+(CRF 20 / preset slow / tune film): the last 1.2 s cross-dissolves into a clone of
+frame 0 (`trim` one frame plus `tpad stop_mode=clone`), so the final frame is
+pixel-identical to the first. That measures **seam 0.01** where the p95 frame-to-frame
+step is 8.70, costs one generation of encoding (SSIM **0.9930** against the source), and
+leaves frame count, frame rate, duration and resolution exactly as delivered.
+
+The dissolve reads as "the ink washes out and returns to the paper", not as an
+artifact. The delivered clip never comes back to paper on its own - it ends on ink
+(mean 67.6) while its first frame is paper (mean 237.8) - so without the dissolve the
+loop point is a **171.06** jump once every 25.333 s, twenty times the largest ordinary
+frame-to-frame step. Getting the seaming right took three attempts; the two failures
+are recorded as `seam 9.84` (reusing the opening 1.2 s, which itself drifts) and
 `seam 5.42` (the offset one frame short of the last frame, leaving 2.8 % of ink).
 
 The store ships a skin as a single zip asset and Cloudflare Workers caps one asset at
 25 MiB. The margin that matters is the **packaged zip**, not the file: the shipped
-`.mp4` is 24,204,601 bytes (23.08 MiB), and the 11 files of this directory zip to
-**24.70 MB (23.56 MiB)** in store mode - **1.44 MiB** under the cap.
+`.mp4` is 21,539,098 bytes (20.54 MiB), and the 11 files of this directory zip to
+**22,047,529 bytes (21.03 MiB)** in store mode - **3.97 MiB** under the cap.
 
 ## The palette: 14 colours, every one with a role
 
@@ -214,7 +217,7 @@ a colour card.
 | part | where it comes from | rights holder |
 | --- | --- | --- |
 | skin engineering — `skin.json`, `skin.css`, `patches.css`, the 14-colour palette, the geometry, every ink-wash rule and the generators for the two procedural paper tiles | the author's original work | stushansusu |
-| background video — `assets/shuimo-danqing-loop.mp4` | **AI-generated for this skin**: the author wrote the prompt and supplied the reference images, rendered it with a generative video model, and exported it with ffmpeg (the container metadata is quoted above). No third-party footage, music or illustration is bundled, and none of it is a re-upload. The shipped file is a **codec-only transcode** (HEVC to H.264) of that material; neither the picture nor the frame order was changed | stushansusu |
+| background video — `assets/shuimo-danqing-loop.mp4` | **AI-generated for this skin**: the author wrote the prompt and supplied the reference images, rendered it with a generative video model, and exported it with ffmpeg (the container metadata is quoted above). No third-party footage, music or illustration is bundled, and none of it is a re-upload. The shipped file is an **H.264 re-encode** (HEVC to H.264) of that material: the only change to the picture is that the last 1.2 s cross-dissolves into a clone of frame 0, so the loop point is seamed; frame count, frame rate, duration and resolution are unchanged | stushansusu |
 | character — 「鲸鱼娘」/ Whale Girl | the author's own character line, shared with the sibling skins `whale-fantasy` (未至之境) and `rainy-night` (雨夜) | stushansusu |
 
 The skin engineering is released under [CC BY-NC-SA 4.0](LICENSE): attribution required,
