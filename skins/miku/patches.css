@@ -1,127 +1,107 @@
 /**
- * miku · 初音未来 — 结构层（v2 皮肤契约，patches.css）
+ * miku · 初音未来 — 结构层（v2 皮肤契约，patches.css）  v0.5.0「声波青 / Signal Teal」
  *
- * 本次是**整体重写**，不是补丁：
- *   明亮 = 青空舞台：白瓷平涂 + 墨蓝描边 + 硬投影（cel 画法），青绿/品红点缀。
- *   暗色 = 夜海霓虹：深蓝平涂 + 青绿冷光边 + 霓虹投影，品红做高光。
- *   会话栏（中栏）**全透明**，壁纸由 contributes.backgroundMedia 绘制，一律不压底。
+ * 这一版是**视觉语言整套重写**，不是补丁：
+ *   旧版 = 机甲装甲：12px 斜切角 + 角部铆钉 + 拉丝金属 + 警示斜条 + 2px 墨线 +
+ *          4px 硬投影 + 网点铺面 + 彩虹渐变横幅。密度高、对比硬，显旧。
+ *   新版 = 声波台：圆角 + 发丝线 + 三档柔影 + 单色青绿 + 一处洋红；
+ *          母题从「铆钉/切角」换成「**声波**」—— 首屏一排细声波柱、输入卡底缘一道
+ *          信号线（聚焦时亮起）、品牌行一枚 MIKU 徽标。
+ *   会话栏（中栏）仍然**全透明**：插画由 contributes.backgroundMedia 绘制，一律不压底；
+ *   自定义光标与设备适配两段是**原样搬运**的（见文件尾的机器管理区），不要手改。
  *
- * 三条硬约束（都是实测出来的，别改）：
+ * 四条硬约束（前三条沿用上一版，都是实测出来的）：
  *   1. 侧栏列/侧栏根上**不能**放 backdrop-filter：它会成为 fixed 后代的包含块，
- *      把设置弹窗从 1600×1000 困成侧栏里的 280×938。模糊只能给顶栏/底栏/弹窗这类叶子。
+ *      把设置弹窗从 1600×1000 困成侧栏里的 280×938。模糊只给菜单/浮层这类叶子。
  *   2. 只用稳定钩子（data-slot / data-dsh-* / data-pane / data-composer-* /
- *      data-chat-flow-kind / role）。旧的 [class*="quiet"] 这类宽泛子串会把
- *      sidebars 的 quietBars 也一起命中，本次不再使用。
+ *      data-chat-flow-kind / role）。宽泛子串 [class*="quiet"] 之类会把无关组件
+ *      一起命中（sidebars 的 quietBars 就是这么中的），不写。
  *   3. 顶栏/底栏的类名是 hooks.mjs 的 CLS 常量（.NPtzYa_*），改这里要同步改代码。
+ *   4. **不要用 filter 给任何"可能挂 fixed 弹层"的元素做效果**（filter 与
+ *      backdrop-filter、transform 一样会创建包含块）；要动就用 background-color /
+ *      box-shadow / opacity。本文件的悬停反馈只用这三样。
  */
 
 /* ─────────── 皮肤私有变量：只放 miku 自己的画法值 ─────────── */
 
 :root {
-  --miku-ink: #12324f;
-  --miku-ink-soft: #12324f2e;
-  --miku-ink-line: #12324f;
-  --miku-panel: #f7fcfcf2;
-  --miku-panel-quiet: #eaf7f4d9;
-  --miku-hard: 4px 4px 0 #12324f24;
-  --miku-hard-sm: 2px 2px 0 #12324f1f;
-  --miku-glow: 0 0 0 1px #12324f1f;
-  --miku-teal: #12a79b;
-  --miku-sky: #2e9bff;
-  --miku-pink: #d81b7e;
-  --miku-dots: radial-gradient(#12324f12 1px, #0000 1.4px);
-  --miku-brand-bar: linear-gradient(90deg, #7ecbff 0%, #2e9bff 22%, #40bedc 44%, #39c5bb 56%, #40bedc 70%, #2e9bff 88%, #7ecbff 100%);
-  --miku-title-ramp: linear-gradient(90deg, #7ecbff 0%, #2e9bff 22%, #40bedc 44%, #39c5bb 56%, #40bedc 70%, #2e9bff 88%, #7ecbff 100%);
-  --miku-wordmark: linear-gradient(92deg, #ffffff 0%, #d6fff7 48%, #ffd9ee 100%);
-
-  /* ── 机甲材质 ──
-     斜切角（clip-path 不产生包含块，所以敢用在按钮/卡片/弹窗上；但会裁剪后代，
-     侧栏列里挂着 fixed 的设置弹窗，列和列上的祖先一律不能切）。
-     深度用内嵌倒角做，不用外投影 —— 外投影会被 clip-path 一起裁掉。 */
-  --miku-cut: polygon(12px 0, 100% 0, 100% calc(100% - 12px), calc(100% - 12px) 100%, 0 100%, 0 12px);
-  --miku-cut-sm: polygon(8px 0, 100% 0, 100% calc(100% - 8px), calc(100% - 8px) 100%, 0 100%, 0 8px);
-  --miku-keycap: polygon(5px 0, 100% 0, 100% calc(100% - 5px), calc(100% - 5px) 100%, 0 100%, 0 5px);
-  --miku-metal: linear-gradient(180deg, #ffffff 0%, #e9f3fd 15%, #c6dbef 50%, #e2eefb 78%, #ffffff 100%);
-  --miku-metal-2: linear-gradient(180deg, #fbfdff 0%, #dbe9f8 32%, #b9d2e8 100%);
-  --miku-plate: linear-gradient(135deg, #ffffff 0%, #eef6ff 42%, #dae8f7 100%);
-  --miku-bevel: inset 0 1px 0 #ffffffd9, inset 0 -2px 0 #12324f1f;
-  --miku-bevel-sm: inset 0 1px 0 #ffffffa6;
-  /* 警示条改成调色板内的青绿/墨蓝（原来那条黄的不属于这套冷色主题） */
-  --miku-hazard: repeating-linear-gradient(45deg, #12a79b 0 4px, #12324f 4px 8px);
-  --miku-rivet: radial-gradient(circle, #12324f66 0 1.3px, #0000 1.8px);
-  --miku-grid: linear-gradient(90deg, #12324f0f 1px, #0000 1px), linear-gradient(0deg, #12324f0f 1px, #0000 1px);
-  --miku-display: "Bahnschrift", "Noto Sans SC", "Microsoft YaHei UI", "Microsoft YaHei", "Segoe UI", sans-serif;
-
-  /* 工作区文件夹流动渐变（明亮档：白瓷底上用 soft-light，颜色要沉一点才不发灰） */
-  --miku-flow: linear-gradient(100deg, #39c5bb 0%, #2e9bff 22%, #d81b7e 46%, #2e9bff 72%, #39c5bb 100%);
-  --miku-flow-blend: soft-light;
-  /* 输入卡底缘能量缝 */
-  --miku-seam: linear-gradient(90deg, #39c5bb00, #39c5bbd9 20%, #2e9bffd9 52%, #d81b7ed9 80%, #d81b7e00);
-  /* 菜单/浮层用的玻璃面（半透明，配模糊才好看） */
-  --miku-glass: linear-gradient(180deg, #ffffffdb 0%, #eef7ffe6 100%);
-  /* 小浮层专用：几乎不透。菜单下面是侧栏的网点，86% 的半透玻璃会把那张网点读进菜单里，
-     看上去像菜单自己脏了。 */
-  --miku-menu-glass: linear-gradient(180deg, #fffffff7 0%, #f2f9fff7 100%);
-  /* 需要"读字"的大面板用实面：98% 不透明，几乎不透底，避免底下内容串进文字 */
-  --miku-surface: #fffffffa;
-  /* 机甲边框：一圈渐变描边 */
-  --miku-edge: linear-gradient(135deg, #12a79b 0%, #2e9bff 42%, #d81b7e 100%);
-  --miku-caret: #12a79b;
+  /* 骨架 */
+  --miku-ink: #16202e;
+  --miku-ink-2: #4a5a6e;
+  --miku-ink-3: #5c6e80;
+  --miku-hairline: #16202e1f;
+  --miku-hairline-2: #16202e33;
+  /* 面 */
+  --miku-surface: #fbfdffeb;   /* 主面板：92% 近白，透一点插画 */
+  --miku-surface-2: #f2f7fdf2;
+  --miku-surface-3: #e8f0f9f2;
+  --miku-glass: #fffffff0;
+  /* 品牌：一支青绿分两档 —— brand 能承字，brand-fill 只当填充 */
+  --miku-brand: #0b7a72;
+  --miku-brand-soft: #2bc4b824;
+  --miku-brand-fill: #2bc4b8;
+  --miku-on-brand: #04211f;
+  --miku-accent: #c02a72;      /* 洋红：只给"人"和活口 */
+  --miku-accent-soft: #c02a721f;
+  /* 形状 */
+  --miku-r-sm: 8px;
+  --miku-r: 12px;
+  --miku-r-lg: 18px;
+  /* 影：三档柔影，全部不带彩 */
+  --miku-shadow-1: 0 1px 2px #16202e14;
+  --miku-shadow-2: 0 6px 20px #16202e1a, 0 1px 2px #16202e0f;
+  --miku-shadow-3: 0 20px 48px #16202e26, 0 2px 6px #16202e14;
+  --miku-inset-top: inset 0 1px 0 #ffffffb3;
+  /* 声波母题：一排 2px 细柱（只在首屏用，配 mask 淡出两端） */
+  --miku-wave: repeating-linear-gradient(90deg, #0b7a72a6 0 2px, #0000 2px 8px);
+  /* 工作区行：一条极慢的青绿微光（旧版是 11s 的彩虹流动，色相太多） */
+  --miku-flow: linear-gradient(100deg, #2bc4b800 0%, #2bc4b833 26%, #0b7a7233 50%, #2bc4b833 74%, #2bc4b800 100%);
+  --miku-flow-speed: 22s;
+  --miku-display: "Inter", "Segoe UI Variable Display", "Segoe UI Variable", "Segoe UI", "Noto Sans SC", "Microsoft YaHei UI", "Microsoft YaHei", sans-serif;
+  --miku-caret: #0b7a72;
+  /* 会话栏正文压在插画上，靠一层柔和贴边影保证可读（不是给整栏铺底色） */
+  --miku-text-halo: 0 1px 2px #ffffffb3;
 }
 
 body[data-ds-dark-theme] {
-  --miku-ink: #39c5bb;
-  --miku-ink-soft: #39c5bb59;
-  --miku-ink-line: #39c5bb80;
-  --miku-panel: #12244af2;
-  --miku-panel-quiet: #12244ae6;
-  --miku-hard: 0 0 0 1px #39c5bb59, 0 10px 28px #00000073;
-  --miku-hard-sm: 0 0 0 1px #39c5bb47;
-  --miku-glow: 0 0 0 1px #39c5bb40, 0 0 18px #39c5bb29;
-  --miku-teal: #39c5bb;
-  --miku-sky: #4fd8e8;
-  --miku-pink: #ff5cb0;
-  --miku-dots: radial-gradient(#7ad8ff14 1px, #0000 1.4px);
-  --miku-brand-bar: linear-gradient(90deg, #0d2b56 0%, #1e4f9e 20%, #7a3fd0 40%, #d0298a 50%, #7a3fd0 60%, #1e4f9e 80%, #0d2b56 100%);
-  --miku-title-ramp: linear-gradient(90deg, #0d2b56 0%, #1e4f9e 20%, #7a3fd0 40%, #d0298a 50%, #7a3fd0 60%, #1e4f9e 80%, #0d2b56 100%);
-  --miku-wordmark: linear-gradient(92deg, #ffffff 0%, #7ff0e4 50%, #ff9ad4 100%);
-
-  --miku-metal: linear-gradient(180deg, #3a6396 0%, #23456f 16%, #101f42 52%, #1c3763 80%, #3a6396 100%);
-  --miku-metal-2: linear-gradient(180deg, #26456f 0%, #16294f 38%, #0b1730 100%);
-  --miku-plate: linear-gradient(135deg, #1e3c6e 0%, #142a52 46%, #0a1730 100%);
-  --miku-bevel: inset 0 1px 0 #7ad8ff2e, inset 0 -2px 0 #00000059;
-  --miku-bevel-sm: inset 0 1px 0 #7ad8ff1f;
-  --miku-hazard: repeating-linear-gradient(45deg, #39c5bb 0 4px, #0b1730 4px 8px);
-  --miku-rivet: radial-gradient(circle, #9fe8ff8c 0 1.3px, #0000 1.8px);
-  --miku-grid: linear-gradient(90deg, #7ad8ff12 1px, #0000 1px), linear-gradient(0deg, #7ad8ff12 1px, #0000 1px);
-
-  /* 暗色档：流动渐变要更亮、并且用 screen 叠在深蓝上才发光，不然一片糊 */
-  --miku-flow: linear-gradient(100deg, #2fe3d5 0%, #3f9bff 22%, #ff5cb0 46%, #3f9bff 72%, #2fe3d5 100%);
-  --miku-flow-blend: screen;
-  --miku-seam: linear-gradient(90deg, #39c5bb00, #39c5bbe6 20%, #4fd8e8e6 52%, #ff5cb0e6 80%, #ff5cb000);
-  --miku-glass: linear-gradient(180deg, #16294fe0 0%, #0d1a3aeb 100%);
-  --miku-menu-glass: linear-gradient(180deg, #16294ff7 0%, #0d1a3af7 100%);
-  --miku-surface: #12244af7;
-  --miku-edge: linear-gradient(135deg, #39c5bb 0%, #4fd8e8 42%, #ff5cb0 100%);
+  --miku-ink: #e9f1fa;
+  --miku-ink-2: #a9b9cc;
+  --miku-ink-3: #8598ad;
+  --miku-hairline: #ffffff1f;
+  --miku-hairline-2: #ffffff2e;
+  --miku-surface: #101929f0;
+  --miku-surface-2: #141f30f2;
+  --miku-surface-3: #1a2740f2;
+  --miku-glass: #101929f0;
+  --miku-brand: #39c5bb;
+  --miku-brand-soft: #39c5bb24;
+  --miku-brand-fill: #39c5bb;
+  --miku-on-brand: #04211f;
   --miku-caret: #39c5bb;
+  --miku-accent: #ff63ae;
+  --miku-accent-soft: #ff63ae24;
+  --miku-shadow-1: 0 1px 2px #00000059;
+  --miku-shadow-2: 0 6px 20px #00000073, 0 1px 2px #00000040;
+  --miku-shadow-3: 0 20px 48px #00000099, 0 2px 6px #00000059;
+  --miku-inset-top: inset 0 1px 0 #ffffff14;
+  --miku-wave: repeating-linear-gradient(90deg, #39c5bba6 0 2px, #0000 2px 8px);
+  --miku-flow: linear-gradient(100deg, #39c5bb00 0%, #39c5bb2e 26%, #39c5bb40 50%, #39c5bb2e 74%, #39c5bb00 100%);
+  --miku-text-halo: 0 1px 2px #04070db3;
 }
 
 /* ─────────── 0. 画布与三栏框架 ─────────── */
 
-/* 顶栏 30px / 底栏 26px 是 fixed 的，给根容器留出位置 */
+/* 顶栏 30px / 底栏 26px 是 hooks.mjs 注入的 fixed 条，本皮**按用户要求收起**，
+   所以根容器不再为它们留出 30/26px。 */
 [id="root"] {
   box-sizing: border-box;
   background: none;
   border: none;
   box-shadow: none;
-  /* 顶栏/底栏已收起（见下方 [data-skin-chrome] 规则），不再预留 30/26px。 */
   padding-top: 0;
   padding-bottom: 0;
 }
 
-/* 顶部标题栏 / 底部状态栏：按用户要求去掉。
-   hooks.mjs 仍然会注入这两个节点（钩子是受校验的评审产物），这里只做视觉收起，
-   想恢复删掉这一段即可。 */
 [data-skin-chrome="titlebar"],
 [data-skin-chrome="statusbar"] {
   display: none !important;
@@ -140,7 +120,7 @@ body[data-ds-dark-theme] #root > div > div,
   background: none !important;
 }
 
-/* ─────────── 1. 会话栏：全透明，壁纸直通 ─────────── */
+/* ─────────── 1. 会话栏：全透明，插画直通 ─────────── */
 
 [data-pane="conversation"],
 [class*="centerCol"],
@@ -162,97 +142,74 @@ body[data-ds-dark-theme] #root > div > div,
   border: none !important;
 }
 
-/* 会话栏既然全透明，正文就直接压在壁纸上：加一层"漫画描边式"光晕保证可读性，
-   而不是给整栏铺底色（壁纸必须完整露出来）。 */
+/* 会话栏全透明 → 正文直接压在插画上，用一层柔和贴边影代替铺底色。 */
 [data-slot="main.conversation"],
 [data-conversation-scroll] {
-  /* 只留 1px 贴边阴影：原来 12px 的白色外发光在整栏铺开就是"白色朦胧覆盖" */
-  text-shadow: 0 1px 0 #ffffffa6;
+  text-shadow: var(--miku-text-halo);
 }
 
-body[data-ds-dark-theme] [data-slot="main.conversation"],
-body[data-ds-dark-theme] [data-conversation-scroll] {
-  text-shadow: 0 1px 0 #000000a6;
-}
-
-/* 会话标题栏：cel 渐变条 + 墨线收口 */
-/* 明亮主题：会话标题栏整条透明，让壁纸直接透上来；
-   标题与页签靠一层贴边光晕保证可读（不是那块白色蒙版）。 */
-/* 宿主 0.1.7：surface 戳在 0x0 的插槽出口上，出口里装的是 titleRow / tabs 两个
-   div，真 <header> 改挂 [data-slot='conversation.header']；dsh-web-all 的
-   conversation-header 语义戳在这个形状下也盖不上。所以以插槽 > header 为准，
-   旧宿主的两条一并保留。 */
+/* 会话标题栏：一条半透明横带 + 下缘发丝线（半透明，让插画仍在里面）。
+   宿主 0.1.7：surface 戳在 0x0 的插槽出口上，出口里装的是 titleRow / tabs 两个
+   div，真 <header> 改挂 [data-slot='conversation.header']；旧宿主的两条一并保留。 */
 [data-slot='conversation.header'] > header,
 [data-dsh-surface="session-header"] > header,
 [data-dsh-responsive-part="conversation-header"] {
-  background: none !important;
-  border-bottom: none !important;
+  background: linear-gradient(180deg, #fbfdffe0 0%, #fbfdffb8 100%) !important;
+  border-bottom: 1px solid var(--miku-hairline) !important;
   box-shadow: none !important;
-  text-shadow: 0 1px 1px #ffffffcc, 0 0 10px #ffffffa6;
+  text-shadow: none;
+  backdrop-filter: none !important;
 }
 
 body[data-ds-dark-theme] [data-slot='conversation.header'] > header,
 body[data-ds-dark-theme] [data-dsh-surface="session-header"] > header,
 body[data-ds-dark-theme] [data-dsh-responsive-part="conversation-header"] {
-  background: linear-gradient(90deg, #0d1a3aeb 0%, #14284ff2 50%, #123038eb 100%) !important;
-  border-bottom: 1px solid #39c5bb66 !important;
-  box-shadow: var(--miku-bevel-sm), inset 0 -3px 0 #39c5bb33 !important;
+  background: linear-gradient(180deg, #0e1a2bd9 0%, #0e1a2ba8 100%) !important;
+  border-bottom: 1px solid var(--miku-hairline) !important;
 }
 
-/* ─────────── 2. 左侧栏：平涂 + 网点 + 墨线（不放模糊） ─────────── */
+/* ─────────── 2. 左侧栏：平涂 + 发丝线（不放模糊） ─────────── */
 
 [data-pane="sidebar"],
 [class*="sidebarCol"] {
   background-color: var(--dsw-specific-sidebar-fill) !important;
-  /* 回到点状纹理（网格的竖线已去掉），侧栏不再出现任何竖条 */
-  background-image: var(--miku-dots) !important;
-  background-size: 6px 6px !important;
-  border-right: 2px solid var(--miku-ink-line) !important;
+  /* 旧版是 6px 网点点阵铺满整栏；新版去掉纹理 —— 侧栏要和插画抢干净。 */
+  background-image: none !important;
+  border-right: 1px solid var(--miku-hairline) !important;
   box-shadow: none !important;
   /* 只有 backdrop-filter / filter / transform 会改变 fixed 后代的包含块；
-     底色和背景图不会，所以平涂直接落在列上，模糊一律不给。 */
+     底色与背景图不会，所以平涂直接落在列上，模糊一律不给。 */
   backdrop-filter: none !important;
-}
-
-body[data-ds-dark-theme] [data-pane="sidebar"],
-body[data-ds-dark-theme] [class*="sidebarCol"] {
-  border-right-color: var(--miku-ink-line) !important;
-  box-shadow: inset -1px 0 0 #39c5bb26 !important;
 }
 
 [data-slot="sidebar"] > * {
   background: none !important;
 }
 
-/* 品牌行：与顶栏同一条渐变，作为皮肤的签名 */
+/* 品牌行：旧版是一条会动的彩虹渐变横幅 + 白字；新版改成
+   「透明底 + 一枚 MIKU 徽标 + 墨色名号」，横幅整条去掉。 */
 [data-pane="sidebar"] [class*="logoRow"] {
-  background: var(--miku-brand-bar) !important;
-  /* 100%：把整条色带完整铺出来。原来写 200% 又没有动画，只露出左半条 ——
-     色带永远停在「青→蓝」，右半段的品红一次都看不见，看着就是「渐变坏了」。 */
-  background-size: 100% 100% !important;
-  border-bottom: 1px solid var(--miku-ink-line) !important;
+  background: none !important;
+  border-bottom: 1px solid var(--miku-hairline) !important;
   box-shadow: none !important;
 }
 
 [data-pane="sidebar"] [class*="logoRow"],
 [data-pane="sidebar"] [class*="logoRow"] * {
-  color: #fff !important;
+  color: var(--miku-ink) !important;
 }
 
 [data-slot="sidebar.brand.mark"] svg path {
-  fill: #fff;
+  fill: var(--miku-brand);
 }
 
-/* 左上角字标：把 shell 的「DSH 本地构建」收起（font-size: 0），改成两段式
-   「DSH / 初音未来」——前段是代号（小号、字距拉开、银蓝），后段是名号（渐变字）。
-   分隔用一根细竖线（border-left），不是连字符。 */
-/* 宿主 0.1.7 把这个位置渲染成一个**纵向** flex 列（.localBuildBrand，两行：
-   名称「DSH 本地构建」+ 版本号），高度钉死 24px，外层 .brand 与 .logoRow 都是
-   overflow:hidden；而 .localBuildTitle / .buildVersion 的字号写在 shell 的模块类上，
-   **不会**跟着父级的 font-size: 0 一起归零。
-   皮肤塞进来的是一行两段字标（::before + ::after），所以必须做三件事，
-   只改字号（旧写法）会让两段伪元素竖着叠、原文还在，总高超出 24px 被裁掉上缘 ——
-   现象就是「左上角文字被遮挡」。 */
+/* 左上角字标：把外壳的「DSH 本地构建」收起（font-size: 0），改成两段式
+   「MIKU 徽标 / 初音未来」。宿主 0.1.7 把这个位置渲染成一个**纵向** flex 列
+   （.localBuildBrand，两行：名称 + 版本号），高度钉死 24px，外层 .brand 与
+   .logoRow 都是 overflow:hidden；而 .localBuildTitle / .buildVersion 的字号写在
+   shell 的模块类上，**不会**跟着父级的 font-size: 0 一起归零。皮肤塞进来的是一行
+   两段字标（::before + ::after），所以下面这一段度量必须保留，否则两段会竖着叠、
+   原文还在，总高超出 24px 被裁掉上缘 —— 现象就是「左上角文字被遮挡」。 */
 [data-slot="sidebar.brand.name"] {
   display: inline-flex !important;
   align-items: center !important;
@@ -265,17 +222,17 @@ body[data-ds-dark-theme] [class*="sidebarCol"] {
   white-space: nowrap;
   font-size: 0 !important;
   line-height: 1;
-  color: #fff !important;
+  color: var(--miku-ink) !important;
   background: none !important;
   -webkit-text-fill-color: currentColor;
 }
 
-/* 字标本体收掉：宽度改由下面两段伪元素撑。 */
 [data-slot="sidebar.brand.name"] > svg {
   display: none !important;
 }
 
-/* 外两层也各有一个钉死的高度与 overflow:hidden，一起放开，否则字标上下缘仍会被裁。 */
+/* 外两层也各有一个钉死的高度与 overflow:hidden，一起放开，否则字标上下缘仍会被裁。
+   注意 `:has()` **不能嵌套**（浏览器会整条丢弃且不报错），这里一律扁平写。 */
 span:has(> [data-slot="sidebar.brand.name"]),
 [aria-hidden="true"]:has([data-slot="sidebar.brand.mark"]):has([data-slot="sidebar.brand.name"]),
 button:has([data-slot="sidebar.brand.name"]) {
@@ -284,41 +241,34 @@ button:has([data-slot="sidebar.brand.name"]) {
   overflow: visible !important;
 }
 
-/* 第一段「DSH」= 代号铭牌：迷你机甲 keycap（斜切角 + 内嵌高光 + 细描边 + Bahnschrift 拉字距） */
+/* 第一段「MIKU」= 徽标：10px 全大写、字距 0.18em、青绿字压 12% 青绿底。 */
 [data-slot="sidebar.brand.name"]::before {
-  content: "DSH";
+  content: "MIKU";
   flex: none;
-  padding: 4px 7px 3px 8px;
+  padding: 3px 6px 2px;
   font-family: var(--miku-display);
-  font-size: 11px;
-  font-weight: 700;
-  line-height: 1;
-  letter-spacing: 0.26em;
-  text-indent: 0.26em;
-  color: #eaf8ff;
-  -webkit-text-fill-color: #eaf8ff;
-  background: linear-gradient(180deg, #ffffff3d 0%, #ffffff14 48%, #ffffff2e 100%);
-  border: 1px solid #ffffff8c;
-  clip-path: var(--miku-keycap);
-  box-shadow: inset 0 1px 0 #ffffffe6, inset 0 -1px 0 #06163040;
-  text-shadow: 0 1px 0 #06163059;
+  font-size: 10px;
+  font-weight: 600;
+  line-height: 1.2;
+  letter-spacing: 0.18em;
+  text-indent: 0.18em;
+  color: var(--miku-brand);
+  -webkit-text-fill-color: var(--miku-brand);
+  background: var(--miku-brand-soft);
+  border-radius: 5px;
 }
 
-/* 第二段「初音未来」= 名号：20px 渐变字，左侧一根竖向拼缝分隔，整体带一点落影 */
+/* 第二段「初音未来」= 名号：17px、半粗、墨色（不做渐变字 —— 那是旧版的语汇）。 */
 [data-slot="sidebar.brand.name"]::after {
   content: "初音未来";
-  font-size: 20px;
-  font-weight: 800;
+  font-family: var(--miku-display);
+  font-size: 17px;
+  font-weight: 600;
   line-height: 1;
-  letter-spacing: 0.06em;
-  margin-left: 10px;
-  padding-left: 10px;
-  border-left: 1px solid #ffffff59;
-  background: var(--miku-wordmark);
-  -webkit-background-clip: text;
-  background-clip: text;
-  -webkit-text-fill-color: transparent;
-  filter: drop-shadow(0 1px 0 #06163059);
+  letter-spacing: 0.01em;
+  margin-left: 8px;
+  color: var(--miku-ink);
+  -webkit-text-fill-color: var(--miku-ink);
 }
 
 [data-pane="sidebar"] [class*="logoRow"] button {
@@ -327,49 +277,39 @@ button:has([data-slot="sidebar.brand.name"]) {
 }
 
 [data-pane="sidebar"] [class*="logoRow"] button:hover {
-  background: #ffffff2e !important;
+  background: var(--dsw-alias-interactive-bg-hover) !important;
 }
 
-/* 会话树 / 侧栏条目：圆角 + 悬停墨线 */
+/* 会话树 / 侧栏条目：圆角 + 悬停染色 */
 [data-slot="sidebar"] [role="treeitem"],
 [data-dsh-part="sidebar-entry"] {
-  border-radius: 10px !important;
+  border-radius: var(--miku-r-sm) !important;
   border: 1px solid transparent !important;
 }
 
 [data-slot="sidebar"] [role="treeitem"]:hover,
 [data-dsh-part="sidebar-entry"]:hover {
-  border-color: var(--miku-ink-soft) !important;
+  border-color: transparent !important;
   background: var(--dsw-alias-interactive-bg-hover) !important;
 }
 
-/* 新建会话：机甲主按钮。
-   斜切角 + 拉丝金属渐变 + 内嵌倒角做厚度 + 左缘一条警示条 + 右侧拼缝高光。
-   全用 inset / 伪元素，不用外投影（clip-path 会把外投影一起裁掉）。 */
+/* 新建会话：新版把它做成**一块实心青绿**（全屏唯一的实心色块），墨字压在上面。
+   旧版是拉丝金属 + 斜切角 + 左缘警示斜条 + 内嵌倒角，四条线挤在一颗按钮里。
+   度量那一对必须保留：外壳把这颗按钮的快捷键（Ctrl + Alt + N）渲染在同一个按钮内，
+   0.1em 字距 + 700 字重会让那串 kbd 变宽并顶到居中标签的尾巴上，所以字重与字距
+   **只给标签**，再单独把 Shortcut 还原成外壳的度量。 */
 [data-dsh-part="new-session"] {
-  position: relative;
-  overflow: hidden;
-  clip-path: var(--miku-cut-sm);
-  border-radius: 0 !important;
-  /* 原来是 2px 的渐变 border-image：那圈 135° 色带在一条窄按钮上只剩「左边青、
-     右边品红」两截，看着像描错了边。改成一条 1px 冷色边，厚度交给内嵌倒角。 */
-  border: 1px solid var(--miku-ink-soft) !important;
-  border-image: none !important;
-  background: var(--miku-metal-2) !important;
-  color: #12324f !important;
-  font-family: var(--miku-display);
-  /* 字重与字距**只给标签**，不要写在按钮上：壳把快捷键（Ctrl + Alt + N）也渲染在
-     这同一颗按钮里，0.1em 的字距 + 700 会让那串 kbd 宽 11px、左移 11px，正好顶到
-     居中标签的尾巴上（实测快捷键 71 -> 82px、起点 182 -> 171，而标签右缘在 173），
-     现象就是「悬停时 新会话 和 Ctrl+Alt+N 叠在一起」。下面两条把它还原成壳的度量。 */
-  box-shadow: var(--miku-bevel) !important;
+  border-radius: var(--miku-r-sm) !important;
+  border: none !important;
+  background: var(--miku-brand-fill) !important;
+  color: var(--miku-on-brand) !important;
+  box-shadow: var(--miku-shadow-1) !important;
 }
 
-/* :not([class*="Mask"]) —— 壳那层包装叫 newSessionLabelMask，它也含 "newSessionLabel"，
-   不排掉的话字重与字距会落在包装上、再被里面的图标一起继承。 */
 [data-dsh-part="new-session"] [class*="newSessionLabel"]:not([class*="Mask"]) {
-  font-weight: 700;
-  letter-spacing: 0.1em;
+  font-family: var(--miku-display);
+  font-weight: 600;
+  letter-spacing: 0.01em;
 }
 
 [data-dsh-part="new-session"] [class*="Shortcut"],
@@ -378,57 +318,38 @@ button:has([data-slot="sidebar.brand.name"]) {
   letter-spacing: normal;
 }
 
-[data-dsh-part="new-session"]::before {
-  content: "";
-  position: absolute;
-  left: 3px;
-  top: 5px;
-  bottom: 5px;
-  width: 3px;
-  opacity: 0.9;
-  background: var(--miku-hazard);
-  pointer-events: none;
-}
-
-/* 上缘高光（横向），替代原来的右缘竖高光 */
-[data-dsh-part="new-session"]::after {
-  content: "";
-  position: absolute;
-  left: 10px;
-  right: 10px;
-  top: 1px;
-  height: 1px;
-  background: linear-gradient(90deg, #ffffff00, #ffffffd9, #ffffff00);
-  pointer-events: none;
+[data-dsh-part="new-session"] svg,
+[data-dsh-part="new-session"] svg * {
+  color: var(--miku-on-brand) !important;
+  fill: currentColor;
 }
 
 [data-dsh-part="new-session"]:hover {
-  background: var(--miku-metal) !important;
+  background: var(--miku-brand) !important;
+  color: #ffffff !important;
 }
 
-[data-dsh-part="new-session"] svg {
-  color: #10508f !important;
-}
-
-body[data-ds-dark-theme] [data-dsh-part="new-session"] {
-  background: var(--miku-metal-2) !important;
-  color: #dbe8ff !important;
-  box-shadow: var(--miku-bevel), inset 0 0 18px #39c5bb24 !important;
+[data-dsh-part="new-session"]:hover svg,
+[data-dsh-part="new-session"]:hover svg * {
+  color: #ffffff !important;
 }
 
 body[data-ds-dark-theme] [data-dsh-part="new-session"]:hover {
-  background: var(--miku-metal) !important;
+  background: #4fd8ce !important;
+  color: var(--miku-on-brand) !important;
 }
 
-body[data-ds-dark-theme] [data-dsh-part="new-session"] svg {
-  color: #7ff0e4 !important;
+body[data-ds-dark-theme] [data-dsh-part="new-session"]:hover svg,
+body[data-ds-dark-theme] [data-dsh-part="new-session"]:hover svg * {
+  color: var(--miku-on-brand) !important;
 }
 
-/* 工作区文件夹行：一条横向渐变**始终铺满整行**，只是颜色在左右流动。
-   无缝循环的两个条件（缺一个就会出现"渐变整条滑走/淡出"的观感）：
-     1. background-size: 200% 100%（平铺块宽 = 2×行宽）
+/* 工作区文件夹行：一块浅面 + 一条极慢的青绿微光 + 展开时左缘一根 2px 信号条。
+   旧版是 11s 一条彩虹横向流动 + 右下切角 + 角部铆钉 + 内嵌发光，色相与线条都太多。
+   流动仍然是无缝循环（位移算法与上一版相同），只是把色相收成青绿一支：
+     1. background-size: 200% 100%（平铺块宽 = 2× 行宽）
      2. background-repeat: repeat + 位移恰好等于一个平铺块宽度
-   background-position 百分比是相对 (行宽 − 平铺宽) 计算的，200% 即位移 2×行宽
+   background-position 百分比是相对（行宽 − 平铺宽）算的，200% 即位移 2×行宽
    = 正好一个平铺块，所以 0% → 200% 循环回来毫无跳变，也永远盖满。
    文件夹行的稳定钩子是 [role=treeitem][aria-expanded]（会话行没有 aria-expanded），
    哈希类 _*_projectRow 只作兜底。 */
@@ -440,31 +361,52 @@ body[data-ds-dark-theme] [data-dsh-part="new-session"] svg {
 [data-slot="sidebar.workspaces"] [role="treeitem"][aria-expanded],
 [data-slot="sidebar.workspaces"] [class*="projectRow"] {
   position: relative;
-  /* 机甲：右下切角 + 内嵌倒角（外投影会被 clip-path 裁掉，改用倒角做厚度） */
-  clip-path: var(--miku-cut-sm);
-  border-radius: 0 !important;
-  border: 1px solid #12324f33 !important;
-  background-color: #e6f6f3bf !important;
+  border-radius: var(--miku-r-sm) !important;
+  border: 1px solid transparent !important;
+  background-color: #2bc4b814 !important;
   background-image: var(--miku-flow) !important;
   background-size: 200% 100%;
   background-repeat: repeat;
-  background-blend-mode: var(--miku-flow-blend);
-  box-shadow: var(--miku-bevel-sm), inset 0 0 14px -6px var(--miku-folder-accent, #12a79b) !important;
-  animation: mikuFolderFlow 11s linear infinite;
+  background-blend-mode: normal;
+  box-shadow: none !important;
+  animation: mikuFolderFlow var(--miku-flow-speed) linear infinite;
   overflow: hidden;
 }
 
-/* 角部铆钉：两枚，标出"装甲板"的四角切边 */
-[data-slot="sidebar.workspaces"] [role="treeitem"][aria-expanded]::after,
-[data-slot="sidebar.workspaces"] [class*="projectRow"]::after {
+body[data-ds-dark-theme] [data-slot="sidebar.workspaces"] [role="treeitem"][aria-expanded],
+body[data-ds-dark-theme] [data-slot="sidebar.workspaces"] [class*="projectRow"] {
+  background-color: #39c5bb14 !important;
+}
+
+/* 展开态 = 当前工作区：底色加重 + 左缘信号条。 */
+[data-slot="sidebar.workspaces"] [role="treeitem"][aria-expanded="true"],
+[data-slot="sidebar.workspaces"] [class*="projectRow"][aria-expanded="true"] {
+  background-color: #2bc4b829 !important;
+  border-color: var(--miku-hairline) !important;
+}
+
+[data-slot="sidebar.workspaces"] [role="treeitem"][aria-expanded="true"]::before,
+[data-slot="sidebar.workspaces"] [class*="projectRow"][aria-expanded="true"]::before {
   content: "";
   position: absolute;
-  left: 3px;
-  top: 3px;
-  width: 5px;
-  height: 5px;
-  background-image: var(--miku-rivet);
+  left: 0;
+  top: 20%;
+  bottom: 20%;
+  width: 2px;
+  border-radius: 0 2px 2px 0;
+  background: var(--miku-brand);
   pointer-events: none;
+}
+
+body[data-ds-dark-theme] [data-slot="sidebar.workspaces"] [role="treeitem"][aria-expanded="true"],
+body[data-ds-dark-theme] [data-slot="sidebar.workspaces"] [class*="projectRow"][aria-expanded="true"] {
+  background-color: #39c5bb2e !important;
+  border-color: var(--miku-hairline) !important;
+}
+
+[data-slot="sidebar.workspaces"] [role="treeitem"][aria-expanded]:hover,
+[data-slot="sidebar.workspaces"] [class*="projectRow"]:hover {
+  border-color: var(--miku-hairline-2) !important;
 }
 
 [data-slot="sidebar.workspaces"] [role="treeitem"][aria-expanded] > *,
@@ -474,17 +416,18 @@ body[data-ds-dark-theme] [data-dsh-part="new-session"] svg {
 }
 
 /* 逐行换色：文件夹行各自被一层 span 包着（不是彼此的兄弟节点），所以配色循环
-   打在包装层上，再用继承的 --miku-folder-accent 传到行与图标上。 */
+   打在包装层上，再用继承的 --miku-folder-accent 传到行与图标上。
+   旧版是青→蓝→品红三色轮换；新版收成青绿的三档明度，只有强调度差别。 */
 [data-slot="sidebar.workspaces"] [class*="groupSection"]:nth-child(3n+1) {
-  --miku-folder-accent: #12a79b;
+  --miku-folder-accent: #0b7a72;
 }
 
 [data-slot="sidebar.workspaces"] [class*="groupSection"]:nth-child(3n+2) {
-  --miku-folder-accent: #2e9bff;
+  --miku-folder-accent: #2bc4b8;
 }
 
 [data-slot="sidebar.workspaces"] [class*="groupSection"]:nth-child(3n) {
-  --miku-folder-accent: #d81b7e;
+  --miku-folder-accent: #4fa8c8;
 }
 
 body[data-ds-dark-theme] [data-slot="sidebar.workspaces"] [class*="groupSection"]:nth-child(3n+1) {
@@ -492,60 +435,41 @@ body[data-ds-dark-theme] [data-slot="sidebar.workspaces"] [class*="groupSection"
 }
 
 body[data-ds-dark-theme] [data-slot="sidebar.workspaces"] [class*="groupSection"]:nth-child(3n+2) {
-  --miku-folder-accent: #4fd8e8;
+  --miku-folder-accent: #7fe6dd;
 }
 
 body[data-ds-dark-theme] [data-slot="sidebar.workspaces"] [class*="groupSection"]:nth-child(3n) {
-  --miku-folder-accent: #ff5cb0;
+  --miku-folder-accent: #62b8e0;
 }
 
-/* 展开态 = 当前工作区：渐变加重 + 呼吸光 */
-[data-slot="sidebar.workspaces"] [role="treeitem"][aria-expanded="true"],
-[data-slot="sidebar.workspaces"] [class*="projectRow"][aria-expanded="true"] {
-  background-color: #dff3efd9 !important;
-  border-color: #12324f59 !important;
-  box-shadow: var(--miku-bevel), inset 0 0 22px -2px var(--miku-folder-accent, #12a79b) !important;
-  animation: mikuFolderFlow 11s linear infinite;
-}
-
-[data-slot="sidebar.workspaces"] [role="treeitem"][aria-expanded]:hover,
-[data-slot="sidebar.workspaces"] [class*="projectRow"]:hover {
-  border-color: #12324f73 !important;
-}
-
-body[data-ds-dark-theme] [data-slot="sidebar.workspaces"] [role="treeitem"][aria-expanded],
-body[data-ds-dark-theme] [data-slot="sidebar.workspaces"] [class*="projectRow"] {
-  background-color: #12244ad9 !important;
-  border-color: #39c5bb47 !important;
-  box-shadow: var(--miku-bevel), inset 0 0 16px -6px var(--miku-folder-accent, #39c5bb) !important;
-}
-
-body[data-ds-dark-theme] [data-slot="sidebar.workspaces"] [role="treeitem"][aria-expanded="true"],
-body[data-ds-dark-theme] [data-slot="sidebar.workspaces"] [class*="projectRow"][aria-expanded="true"] {
-  background-color: #1a2f5ce6 !important;
-  border-color: #39c5bb80 !important;
-  box-shadow: var(--miku-bevel), inset 0 0 22px -4px var(--miku-folder-accent, #39c5bb) !important;
-}
-
-/* 文件夹图标跟随左轨颜色 */
 [data-slot="sidebar.workspaces"] [role="treeitem"][aria-expanded] svg,
 [data-slot="sidebar.workspaces"] [class*="projectRow"] svg {
-  color: var(--miku-folder-accent, #0f7f76);
+  color: var(--miku-folder-accent, #0b7a72);
 }
 
-body[data-ds-dark-theme] [data-slot="sidebar.workspaces"] [role="treeitem"][aria-expanded] svg,
-body[data-ds-dark-theme] [data-slot="sidebar.workspaces"] [class*="projectRow"] svg {
-  color: var(--miku-folder-accent, #5fe0d6);
-}
-
-/* 「工作区」分组标题：细青绿描线，和文件夹行成一套 */
+/* 「工作区」分组标题：一枚 3px 青绿点 + 小号加粗的分区标。
+   旧版这里还画了一条下划线；新版靠留白与那枚点读出来，线整条去掉。 */
 [data-slot="sidebar.workspaces"] [class*="sectionLabel"] {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
   color: var(--dsw-alias-label-tertiary) !important;
-  letter-spacing: 0.12em;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+}
+
+[data-slot="sidebar.workspaces"] [class*="sectionLabel"]::before {
+  content: "";
+  flex: none;
+  width: 3px;
+  height: 12px;
+  border-radius: 2px;
+  background: var(--miku-brand);
 }
 
 [data-slot="sidebar.workspaces"] [class*="sectionHeader"] {
-  border-bottom: 1px solid var(--miku-ink-soft) !important;
+  border-bottom: 0 !important;
 }
 
 /* 侧栏底部与设置入口：不加模糊，避免拖住弹窗 */
@@ -554,25 +478,19 @@ body[data-ds-dark-theme] [data-slot="sidebar.workspaces"] [class*="projectRow"] 
   background: none !important;
 }
 
-/* ─────────── 3. 右侧栏：平涂 + 墨线（不模糊） ─────────── */
+/* ─────────── 3. 右侧栏：平涂 + 发丝线（不模糊） ─────────── */
 
 [class*="rightbarCol"],
 [data-rightbar-col] {
   background-color: var(--dsw-specific-sidebar-fill) !important;
-  background-image: var(--miku-dots) !important;
-  background-size: 6px 6px !important;
-  border-left: 2px solid var(--miku-ink-line) !important;
+  background-image: none !important;
+  border-left: 1px solid var(--miku-hairline) !important;
   box-shadow: none !important;
 }
 
 [data-slot="rightbar"],
 [data-slot="rightbar.session"] {
   background: none !important;
-}
-
-body[data-ds-dark-theme] [class*="rightbarCol"],
-body[data-ds-dark-theme] [data-rightbar-col] {
-  border-left-color: var(--miku-ink-line) !important;
 }
 
 /* 拖拽把手：hover 时才显出一条青绿细线 */
@@ -582,11 +500,11 @@ body[data-ds-dark-theme] [data-rightbar-col] {
 
 [data-dsh-part="resize-handle"]:hover,
 [data-dsh-part="resize-handle"][data-dragging] {
-  background: linear-gradient(var(--miku-teal), var(--miku-sky)) !important;
+  background: var(--miku-brand) !important;
   opacity: 0.55;
 }
 
-/* ─────────── 4. 输入卡：白瓷卡 / 夜海报 ─────────── */
+/* ─────────── 4. 输入卡：一块浮起来的圆角面板 ─────────── */
 
 [class*="composerSeat"],
 [class*="composerStack"],
@@ -607,110 +525,81 @@ body[data-ds-dark-theme] [data-rightbar-col] {
   display: flex !important;
   visibility: visible !important;
   min-height: 92px;
-  border-radius: 0 !important;
-  background: none !important;
-  border: none !important;
-  box-shadow: none !important;
-  color: #12324f !important;
-  --dsw-alias-label-primary: #12324f;
-  --dsw-alias-label-secondary: #3a5a7c;
-  --dsw-alias-label-tertiary: #5a7699;
-  --dsw-alias-label-caption: #5a7699;
+  border-radius: var(--miku-r-lg) !important;
+  background: var(--miku-surface) !important;
+  border: 1px solid var(--miku-hairline) !important;
+  box-shadow: var(--miku-shadow-2), var(--miku-inset-top) !important;
+  color: var(--miku-ink) !important;
+  --dsw-alias-label-primary: #16202e;
+  --dsw-alias-label-secondary: #4a5a6e;
+  --dsw-alias-label-tertiary: #5c6e80;
+  --dsw-alias-label-caption: #5c6e80;
 }
 
 body[data-ds-dark-theme] [data-composer-card="true"] {
-  color: #dbe8ff !important;
-  background: none !important;
-  border: none !important;
-  box-shadow: none !important;
-  --dsw-alias-label-primary: #dbe8ff;
-  --dsw-alias-label-secondary: #b8cae8;
-  --dsw-alias-label-tertiary: #8ba0c4;
-  --dsw-alias-label-caption: #7f97bd;
+  color: var(--miku-ink) !important;
+  --dsw-alias-label-primary: #e9f1fa;
+  --dsw-alias-label-secondary: #a9b9cc;
+  --dsw-alias-label-tertiary: #8598ad;
+  --dsw-alias-label-caption: #8598ad;
 }
 
-/* 装甲板本体：斜切角 + 拉丝金属 + 内嵌倒角。
-   切角只画在这层装饰伪元素上 —— 卡片本身不设 clip-path / overflow:hidden，
-   否则卡内弹出的模型选择等下拉菜单会被一起裁掉。 */
-[data-composer-card="true"]::after {
-  content: "";
-  position: absolute;
-  inset: 0;
-  z-index: -1;
-  pointer-events: none;
-  clip-path: var(--miku-cut);
-  background-color: transparent;
-  /* 机甲边框：一圈青→蓝→品红渐变描边（border-image）+ 右上/左下两枚方角开光 */
-  border: 2px solid transparent;
-  border-image: var(--miku-edge) 1;
-  background-image:
-    linear-gradient(90deg, #39c5bb, #2e9bff),
-    linear-gradient(180deg, #39c5bb, #2e9bff),
-    linear-gradient(90deg, #2e9bff, #d81b7e),
-    linear-gradient(180deg, #2e9bff, #d81b7e),
-    var(--miku-metal);
-  background-position: calc(100% - 16px) 6px, calc(100% - 6px) 16px, 6px calc(100% - 6px), 16px calc(100% - 16px), 0 0;
-  background-size: 26px 2px, 2px 26px, 26px 2px, 2px 26px, 100% 100%;
-  background-repeat: no-repeat;
-  box-shadow: var(--miku-bevel);
-}
-
-/* 底缘能量缝（横向发光，不再用左缘竖条） */
+/* 底缘信号线：平时是一条 28% 不透明的暗青，聚焦时亮成品牌青绿并向外扩一点。
+   这是新版的签名 —— 旧版那条"能量缝"是青→蓝→品红的霓虹渐变。 */
 [data-composer-card="true"]::before {
   content: "";
   position: absolute;
-  left: 16px;
-  right: 16px;
-  bottom: 0;
+  left: 24px;
+  right: 24px;
+  bottom: -1px;
   height: 2px;
-  z-index: 0;
+  border-radius: 2px;
+  background: var(--miku-brand);
+  opacity: 0.28;
   pointer-events: none;
-  background: var(--miku-seam);
+  transition: opacity 0.18s ease, left 0.18s ease, right 0.18s ease;
 }
 
-body[data-ds-dark-theme] [data-composer-card="true"]::after {
-  border-color: #39c5bb66;
-  box-shadow: var(--miku-bevel), inset 0 0 24px #39c5bb1f;
+[data-composer-card="true"]:focus-within::before {
+  left: 12px;
+  right: 12px;
+  opacity: 1;
 }
 
-/* 输入区 = 座舱凹槽：一层内凹阴影 + 极浅底色，光标染成主题色 */
+[data-composer-card="true"]:focus-within {
+  border-color: var(--miku-brand-soft) !important;
+}
+
+/* 输入区：不再做"座舱凹槽"（内凹阴影 + 底色），直接是卡片里的一块净面，
+   只留主题色光标 —— 少一层盒子就少一层噪音。 */
 [data-composer-card="true"] [data-composer-input="true"] {
   display: block !important;
   visibility: visible !important;
   opacity: 1 !important;
-  color: #12324f !important;
-  -webkit-text-fill-color: #12324f !important;
+  color: var(--miku-ink) !important;
+  -webkit-text-fill-color: var(--miku-ink) !important;
   caret-color: var(--miku-caret) !important;
-  background: #eaf7f4a6 !important;
-  box-shadow: inset 0 1px 3px #12324f1a !important;
-  border-radius: 4px !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  border-radius: var(--miku-r-sm) !important;
 }
 
 body[data-ds-dark-theme] [data-composer-card="true"] [data-composer-input="true"] {
-  color: #dbe8ff !important;
-  -webkit-text-fill-color: #dbe8ff !important;
-  background: #08132b8c !important;
-  box-shadow: inset 0 1px 4px #000000a6 !important;
+  color: var(--miku-ink) !important;
+  -webkit-text-fill-color: var(--miku-ink) !important;
+  background: transparent !important;
+  box-shadow: none !important;
 }
 
 [data-composer-card="true"] [data-composer-placeholder="true"] {
-  color: #5a7699 !important;
-  -webkit-text-fill-color: #5a7699 !important;
+  color: var(--miku-ink-3) !important;
+  -webkit-text-fill-color: var(--miku-ink-3) !important;
   opacity: 1 !important;
-}
-
-body[data-ds-dark-theme] [data-composer-card="true"] [data-composer-placeholder="true"] {
-  color: #8ba0c4 !important;
-  -webkit-text-fill-color: #8ba0c4 !important;
 }
 
 [data-composer-card="true"] :is(button, button *, [role="button"], [role="button"] *) {
-  color: #12324f !important;
+  color: var(--miku-ink) !important;
   opacity: 1 !important;
-}
-
-body[data-ds-dark-theme] [data-composer-card="true"] :is(button, button *, [role="button"], [role="button"] *) {
-  color: #dbe8ff !important;
 }
 
 [class*="composer"] [class*="toolbar"],
@@ -718,77 +607,91 @@ body[data-ds-dark-theme] [data-composer-card="true"] :is(button, button *, [role
   background: none !important;
 }
 
-/* ─────────── 5. 消息：用户气泡走品红，助手回答落在壁纸上 ─────────── */
+/* ─────────── 5. 消息：气泡与浮动小卡 ─────────── */
 
-[class*="bubble"] {
-  /* 说话气泡：三个大圆角 + 左下一个收窄的"说话角"。
-     用 border-radius 而不是 clip-path —— 切角会把内嵌焦点环也裁掉。 */
-  clip-path: none !important;
-  border: 1px solid #d81b7e73 !important;
-  border-radius: 14px 14px 14px 4px !important;
-  box-shadow: var(--miku-bevel-sm), inset 0 0 18px #d81b7e14 !important;
+/* **先保证读得出来**：外壳给"浮动状态气泡"写死了近白的字与近白的 1px 边
+   （真壳实测 `#f4f7ff`，明暗两档一模一样）—— 压在浅色插画上等于看不见。
+   所以这里把字钉回 ink 并给一层实面。`:not([class*="Stack"])` 是必须的：
+   `bubbleStack` 是布局包装层（也含 "bubble" 子串），给它上色会变成两层底。 */
+[class*="bubble"]:not([class*="Stack"]) {
+  color: var(--miku-ink) !important;
+  background: var(--miku-surface-2) !important;
+  border: 1px solid var(--miku-hairline) !important;
+  border-radius: var(--miku-r-lg) var(--miku-r-lg) var(--miku-r-lg) 6px !important;
+  box-shadow: var(--miku-shadow-1) !important;
 }
 
-/* 用户气泡（MessageItem 的 .bubble，底色 = --dsw-specific-bubble）走品红；
-   助手回答没有气泡，直接落在壁纸上，靠上面那条文字光晕保证可读性。 */
-body[data-ds-dark-theme] [class*="bubble"] {
-  border: 1px solid #ff5cb073 !important;
-  box-shadow: var(--miku-bevel-sm), inset 0 0 20px #ff5cb01f !important;
+/* 外壳在这颗 chip 里还画了一圈同色的边（四边都是 #f4f7ff）与同色图标，逐层跟回来 */
+button[class*="bubble"],
+button[class*="bubble"] * {
+  color: var(--miku-ink) !important;
+  border-color: var(--miku-hairline) !important;
 }
 
-/* 工具行 / 回合尾 / 队列：胶囊 + 细描边 */
+button[class*="bubble"]:hover {
+  background: var(--miku-surface-3) !important;
+  box-shadow: var(--miku-shadow-1), 0 0 0 1px var(--miku-accent-soft) !important;
+}
+
+/* **洋红只给"人在会话里说的话"**：要么在会话滚动容器里且不是状态气泡，
+   要么在外壳的 user 轮钩子下。浮动 chips / 待办气泡都不在其列。 */
+[data-conversation-scroll] [class*="bubble"]:not([class*="bubbleStatus"]):not([class*="Stack"]),
+[data-chat-flow-kind="user"] [class*="bubble"]:not([class*="Stack"]) {
+  box-shadow: inset 2px 0 0 var(--miku-accent), var(--miku-shadow-1) !important;
+}
+
+/* 工具行 / 回合尾 / 队列：细线胶囊 */
 [data-dsh-part="message-row"],
 [data-dsh-part="turn-tail"],
 [data-dsh-part="queue-dock"] [class*="card"],
 [data-dsh-part="composer-chip"] {
-  border-radius: 10px !important;
-  border: 1px solid var(--miku-ink-soft) !important;
+  border-radius: var(--miku-r-sm) !important;
+  border: 1px solid var(--miku-hairline) !important;
 }
 
-/* 代码块：机甲方格 —— 斜切角 + 内嵌倒角 + 顶缘一道发光线 */
+/* 代码块：圆角 + 发丝线 + 顶缘一道青绿细线（旧版是斜切角 + 内嵌倒角）。 */
 [data-slot="main.conversation"] pre,
 [data-dsh-part="message-body"] pre,
 [data-slot="main.conversation"] [class*="codeBlock"] {
-  clip-path: var(--miku-cut-sm);
-  border: 1px solid #12324f40 !important;
-  border-radius: 0 !important;
-  box-shadow: var(--miku-bevel-sm), inset 0 2px 0 #39c5bb2e !important;
+  clip-path: none !important;
+  border: 1px solid var(--miku-hairline) !important;
+  border-radius: var(--miku-r) !important;
+  background: var(--dsw-alias-markdown-code-block) !important;
+  box-shadow: inset 0 2px 0 var(--miku-brand-soft) !important;
 }
 
 body[data-ds-dark-theme] [data-slot="main.conversation"] pre,
 body[data-ds-dark-theme] [data-dsh-part="message-body"] pre,
 body[data-ds-dark-theme] [data-slot="main.conversation"] [class*="codeBlock"] {
-  border-color: #39c5bb4d !important;
-  box-shadow: var(--miku-bevel-sm), inset 0 2px 0 #39c5bb33 !important;
+  border-color: var(--miku-hairline) !important;
+  background: var(--dsw-alias-markdown-code-block) !important;
+  box-shadow: inset 0 2px 0 var(--miku-brand-soft) !important;
 }
 
 /* ─────────── 6. 弹窗 / 菜单 / 提示 ─────────── */
 
-/* 小浮层（菜单 / 下拉 / 弹出面板）：一条 1px 边 + 一条柔影就够。
-   原来这里是「2px 渐变描边 + 三条内倒角 + 一条外投影」—— 一个 200x328 的菜单里挤七条
-   线，读起来就是「菜单栏线条过多、显得很脏」。渐变机甲描边只留给设置弹窗。 */
+/* 小浮层（菜单 / 下拉 / 弹出面板）：12px 圆角 + 一条发丝线 + 一档柔影。
+   旧版是一个 200×328 的菜单里挤七条线，读起来就是脏。 */
 [class*="popover"],
 [class*="dropdown"],
 [class*="sheet"],
 [role="menu"],
 [role="listbox"] {
-  border-radius: 8px !important;
-  /* 机甲边框：渐变描边画在 2px 透明边框上 */
-  border: 1px solid var(--miku-ink-soft) !important;
+  border-radius: var(--miku-r) !important;
+  border: 1px solid var(--miku-hairline) !important;
   border-image: none !important;
-  box-shadow: 0 10px 26px #12324f24 !important;
+  box-shadow: var(--miku-shadow-3) !important;
   color: var(--dsw-alias-label-primary);
 }
 
-/* 大弹窗不挂 backdrop-filter：玻璃面本身已经 86% 不透明，模糊几乎看不见，
-   却要付合成开销、还会让弹窗成为 fixed 后代的包含块。模糊只留给菜单这类小浮层。 */
+/* 大弹窗不挂 backdrop-filter：玻璃面本身已经 90% 不透明，模糊几乎看不见，
+   却要付合成开销、还会让弹窗成为 fixed 后代的包含块。 */
 [role="dialog"] {
   color: var(--dsw-alias-label-primary);
-  /* 设置弹窗保留签名，但收成 1px：2px 的渐变环摊在整块面板上就是一圈彩色外框，
-     用户点名「边框影响美观」。内倒角也一起去掉，只留内发光与外投影。 */
-  border: 1px solid transparent !important;
-  border-image: var(--miku-edge) 1 !important;
-  box-shadow: inset 0 0 44px -20px var(--miku-teal), 0 22px 48px #12324f3d !important;
+  border: 1px solid var(--miku-hairline) !important;
+  border-image: none !important;
+  border-radius: var(--miku-r-lg) !important;
+  box-shadow: var(--miku-shadow-3) !important;
 }
 
 [class*="menu"],
@@ -797,13 +700,13 @@ body[data-ds-dark-theme] [data-slot="main.conversation"] [class*="codeBlock"] {
 [class*="sheet"],
 [role="menu"],
 [role="listbox"] {
-  backdrop-filter: blur(12px);
-  background: var(--miku-menu-glass, var(--miku-glass)) !important;
+  backdrop-filter: blur(16px) saturate(140%);
+  background: var(--miku-glass) !important;
 }
 
 body[data-ds-dark-theme] [role="dialog"] {
-  border-color: #39c5bb66 !important;
-  box-shadow: 0 18px 44px #000000a6 !important;
+  border-color: var(--miku-hairline) !important;
+  box-shadow: var(--miku-shadow-3) !important;
 }
 
 [class*="menu"] [class*="item"]:hover,
@@ -812,14 +715,13 @@ body[data-ds-dark-theme] [role="dialog"] {
 [role="menuitem"]:focus {
   color: var(--dsw-alias-label-primary);
   background: var(--dsw-alias-interactive-bg-hover-accent) !important;
-  border-radius: 8px !important;
+  border-radius: var(--miku-r-sm) !important;
 }
 
 [class*="menu"] [class*="sep"],
 [class*="menu"] [class*="divider"] {
-  /* 分组靠标签本身读出来，线只留一丝：两端各留 10% 空，再压到 55%。 */
-  background: linear-gradient(90deg, transparent 0, var(--miku-ink-soft) 10%, var(--miku-ink-soft) 90%, transparent 100%) !important;
-  opacity: 0.55;
+  background: linear-gradient(90deg, transparent 0, var(--miku-hairline) 8%, var(--miku-hairline) 92%, transparent 100%) !important;
+  opacity: 1;
 }
 
 [class*="menu"] [class*="label"],
@@ -837,20 +739,14 @@ body[data-ds-dark-theme] [role="dialog"] {
 [role="tooltip"] {
   background: var(--dsw-alias-tooltip-bg) !important;
   color: var(--dsw-alias-tooltip-fg) !important;
-  border: 1px solid var(--miku-ink-soft) !important;
-  border-radius: 8px !important;
-  box-shadow: 0 6px 18px #12324f26 !important;
+  border: 1px solid var(--miku-hairline) !important;
+  border-radius: var(--miku-r-sm) !important;
+  box-shadow: var(--miku-shadow-2) !important;
 }
 
-/* 原来这里有一条 [class$="_mask"], [class*="Mask"] 的通配，把整块遮罩刷成
-   --dsw-alias-bg-mask-1。两件事都不对：
-     ① 外壳自己就用这支 token 画真正的遮罩（._mask_o6lrb_18:after、
-        ._mask_1hos8_11），皮肤再刷一遍是多余的；
-     ② [class*="Mask"] 是 camelCase 通配，会把外壳别的 "…Mask" 组件一起打中 ——
-        侧栏「新会话」按钮里那颗 _2H3hWW_newSessionLabelMask（外壳只给它
-        flex:1 和一条悬停用的 mask-image，本来没有底色）因此被刷成一块深色方块，
-        压在图标与「新会话」文字后面，看着就是按钮脏了一块。
-   整条删掉：真正的遮罩由外壳自己上色，皮肤这边不需要插手。 */
+/* 遮罩交给外壳自己上色：皮肤这边**不要**写 [class*="Mask"] 这类 camelCase 通配 ——
+   它会打中外壳别的 "…Mask" 组件（侧栏「新会话」里那颗 newSessionLabelMask 就被刷成
+   一块深色方块，压在图标与文字后面，看着就是按钮脏了一块）。 */
 
 [class$="_fade"],
 [class*="Fade"] {
@@ -861,42 +757,49 @@ body[data-ds-dark-theme] [role="dialog"] {
   display: none !important;
 }
 
-/* ─────────── 7. 设置面板（弹窗本体，可模糊） ─────────── */
+/* ─────────── 7. 设置面板 ─────────── */
 
 /* 新外壳的设置弹窗是 [role="dialog"] > …_panel（没有 settingsRoot 这个类），
    所以选择器一律以 [role="dialog"] 起头，settingsRoot / drawer 只作为旧外壳兜底。 */
 [role="dialog"],
 [class*="settingsRoot"],
 [class*="drawer"] {
-  border-radius: 6px !important;
-  border: 1px solid transparent !important;
-  border-image: var(--miku-edge) 1 !important;
-  /* 设置栏要读字，用实面（原来 86% 的半透明会让底下的会话内容串进文字里） */
+  border-radius: var(--miku-r-lg) !important;
+  border: 1px solid var(--miku-hairline) !important;
+  border-image: none !important;
   background: var(--miku-surface) !important;
-  box-shadow: 0 22px 48px #12324f3d !important;
+  box-shadow: var(--miku-shadow-3) !important;
 }
 
-/* 设置里的分区/卡片：嵌入式装甲小格 */
-/* 设置里的分区：只留网点质感，**不再描边**、也不再给内嵌高光 —— 分区靠留白读出来。
-   原来那一圈 1px + 一条内嵌亮线，在整块设置面板上就是外面套一个方框。 */
+/* 设置里的分区：**不描边、不铺纹理**，靠留白与标题读出来（旧版每格一圈网点点阵
+   外加一条内嵌亮线，整块设置面板看着像套了一圈方框）。 */
 [role="dialog"] [class*="section"],
 [role="dialog"] [class*="card"],
 [class*="settingsRoot"] [class*="section"],
 [class*="settingsRoot"] [class*="card"],
 [class*="drawer"] [class*="section"],
 [class*="drawer"] [class*="card"] {
-  border-radius: 4px !important;
+  border-radius: var(--miku-r) !important;
   border: 0 !important;
   box-shadow: none !important;
   background-color: transparent !important;
-  background-image: var(--miku-dots) !important;
-  background-size: 6px 6px !important;
+  background-image: none !important;
+}
+
+/* 但**数据卡**本该有面：上面那条"分区不描边"把它们一起铲平了 ——
+   实测 `data-dsh-part="balance-card" / "trend-card" / "settings-row"` 全变成透明。
+   外壳自己给这些卡打了稳定钩子（`*-card` / `settings-row`），这里把面补回来。 */
+[role="dialog"] [data-dsh-part$="-card"],
+[class*="settingsRoot"] [data-dsh-part$="-card"],
+[role="dialog"] [data-dsh-part="settings-row"] {
+  background-color: var(--miku-surface-2) !important;
+  border: 1px solid var(--miku-hairline) !important;
+  border-radius: var(--miku-r) !important;
 }
 
 /* 设置行之间那根下分隔线是**外壳**画的（每行 .row 上 .5px，走 --dsw-alias-border-l2）；
-   本皮把 border-l2 映成了不透明的暖墨/青绿，于是一屏设置里排着十几根实线。
-   用户要求「非必要边框不必显示」—— 分区已经靠标题与留白读得出来，这里整条撤掉。 */
-/* 外壳的设置块有三个类名后缀：_row / _group / _setting，三个都要覆盖。 */
+   分区已经靠标题与留白读得出来，这里整条撤掉。
+   外壳的设置块有三个类名后缀：_row / _group / _setting，三个都要覆盖。 */
 [role="dialog"] [class*="row"],
 [role="dialog"] [class*="group"],
 [role="dialog"] [class*="setting"] {
@@ -911,105 +814,97 @@ body[data-ds-dark-theme] [role="dialog"] {
 [class*="settingsRoot"] [class*="nav"] [class*="item"][aria-selected="true"] {
   background: var(--dsw-alias-interactive-bg-hover-accent) !important;
   color: var(--dsw-alias-label-primary) !important;
-  border-radius: 8px !important;
+  border-radius: var(--miku-r-sm) !important;
 }
 
 /* ─────────── 8. 原子：按钮 / 输入 / 焦点 / 选择 / 滚动条 ─────────── */
 
-/* 按钮统一成"微装甲"：小圆角 + 内嵌倒角 + hover 提亮。
-   这里**不切角**：clip-path 会把按钮的 focus-visible 外描边一起裁掉，
-   键盘焦点就看不见了。切角只给那些已经配了内嵌焦点环的大面
-   （输入卡 / 新会话 / 代码块 / 气泡 / 文件夹行，见下面的 focus 规则）。
-   配色仍走官方 token，不会盖掉 shell 自己的按钮主色。 */
-/* 不再全局改按钮圆角：shell 自己有圆/胶囊/pill 几种形状，统一成 6px 会把
-   发送按钮的 34px 正圆压成圆角方块。形状交回 shell，皮肤只加 hover 边框。 */
+/* 按钮形状交回外壳（它有圆/胶囊/正圆几种），皮肤只在悬停时补一圈青绿细线。 */
 button:not([disabled]):hover,
 [role="button"]:not([aria-disabled="true"]):hover {
-  box-shadow: var(--miku-bevel-sm), 0 0 0 1px var(--miku-teal) !important;
+  box-shadow: 0 0 0 1px var(--miku-brand-soft) !important;
 }
 
-/* 会话行：选中 = 青绿能量框（不再用左侧竖条） */
-[data-slot="sidebar"] [role="treeitem"] {
-  border-radius: 6px !important;
-  border: 1px solid transparent !important;
-}
-
-[data-slot="sidebar"] [role="treeitem"]:hover {
-  border-color: var(--miku-ink-soft) !important;
-  background: var(--dsw-alias-interactive-bg-hover) !important;
-  box-shadow: var(--miku-bevel-sm) !important;
-}
-
+/* 会话行：选中 = 青绿染底 + 1px 青绿边（不再用高亮竖条/能量框） */
 [data-slot="sidebar"] [role="treeitem"][aria-selected="true"] {
-  border-color: #39c5bb80 !important;
+  border-color: var(--miku-brand-soft) !important;
   background: var(--dsw-alias-interactive-bg-hover-accent) !important;
-  box-shadow: var(--miku-bevel-sm), inset 0 0 16px -8px var(--miku-teal) !important;
+  box-shadow: none !important;
 }
 
-/* 首屏：输入卡背后一团舞台光（只有背景层，不动布局） */
+/* 首屏：一团柔光 + 一排声波柱（新版的母题）。
+   声波用 repeating-linear-gradient 画细柱，再用 mask 把四周淡掉，
+   所以它只在中间"响"一段；旧版这里是一团青绿舞台光，没有形状。 */
 [data-slot="main.conversation"] [data-phase="hero"] {
-  background-image: radial-gradient(58% 46% at 50% 46%, #39c5bb2e 0%, #2e9bff14 46%, #0000 74%) !important;
+  position: relative;
+  background-image: radial-gradient(56% 44% at 50% 42%, #2bc4b824 0%, #2bc4b80f 48%, #0000 76%) !important;
+}
+
+[data-slot="main.conversation"] [data-phase="hero"]::before {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: 58%;
+  width: min(560px, 68%);
+  height: 56px;
+  transform: translateX(-50%);
+  pointer-events: none;
+  opacity: 0.6;
+  background-image: var(--miku-wave);
+  -webkit-mask-image: linear-gradient(90deg, #0000 0%, #000 18%, #000 82%, #0000 100%), linear-gradient(180deg, #0000 0%, #000 30%, #000 70%, #0000 100%);
+  -webkit-mask-composite: source-in;
+  mask-image: linear-gradient(90deg, #0000 0%, #000 18%, #000 82%, #0000 100%), linear-gradient(180deg, #0000 0%, #000 30%, #000 70%, #0000 100%);
+  mask-composite: intersect;
 }
 
 body[data-ds-dark-theme] [data-slot="main.conversation"] [data-phase="hero"] {
-  background-image: radial-gradient(58% 46% at 50% 46%, #39c5bb33 0%, #2e6fd91a 48%, #0000 76%) !important;
+  background-image: radial-gradient(56% 44% at 50% 42%, #39c5bb2e 0%, #39c5bb14 48%, #0000 76%) !important;
 }
 
-/* 发送按钮：底色走 --dsw-alias-button-info-fill（已在 skin.css 里换成主题青绿），
-   shell 把箭头硬编码成 #fff，青绿底上白箭头只有 2:1，所以这里翻成墨色并加一圈光。 */
+/* 发送按钮：底色走 --dsw-alias-button-info-fill（skin.css 里已换成亮青绿），
+   外壳把箭头硬编码成 #fff，青绿底上白箭头只有 2:1，所以这里翻成墨色。 */
 [data-slot="conversation.composer.bar"] [class*="primary"] {
-  color: #06131a !important;
+  color: var(--miku-on-brand) !important;
   border-radius: 999px !important;
-  box-shadow: inset 0 1px 0 #ffffff73, 0 2px 10px #12a79b4d !important;
-}
-
-body[data-ds-dark-theme] [data-slot="conversation.composer.bar"] [class*="primary"] {
-  color: #06131a !important;
-  box-shadow: inset 0 1px 0 #ffffff40, 0 2px 12px #39c5bb59 !important;
+  box-shadow: var(--miku-shadow-1) !important;
 }
 
 /* 预览角标（composer 里的 previewBadge）也跟着主题走 */
 [class*="previewBadge"] {
-  background: #dcf4f0 !important;
-  color: #0f6d66 !important;
-  border: 1px solid #12a79b4d !important;
-}
-
-body[data-ds-dark-theme] [class*="previewBadge"] {
-  background: #123a3a !important;
-  color: #7ff0e4 !important;
-  border-color: #39c5bb4d !important;
+  background: var(--miku-brand-soft) !important;
+  color: var(--miku-brand) !important;
+  border: 1px solid var(--miku-brand-soft) !important;
+  border-radius: 999px !important;
 }
 
 :focus-visible {
-  outline: 2px solid var(--miku-teal) !important;
+  outline: 2px solid var(--miku-brand-fill) !important;
   outline-offset: 2px;
 }
 
-/* 被 clip-path 切过角的面，外描边会被裁掉，所以焦点环改成内嵌的一圈 */
+/* 新版没有一处 clip-path，所以焦点环可以统统用外描边；
+   只有圆角大面（输入卡 / 气泡 / 代码块）用内嵌环，免得粗描边把圆角读成方块。 */
 [data-composer-card="true"]:focus-within,
-[data-dsh-part="new-session"]:focus-visible,
 [class*="bubble"]:focus-visible,
-[data-slot="sidebar.workspaces"] [role="treeitem"]:focus-visible,
 [data-slot="main.conversation"] pre:focus-visible {
   outline: none !important;
-  box-shadow: var(--miku-bevel-sm), inset 0 0 0 2px var(--miku-teal) !important;
+  box-shadow: var(--miku-shadow-2), inset 0 0 0 2px var(--miku-brand-fill) !important;
 }
 
 ::selection {
-  background: var(--miku-teal);
-  color: #fff;
+  background: #2bc4b84d;
+  color: var(--miku-ink);
 }
 
 body[data-ds-dark-theme] ::selection {
-  background: var(--miku-teal);
-  color: #06131a;
+  background: #39c5bb40;
+  color: var(--miku-ink);
 }
 
 textarea,
 input:not([type="checkbox"]):not([type="radio"]) {
-  border-radius: 10px !important;
-  border-color: var(--miku-ink-soft) !important;
+  border-radius: var(--miku-r-sm) !important;
+  border-color: var(--miku-hairline) !important;
 }
 
 button,
@@ -1019,7 +914,7 @@ textarea,
 [contenteditable="true"],
 select,
 .NPtzYa_mikuTitlebarBtn {
-  transition: background-color 0.12s, color 0.12s, border-color 0.12s, box-shadow 0.12s, opacity 0.12s;
+  transition: background-color 0.14s ease, color 0.14s ease, border-color 0.14s ease, box-shadow 0.14s ease, opacity 0.14s ease;
 }
 
 ::-webkit-scrollbar {
@@ -1033,83 +928,57 @@ select,
 
 ::-webkit-scrollbar-thumb {
   background: transparent;
-  border: 2px solid transparent;
-  border-radius: 6px;
+  border: 3px solid transparent;
+  border-radius: 999px;
   background-clip: padding-box;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #12a79b80;
-  background-clip: padding-box;
-}
-
-body[data-ds-dark-theme] ::-webkit-scrollbar-thumb:hover {
-  background: #39c5bb80;
+  background: var(--dsw-alias-scrollbar-hover-l1);
   background-clip: padding-box;
 }
 
 /* ─────────── 8b. 底部统计条（ui-chat 的 StatsPills，哈希类 darGHa_*） ───────────
-   它在会话最下方一排：首字延迟 / 速度 / 用量。原来是透明的淡灰小字，
-   这里做成"仪表灯条"：每颗胶囊一枚指示灯 + 数字走 Bahnschrift 等宽。 */
+   首字延迟 / 速度 / 用量那一排。新版做成"读数胶囊"：细线 + 等宽数字 + 一枚青绿点。 */
 
 [data-slot="main.conversation"] [class*="darGHa_root"] {
   padding-top: 2px;
   font-family: var(--miku-display);
-  letter-spacing: 0.04em;
+  letter-spacing: 0.02em;
 }
 
 [data-slot="main.conversation"] [class*="darGHa_pill"] {
-  color: #46658a !important;
-  background: #12324f0f !important;
-  border: 1px solid #12324f1f !important;
-  box-shadow: var(--miku-bevel-sm) !important;
+  color: var(--miku-ink-2) !important;
+  background: transparent !important;
+  border: 1px solid var(--miku-hairline) !important;
+  border-radius: 999px !important;
+  box-shadow: none !important;
   font-variant-numeric: tabular-nums;
-  transition: background-color 0.12s, border-color 0.12s, color 0.12s;
+  transition: background-color 0.14s, border-color 0.14s, color 0.14s;
 }
 
-/* 每颗胶囊前面的状态灯 */
 [data-slot="main.conversation"] [class*="darGHa_pill"]::before {
   content: "";
   flex: none;
   width: 5px;
   height: 5px;
   border-radius: 50%;
-  background: #12a79b;
-  box-shadow: 0 0 6px #12a79b8c;
+  background: var(--miku-brand);
 }
 
 [data-slot="main.conversation"] [class*="darGHa_pill"]:hover {
-  color: #0f6d66 !important;
-  background: #12a79b1f !important;
-  border-color: #12a79b66 !important;
+  color: var(--miku-ink) !important;
+  background: var(--miku-brand-soft) !important;
+  border-color: var(--miku-brand-soft) !important;
 }
 
 [data-slot="main.conversation"] [class*="darGHa_sep"] {
-  color: #12324f33 !important;
+  color: var(--miku-ink-3) !important;
 }
 
-body[data-ds-dark-theme] [data-slot="main.conversation"] [class*="darGHa_pill"] {
-  color: #8ba0c4 !important;
-  background: #7ad8ff12 !important;
-  border-color: #39c5bb33 !important;
-}
-
-body[data-ds-dark-theme] [data-slot="main.conversation"] [class*="darGHa_pill"]::before {
-  background: #39c5bb;
-  box-shadow: 0 0 8px #39c5bba6;
-}
-
-body[data-ds-dark-theme] [data-slot="main.conversation"] [class*="darGHa_pill"]:hover {
-  color: #dbe8ff !important;
-  background: #39c5bb2e !important;
-  border-color: #39c5bb80 !important;
-}
-
-body[data-ds-dark-theme] [data-slot="main.conversation"] [class*="darGHa_sep"] {
-  color: #39c5bb40 !important;
-}
-
-/* ─────────── 9. 注入式顶栏 / 底栏（类名在 hooks.mjs 的 CLS 里） ─────────── */
+/* ─────────── 9. 注入式顶栏 / 底栏（类名在 hooks.mjs 的 CLS 里） ───────────
+   这两条被第 0 节 display:none 收起了（按用户要求）。样式仍然保留并跟着新配色走：
+   哪天要恢复，删掉第 0 节那三行即可。 */
 
 .NPtzYa_mikuTitlebar {
   z-index: 1000000;
@@ -1119,26 +988,19 @@ body[data-ds-dark-theme] [data-slot="main.conversation"] [class*="darGHa_sep"] {
   left: 0;
   right: 0;
   height: 30px;
-  padding: 0 8px;
+  padding: 0 10px;
   align-items: center;
   gap: 8px;
-  color: #fff;
-  text-shadow: 0 1px 1px #06163066;
+  color: var(--miku-ink);
   user-select: none;
-  font: 700 12px / 30px PingFang SC, Microsoft YaHei, sans-serif;
-  backdrop-filter: blur(10px);
-  background: var(--miku-title-ramp);
-  background-size: 200% 100%;
-  background-repeat: no-repeat;
-  animation: mikuTitleGradient 6s ease-in-out infinite alternate;
-  border-bottom: 2px solid #12324f59;
-  box-shadow: inset 0 1px #ffffff59;
+  font-family: var(--miku-display);
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: 0.01em;
+  backdrop-filter: blur(16px) saturate(140%);
+  background: var(--miku-glass);
+  border-bottom: 1px solid var(--miku-hairline);
   border-radius: 0 !important;
-}
-
-body[data-ds-dark-theme] .NPtzYa_mikuTitlebar {
-  border-bottom-color: #39c5bb80;
-  box-shadow: inset 0 1px #ffffff1a, 0 1px 12px #39c5bb33;
 }
 
 .NPtzYa_mikuTitlebarTitle {
@@ -1153,7 +1015,7 @@ body[data-ds-dark-theme] .NPtzYa_mikuTitlebar {
   flex: none;
   display: inline-flex;
   align-items: center;
-  filter: drop-shadow(0 1px 1px #06163066);
+  color: var(--miku-brand);
 }
 
 .NPtzYa_mikuTitlebarBadge svg text {
@@ -1165,27 +1027,27 @@ body[data-ds-dark-theme] .NPtzYa_mikuTitlebar {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 22px;
-  height: 18px;
+  width: 24px;
+  height: 20px;
   margin-left: 2px;
-  color: #fff;
+  color: var(--miku-ink-2);
   font-size: 10px;
   line-height: 1;
-  background: #ffffff1f;
-  border: 1px solid #fff3;
-  box-shadow: inset 0 1px #ffffff47;
-  border-radius: 6px !important;
+  background: transparent;
+  border: 1px solid var(--miku-hairline);
+  border-radius: var(--miku-r-sm) !important;
 }
 
 .NPtzYa_mikuTitlebarBtn:hover {
-  background: #ffffff52;
-  border-color: #ffffff7a;
+  color: var(--miku-ink);
+  background: var(--dsw-alias-interactive-bg-hover);
+  border-color: var(--miku-hairline-2);
 }
 
 .NPtzYa_mikuTitlebarBtn:last-child:hover {
-  background: linear-gradient(#ffb3d9, #ff4da6);
-  border-color: #e0298a;
-  box-shadow: inset 0 1px #fff6;
+  color: #ffffff;
+  background: #e5484d;
+  border-color: #e5484d;
 }
 
 .NPtzYa_mikuStatusbar {
@@ -1197,36 +1059,25 @@ body[data-ds-dark-theme] .NPtzYa_mikuTitlebar {
   right: 0;
   box-sizing: border-box;
   height: 26px;
-  padding: 2px 8px;
+  padding: 3px 10px;
   align-items: center;
   gap: 6px;
-  color: #fff;
-  text-shadow: 0 1px 1px #06163066;
+  color: var(--miku-ink-2);
   user-select: none;
-  font: 11px / 1 PingFang SC, Microsoft YaHei, sans-serif;
-  backdrop-filter: blur(10px);
-  background: var(--miku-title-ramp);
-  background-size: 200% 100%;
-  background-repeat: no-repeat;
-  animation: mikuStatusGradient 6s ease-in-out infinite alternate;
-  border-top: 2px solid #12324f47;
-  box-shadow: inset 0 1px #ffffff59;
+  font-family: var(--miku-display);
+  font-size: 11px;
+  line-height: 1;
+  backdrop-filter: blur(16px) saturate(140%);
+  background: var(--miku-glass);
+  border-top: 1px solid var(--miku-hairline);
   border-radius: 0 !important;
-}
-
-body[data-ds-dark-theme] .NPtzYa_mikuStatusbar {
-  color: #fff;
-  text-shadow: 0 1px 1px #00000059;
-  border-top-color: #39c5bb80;
-  box-shadow: inset 0 1px #ffffff1a, 0 -1px 12px #39c5bb26;
 }
 
 .NPtzYa_mikuStatusbarWave {
   flex: none;
   display: inline-flex;
   align-items: center;
-  color: #fff;
-  filter: drop-shadow(0 1px 1px #06163059);
+  color: var(--miku-brand);
 }
 
 .NPtzYa_mikuStatusbarSpacer {
@@ -1235,73 +1086,38 @@ body[data-ds-dark-theme] .NPtzYa_mikuStatusbar {
 
 .NPtzYa_mikuStatusbarCell {
   flex: none;
-  height: 17px;
+  height: 18px;
   padding: 0 9px;
-  color: #12324f;
-  line-height: 17px;
+  color: var(--miku-ink-2);
+  line-height: 18px;
   white-space: nowrap;
-  background: #ffffffe6;
-  border: 1px solid #12324f47;
-  box-shadow: inset 0 1px #fffffff2;
+  background: transparent;
+  border: 1px solid var(--miku-hairline);
   border-radius: 999px !important;
+  font-variant-numeric: tabular-nums;
 }
 
-body[data-ds-dark-theme] .NPtzYa_mikuStatusbarCell {
-  color: #d6f1ec;
-  background: #0a162ed9;
-  border-color: #39c5bb59;
-  box-shadow: inset 0 1px #ffffff14;
+/* 用量卡（usage 插件与侧栏底部那枚脚卡）：外壳只给它 12px 圆角、**没给面**，
+   压在插画上读起来像"忘了上色"。外壳把这四个钩子都打好了，直接用。 */
+[data-dsh-part="foot-card"] {
+  background: var(--miku-surface-2) !important;
+  border: 1px solid var(--miku-hairline) !important;
+  border-radius: var(--miku-r) !important;
+  color: var(--miku-ink) !important;
 }
 
-/* 明亮主题的顶栏/底栏是浅色渐变，白字只有 1.8–2.9:1，过不了可读性门槛
-   （实测对比度：白 on #7ecbff 1.77、on #2e9bff 2.90）。改成墨蓝字 + 墨蓝描线，
-   12px 粗体与 11px 正文都能过 AA。图标是 hooks.mjs 里的呈现属性 fill="#fff"/
-   stroke="#fff"，只有带 !important 的 CSS 声明才能盖过呈现属性。 */
-body:not([data-ds-dark-theme]) .NPtzYa_mikuTitlebar,
-body:not([data-ds-dark-theme]) .NPtzYa_mikuStatusbar {
-  color: #12324f;
-  text-shadow: 0 1px 0 #ffffffcc;
+[data-dsh-part="foot-card-main"],
+[data-dsh-part="foot-card-toggle"],
+[data-dsh-part="foot-card-usage"],
+[data-dsh-part="foot-card-balances"] {
+  background: transparent !important;
+  color: var(--miku-ink) !important;
 }
 
-body:not([data-ds-dark-theme]) .NPtzYa_mikuTitlebarIcon svg path,
-body:not([data-ds-dark-theme]) .NPtzYa_mikuTitlebarBadge svg text {
-  fill: #12324f !important;
-}
-
-body:not([data-ds-dark-theme]) .NPtzYa_mikuTitlebarBadge svg rect {
-  stroke: #12324f !important;
-}
-
-body:not([data-ds-dark-theme]) .NPtzYa_mikuStatusbarWave {
-  color: #12324f;
-}
-
-body:not([data-ds-dark-theme]) .NPtzYa_mikuTitlebarBtn {
-  color: #12324f;
-  background: #ffffff3d;
-  border-color: #12324f40;
-  box-shadow: inset 0 1px #ffffff8c;
-}
-
-body:not([data-ds-dark-theme]) .NPtzYa_mikuTitlebarBtn:hover {
-  background: #ffffff73;
-  border-color: #12324f73;
-}
-
-body:not([data-ds-dark-theme]) .NPtzYa_mikuTitlebarBtn:last-child:hover {
-  color: #4a0d2c;
-  background: linear-gradient(#ffd0e8, #ff7cc0);
-  border-color: #d81b7e;
-}
-
-@keyframes mikuTitleGradient {
-  from { background-position: 0% 0; }
-  to { background-position: 100% 0; }
-}
-
-@keyframes mikuStatusGradient {
-  from { background-position: 100% 0; }
-  to { background-position: 0% 0; }
+[data-dsh-part="foot-card-main"]:hover,
+[data-dsh-part="foot-card-toggle"]:hover {
+  background: var(--miku-surface-3) !important;
+  border-radius: var(--miku-r-sm) !important;
 }
 
 /* ─────────── 10. 插件面：SSH / 任务看板 / 右侧看板 / 桌宠 ─────────── */
@@ -1312,9 +1128,9 @@ body:not([data-ds-dark-theme]) .NPtzYa_mikuTitlebarBtn:last-child:hover {
 [data-dsh-plugin="task-board"] [class*="panel"],
 [data-dsh-plugin="ssh"] [class*="view"],
 [data-dsh-plugin="task-board"] [class*="view"] {
-  background: var(--miku-panel-quiet) !important;
-  border: 1px solid var(--miku-ink-soft) !important;
-  border-radius: 12px !important;
+  background: var(--miku-surface-2) !important;
+  border: 1px solid var(--miku-hairline) !important;
+  border-radius: var(--miku-r) !important;
   color: var(--dsw-alias-label-primary) !important;
 }
 
@@ -1325,8 +1141,8 @@ body:not([data-ds-dark-theme]) .NPtzYa_mikuTitlebarBtn:last-child:hover {
 [data-dsh-plugin="task-board"] [data-dsh-part="column"],
 [data-dsh-plugin="task-board"] [data-dsh-part="card"],
 [data-dsh-plugin="task-board"] [data-dsh-part="detail"] {
-  border-radius: 10px !important;
-  border: 1px solid var(--miku-ink-soft) !important;
+  border-radius: var(--miku-r-sm) !important;
+  border: 1px solid var(--miku-hairline) !important;
 }
 
 /* 右侧看板（better-sidebar）：平涂 + 圆角。
@@ -1340,59 +1156,47 @@ body:not([data-ds-dark-theme]) .NPtzYa_mikuTitlebarBtn:last-child:hover {
 [data-slot="rightbar"] [class*="_tabList"],
 [data-slot="rightbar"] [class*="_paneEmptyCards"] {
   background: transparent !important;
-  border-radius: 10px !important;
-}
-
-body[data-ds-dark-theme] [data-slot="rightbar"] [class*="_panel"]:has([class*="_tabBar"]),
-body[data-ds-dark-theme] [data-slot="rightbar"] [class*="_pane"]:not([class*="_panel"]),
-body[data-ds-dark-theme] [data-slot="rightbar"] [class*="_tabBar"],
-body[data-ds-dark-theme] [data-slot="rightbar"] [class*="_tabList"],
-body[data-ds-dark-theme] [data-slot="rightbar"] [class*="_paneEmptyCards"] {
-  background: transparent !important;
+  border-radius: var(--miku-r) !important;
 }
 
 /* 任务看板侧栏条目上的活动矩阵（10×10 像素动画）默认是 shell 的蓝，跟着主题走 */
 [data-dsh-part="sidebar-entry"] [class*="matrix"],
 [data-dsh-plugin="task-board"] [class*="matrix"] {
-  color: var(--miku-teal) !important;
+  color: var(--miku-brand) !important;
 }
 
-body[data-ds-dark-theme] [data-dsh-part="sidebar-entry"] [class*="matrix"],
-body[data-ds-dark-theme] [data-dsh-plugin="task-board"] [class*="matrix"] {
-  color: #4fd8e8 !important;
-}
-
-/* git-graph 分道配色：青绿 → 天蓝 → 品红 六色循环 */
+/* git-graph 分道配色：青绿 → 天蓝 → 洋红 → 紫 → 琥珀 → 绿 六色循环
+   （旧版同序，只把六支全部换成新版色板里的值） */
 [data-gitgraph-lanes] > [data-gitgraph-glyph="node"]:nth-child(6n+1),
-[data-gitgraph-lanes] > [data-gitgraph-glyph="merge"]:nth-child(6n+1) { color: #12a79b; }
+[data-gitgraph-lanes] > [data-gitgraph-glyph="merge"]:nth-child(6n+1) { color: #0b7a72; }
 [data-gitgraph-lanes] > [data-gitgraph-glyph="node"]:nth-child(6n+2),
-[data-gitgraph-lanes] > [data-gitgraph-glyph="merge"]:nth-child(6n+2) { color: #2e9bff; }
+[data-gitgraph-lanes] > [data-gitgraph-glyph="merge"]:nth-child(6n+2) { color: #2f7ae8; }
 [data-gitgraph-lanes] > [data-gitgraph-glyph="node"]:nth-child(6n+3),
-[data-gitgraph-lanes] > [data-gitgraph-glyph="merge"]:nth-child(6n+3) { color: #d81b7e; }
+[data-gitgraph-lanes] > [data-gitgraph-glyph="merge"]:nth-child(6n+3) { color: #c02a72; }
 [data-gitgraph-lanes] > [data-gitgraph-glyph="node"]:nth-child(6n+4),
-[data-gitgraph-lanes] > [data-gitgraph-glyph="merge"]:nth-child(6n+4) { color: #7a3fd0; }
+[data-gitgraph-lanes] > [data-gitgraph-glyph="merge"]:nth-child(6n+4) { color: #7a4fd0; }
 [data-gitgraph-lanes] > [data-gitgraph-glyph="node"]:nth-child(6n+5),
-[data-gitgraph-lanes] > [data-gitgraph-glyph="merge"]:nth-child(6n+5) { color: #c99a2e; }
+[data-gitgraph-lanes] > [data-gitgraph-glyph="merge"]:nth-child(6n+5) { color: #a9761a; }
 [data-gitgraph-lanes] > [data-gitgraph-glyph="node"]:nth-child(6n),
-[data-gitgraph-lanes] > [data-gitgraph-glyph="merge"]:nth-child(6n) { color: #24924a; }
+[data-gitgraph-lanes] > [data-gitgraph-glyph="merge"]:nth-child(6n) { color: #1a7f4b; }
 
 body[data-ds-dark-theme] [data-gitgraph-lanes] > [data-gitgraph-glyph="node"]:nth-child(6n+1),
 body[data-ds-dark-theme] [data-gitgraph-lanes] > [data-gitgraph-glyph="merge"]:nth-child(6n+1) { color: #39c5bb; }
 body[data-ds-dark-theme] [data-gitgraph-lanes] > [data-gitgraph-glyph="node"]:nth-child(6n+2),
-body[data-ds-dark-theme] [data-gitgraph-lanes] > [data-gitgraph-glyph="merge"]:nth-child(6n+2) { color: #58a9ff; }
+body[data-ds-dark-theme] [data-gitgraph-lanes] > [data-gitgraph-glyph="merge"]:nth-child(6n+2) { color: #6aa8ff; }
 body[data-ds-dark-theme] [data-gitgraph-lanes] > [data-gitgraph-glyph="node"]:nth-child(6n+3),
-body[data-ds-dark-theme] [data-gitgraph-lanes] > [data-gitgraph-glyph="merge"]:nth-child(6n+3) { color: #ff5cb0; }
+body[data-ds-dark-theme] [data-gitgraph-lanes] > [data-gitgraph-glyph="merge"]:nth-child(6n+3) { color: #ff63ae; }
 body[data-ds-dark-theme] [data-gitgraph-lanes] > [data-gitgraph-glyph="node"]:nth-child(6n+4),
-body[data-ds-dark-theme] [data-gitgraph-lanes] > [data-gitgraph-glyph="merge"]:nth-child(6n+4) { color: #b57cff; }
+body[data-ds-dark-theme] [data-gitgraph-lanes] > [data-gitgraph-glyph="merge"]:nth-child(6n+4) { color: #b18cff; }
 body[data-ds-dark-theme] [data-gitgraph-lanes] > [data-gitgraph-glyph="node"]:nth-child(6n+5),
 body[data-ds-dark-theme] [data-gitgraph-lanes] > [data-gitgraph-glyph="merge"]:nth-child(6n+5) { color: #e5b94f; }
 body[data-ds-dark-theme] [data-gitgraph-lanes] > [data-gitgraph-glyph="node"]:nth-child(6n),
 body[data-ds-dark-theme] [data-gitgraph-lanes] > [data-gitgraph-glyph="merge"]:nth-child(6n) { color: #4fb86f; }
 
 [data-gitgraph-current-branch] {
-  color: var(--miku-teal) !important;
+  color: var(--miku-brand) !important;
   background: var(--dsw-alias-interactive-bg-hover-accent) !important;
-  border: 1px solid var(--miku-ink-soft) !important;
+  border: 1px solid var(--miku-brand-soft) !important;
   border-radius: 999px !important;
 }
 
@@ -1413,12 +1217,12 @@ body[data-ds-dark-theme] [data-gitgraph-lanes] > [data-gitgraph-glyph="merge"]:n
 
   [data-slot="sidebar"] > *,
   [data-slot="rightbar"] > * {
-    background-color: #f4f9ffff !important;
+    background-color: #fbfdffff !important;
   }
 
   body[data-ds-dark-theme] [data-slot="sidebar"] > *,
   body[data-ds-dark-theme] [data-slot="rightbar"] > * {
-    background-color: #0d1a3aff !important;
+    background-color: #0d1421ff !important;
   }
 }
 
@@ -1429,6 +1233,14 @@ body[data-ds-dark-theme] [data-gitgraph-lanes] > [data-gitgraph-glyph="merge"]:n
     animation-iteration-count: 1 !important;
   }
 }
+
+/* ══ 机器管理区（请勿手改）══════════════════════════════════════════════════
+   下面两段由工具生成/搬运，**不属于**上面的设计层：
+     ① 自定义光标（来自用户的初音光标主题，作画 Moos柚眠）—— 与 hooks.mjs 里注入的
+        MIKU_CURSOR_CSS 是同一套，改动请同步两处；
+     ② 设备适配（窄屏安全区 + 粗指针退回系统光标）。
+   重写本文件时用脚本把这两段原样接在末尾即可。
+   ══════════════════════════════════════════════════════════════════════════ */
 
 /* --- Miku custom node cursors (ported from the v1 miku skin; art by Moos柚眠, used with permission) --- */
 /* Miku cursor surface: inline PNG cursors extracted from the user's

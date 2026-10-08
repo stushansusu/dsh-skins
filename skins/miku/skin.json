@@ -9,19 +9,21 @@
   "licenseUrl": "https://piapro.jp/license/pcl/summary",
   "sourceUrl": "https://github.com/zhu1090093659/dsh-skins/tree/main/skins/miku",
   "attribution": "立绘素材：涂山苏苏；皮肤代码：zhu1090093659；角色「初音未来」© Crypton Future Media, INC.，依 Piapro Character License 以非商业同人形式使用，与 Crypton Future Media, INC. 无隶属或授权关系。",
-  "tagline": "初音青绿机甲方格 · 明暗双主题独立配色 · 会话栏全透明露出壁纸",
-  "description": "初音未来主题的整体重做：明亮档是青空舞台（冷调青白平涂 + 墨蓝描边 + 硬投影），暗色档是夜海霓虹（深蓝平涂 + 青绿冷光边 + 品红高光），两套配色各自独立；会话栏完全透明让壁纸直通，面板改用机甲斜切角、拉丝金属与青蓝品红渐变描边，输入区做成座舱凹槽并配主题色光标，左上角字标为代号铭牌加渐变名号；界面字体换成 Bahnschrift 几何无衬线，顶栏与底栏收起，正文与设置面板按明暗两套分别校验可读性。",
+  "tagline": "声波青 · 单色青绿 + 一处洋红 · 圆角发丝线取代机甲 · Inter 字体 · 明暗双主题独立配色",
+  "description": "初音未来主题的第二次整体重做：初版那套机甲语汇（12px 斜切角、角部铆钉、拉丝金属、4px 硬投影、彩虹渐变横幅、6px 网点铺面）整套换成现代桌面语言 —— 圆角、发丝线、三档柔影。配色收成一支青绿（初音的 #39C5BB 家族）加一处洋红点缀，洋红只出现在「人」的位置（用户轮左缘信号条、活口）；字体从 Bahnschrift 换成 Inter + Noto Sans SC，拉丁数字与中文字形同路。明暗两套仍各自独立设计：明亮是晴空台（近白面板 + 深墨青正文 + 亮青绿填充），暗色是夜航台（夜蓝石板 + 冷白正文 + 青绿光）。母题从铆钉换成声波：空会话首屏一排细声波柱、输入卡底缘一道聚焦时亮起的信号线、品牌行一枚 MIKU 徽标。会话栏保持全透明让插画直通，自定义光标与两张插画未改动。",
   "tags": [
     "miku",
     "vocaloid",
-    "blue",
+    "teal",
     "music",
     "idol",
+    "flat",
+    "inter",
     "waveform"
   ],
   "accent": "#39c5bb",
   "order": 10,
-  "version": "0.4.0",
+  "version": "0.5.1",
   "preview": {
     "light": "preview/light.jpg",
     "dark": "preview/dark.jpg"

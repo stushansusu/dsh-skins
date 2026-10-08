@@ -66,7 +66,7 @@ export const REVIEWED_SKIN_HOOKS: Readonly<Record<string, ReviewedSkinHooksIdent
   },
   "miku": {
     entry: "hooks.mjs",
-    manifestSha256: "e02a59faf78b487e19f9f46d20a04ffc97ae483f67296f5a0bae315eba548a15",
+    manifestSha256: "50b7512a140b272d7250eacc3c8bddb40191fba0e580ded8c57d59b85a1f29eb",
     hooksSha256: "7d1d144d749cb786a102cbd243c3f35f4e9c0a3b5fb0a75f18a82d8e7197994d",
   },
   "minecraft": {
