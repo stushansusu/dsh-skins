@@ -1,5 +1,5 @@
 /**
- * Blueprint — hooks escape hatch: the two drafting HUD bars.
+ * Blueprint — hooks escape hatch: the drafting status bar.
  *
  * Contract: x-org.linxin666.skin-center/v1alpha1.
  * No top-level side effects, no module-level mutable state, every timer and
@@ -8,19 +8,8 @@
  * Styling lives in patches.css (.dsh-bp-*); this module only builds DOM.
  */
 
-const CLASS_TITLEBAR = 'dsh-bp-titlebar'
 const CLASS_STATUSBAR = 'dsh-bp-statusbar'
-const SHEET = '01'
-const SCALE = '1:1'
 const GRID = '24'
-
-/** Drafting crosshair; inherits the bar accent through currentColor. */
-const MARK_SVG = [
-  '<svg class="dsh-bp-mark" viewBox="0 0 16 16" aria-hidden="true">',
-  '<circle cx="8" cy="8" r="3.4" fill="none" stroke="currentColor" stroke-width="1"/>',
-  '<path d="M8 0v5M8 11v5M0 8h5M11 8h5" stroke="currentColor" stroke-width="1"/>',
-  '</svg>',
-].join('')
 
 /** Official sidebar brand slot; the shell renders the DeepSeek whale here. */
 const BRAND_SLOT = '[data-slot="sidebar.brand.mark"]'
@@ -109,33 +98,6 @@ export default function defineSkinHooks() {
     apply(ctx) {
       const doc = document
 
-      // ---------------------------------------------------------- title bar
-      const titlebar = doc.createElement('div')
-      titlebar.className = CLASS_TITLEBAR
-      titlebar.setAttribute('aria-hidden', 'true')
-
-      const mark = span('dsh-bp-mark')
-      mark.innerHTML = MARK_SVG
-
-      const title = span('dsh-bp-title', `DRAWING ${SHEET} — 工程蓝图`)
-      const sheet = cell('SHEET', SHEET)
-      const scale = cell('SCALE', SCALE)
-
-      const titleRuler = doc.createElement('div')
-      titleRuler.className = 'dsh-bp-ruler'
-      titleRuler.setAttribute('aria-hidden', 'true')
-
-      titlebar.append(
-        mark,
-        span('dsh-bp-id', 'DSH'),
-        span('dsh-bp-badge', 'BLUEPRINT'),
-        title,
-        sheet.el,
-        divider(),
-        scale.el,
-        titleRuler,
-      )
-
       // --------------------------------------------------------- status bar
       const statusbar = doc.createElement('div')
       statusbar.className = CLASS_STATUSBAR
@@ -172,7 +134,7 @@ export default function defineSkinHooks() {
         statusRuler,
       )
 
-      doc.body.append(titlebar, statusbar)
+      doc.body.append(statusbar)
 
       // ----------------------------------------------------------- favicon
       const icon = doc.createElement('link')
@@ -320,7 +282,6 @@ export default function defineSkinHooks() {
             else drawn.remove()
           }
         }
-        titlebar.remove()
         statusbar.remove()
         icon.remove()
         for (const link of previousIcons) doc.head.append(link)
