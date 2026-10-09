@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="20" height="16" viewBox="0 0 20 16">
+  <!-- 视窗 XP：开始按钮上那面四色旗（Waving Flag）。
+       四块面板各自带一点斜切，16px 高上就读成「飘动的旗」。 -->
+  <g transform="skewY(-8)" stroke="#FFFFFF" stroke-width="0.55">
+    <rect x="1.2" y="3.2" width="6.9" height="5.5" rx="0.7" fill="#F25022"/>
+    <rect x="9.6" y="2.1" width="6.9" height="5.5" rx="0.7" fill="#7FBA00"/>
+    <rect x="1.2" y="9.6" width="6.9" height="5.5" rx="0.7" fill="#00A4EF"/>
+    <rect x="9.6" y="8.5" width="6.9" height="5.5" rx="0.7" fill="#FFB900"/>
+  </g>
+</svg>

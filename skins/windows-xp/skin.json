@@ -1,0 +1,48 @@
+{
+  "$schema": "https://schemas.linxin666.org/dsh-skin/v2.json",
+  "skinManifestVersion": 2,
+  "id": "windows-xp",
+  "name": "Win XP · 蓝天绿丘",
+  "nameEn": "Windows XP",
+  "version": "1.0.0",
+  "author": "stushansusu",
+  "license": "CC BY-NC-SA 4.0",
+  "licenseUrl": "https://creativecommons.org/licenses/by-nc-sa/4.0/",
+  "attribution": "皮肤工程（skin.css / patches.css 的全部 token 与几何约定）与 19 枚 SVG 装饰为 stushansusu 原创，CC BY-NC-SA 4.0。两张壁纸是作者本人拍摄的照片（白天一张、夜里在同位置拍下的夜景），属作者自己的作品，不在上面那份 CC 授权的范围内，仅随本皮肤一并提供。本皮肤为非官方、非商业致敬作品，与 Microsoft 无隶属关系，未再分发任何 Microsoft 素材。",
+  "tagline": "Luna 蓝标题栏 · 米灰窗口面 · 白色列表框 · 绿开始键 · 底边一条任务栏",
+  "description": "把 DSH 的机壳拆成一台 Windows XP（标题栏写 Win XP）：侧栏是一台 XP 窗口（顶上 66px 是 Luna 蓝标题栏，窗口图标是四色旗，标题用 Tahoma 粗体白字），下面是任务窗格 —— 米灰窗口面配一个白色列表框，工作区是 XP 的黄色文件夹、会话是白纸小图标，选中就是那块 #316AC5 加白字。会话头部是 XP 的菜单/工具带，三个页签做成 XP 页签（内描边，不占布局）；输入卡是一台 XP 小窗口：上半个白色凹陷编辑框、下半个工具条，发送键是 Luna 蓝的默认按钮，工具条按钮悬停起琥珀光；提示条是那条淡黄底黑边的经典 XP tooltip；滚动条换成 16px 的凸起滑块；输入卡工具条左端有 XP 那个两列小点的抓手，右栏顶上是一条任务窗格标题带。视口最底那 26px 空带画了一条任务栏（绿开始键 + 四色旗 + 任务按钮 + 托盘），纯装饰、不吃点击；任务按钮上的窗口标题与托盘那颗钟是活的（跟着会话名与系统时间走，需要按内置皮装才有）。浅色走 Luna Blue、暗色走 Royale Noir，两套各自独立；壁纸是用户给的一对 Bliss —— 白天蓝天绿丘、夜里同一构图的夜景。",
+  "tags": [
+    "windows",
+    "xp",
+    "luna",
+    "royale-noir",
+    "retro",
+    "desktop",
+    "bliss",
+    "blue",
+    "dual-theme",
+    "photo-background"
+  ],
+  "accent": "#0054E3",
+  "order": 53,
+  "preview": {
+    "light": "preview/light.jpg",
+    "dark": "preview/dark.jpg"
+  },
+  "contributes": {
+    "stylesheet": "skin.css",
+    "patches": "patches.css",
+    "backgroundMedia": {
+      "light": {
+        "type": "image",
+        "src": "assets/xp-light-bg.webp",
+        "scrim": "linear-gradient(180deg, rgba(255,255,255,0.10) 0%, rgba(255,255,255,0.0) 22%, rgba(12,26,48,0.0) 62%, rgba(12,26,48,0.16) 100%)"
+      },
+      "dark": {
+        "type": "image",
+        "src": "assets/xp-dark-bg.webp",
+        "scrim": "linear-gradient(180deg, rgba(0,0,0,0.28) 0%, rgba(0,0,0,0.04) 30%, rgba(0,0,0,0.02) 62%, rgba(0,0,0,0.30) 100%)"
+      }
+    }
+  }
+}

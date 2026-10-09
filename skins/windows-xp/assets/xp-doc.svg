@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16">
+  <!-- 视窗 XP：会话行的小文档图标（白纸 + 折角 + 蓝色字线）。 -->
+  <path d="M3.1 1.15h6.2l3.6 3.6v10.1H3.1z" fill="#FFFFFF" stroke="#5A7BA6" stroke-width="0.9" stroke-linejoin="round"/>
+  <path d="M9.3 1.15l3.6 3.6H9.3z" fill="#C9DCF5" stroke="#5A7BA6" stroke-width="0.9" stroke-linejoin="round"/>
+  <path d="M4.9 6.7h6.2M4.9 8.7h6.2M4.9 10.7h4.1" stroke="#4A7BB5" stroke-width="0.9" stroke-linecap="round"/>
+</svg>

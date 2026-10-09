@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16">
+  <!-- 视窗 XP：工作区分组行的文件夹（全彩，直接当 background-image 用）。
+       16px 上要读得出「黄色文件夹」，所以是「深金描边 + 亮金面 + 上缘白高光」三层。 -->
+  <path d="M1.1 3.4h4.5l1.15 1.55H15v7.25a1.1 1.1 0 0 1-1.1 1.1H2.2a1.1 1.1 0 0 1-1.1-1.1z"
+        fill="#E9A63C" stroke="#8A5A10" stroke-width="0.85" stroke-linejoin="round"/>
+  <path d="M1.65 5.6h12.8v6.5a0.6 0.6 0 0 1-0.6 0.6H2.25a0.6 0.6 0 0 1-0.6-0.6z"
+        fill="#FFD982"/>
+  <path d="M1.65 5.6h12.8v1.5H1.65z" fill="#FFF1C2"/>
+  <path d="M1.1 3.4h4.5l1.15 1.55H1.1z" fill="#C4882A" stroke="#8A5A10" stroke-width="0.85" stroke-linejoin="round"/>
+</svg>

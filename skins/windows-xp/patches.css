@@ -1,0 +1,2368 @@
+/**
+ * Win XP · 蓝天绿丘 (Windows XP) — L3 atmosphere layer.
+ *
+ * Pure CSS, no hooks. The loader force-scopes every selector under
+ * html[data-dsh-skin="windows-xp"], so rules here are written unscoped on purpose.
+ *
+ * Every hook below is one the shell actually emits, verified against the
+ * installed shell and the loader's own surface registry — not guessed:
+ *   · canvas      body::after              the theme's ground
+ *   · sidebar     [data-slot="sidebar"], [data-dsh-surface="sidebar"],
+ *                 [data-pane="sidebar"], aside
+ *   · details     [data-slot="details"], [data-dsh-surface="details"]
+ *   · conversation [data-conversation-scroll], [data-chat-flow]
+ *   · rows        [data-chat-flow-kind="user" | "assistant-step" | ...]
+ *   · composer    [data-composer-card], [data-input-scroll],
+ *                 [data-composer-placeholder]
+ *   · hero        [data-phase="hero"]
+ *
+ * Deliberately NOT touched: html[data-dsh-wallpaper-active] and
+ * html[data-dsh-backdrop-active]. The loader owns those — it neutralises scene
+ * backgrounds behind a wallpaper and re-blurs the composer card itself — so the
+ * canvas rule below steps aside instead of fighting it.
+ */
+
+/* ── custom properties, per mode ─────────────────────────────────────────── */
+
+body {
+  --sk-ground: #ECE9D8;
+  --sk-pane: none;
+  --sk-wall: #DED9C7;
+  --sk-wall-edge: #7f9db952;
+  --sk-card-top: #ffffffb8;
+  --sk-composer-ring: 0 0 0 3px #0054e324;
+  --sk-bubble: #f6f9fe;
+  --sk-bubble-edge: #0054e338;
+  --sk-approval-edge: #c42b1c73;
+}
+
+body[data-ds-dark-theme] {
+  --sk-ground: #1B1B1B;
+  --sk-pane: none;
+  --sk-wall: #2E2E2E;
+  --sk-wall-edge: #4a4a4a5c;
+  --sk-card-top: #4a4a4a4d;
+  --sk-composer-ring: 0 0 0 3px #2a6fd033;
+  --sk-bubble: #222528;
+  --sk-bubble-edge: #2a6fd047;
+  --sk-approval-edge: #f07a6b80;
+}
+
+/* ── canvas: the theme's ground ──────────────────────────────────────────── */
+
+body::after {
+  content: '';
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background-color: var(--sk-ground);
+  background-image: var(--sk-pane);
+  background-repeat: no-repeat;
+  background-size: 100% 100%;
+}
+
+/* When the user runs a wallpaper, the ground layer must disappear entirely,
+   or it paints over the wallpaper. The loader sets these flags itself.
+   Must be written body[...]::after, NOT html[...] body::after: the loader force-scopes
+   every selector as a descendant of html[data-dsh-skin], so the html form becomes
+   html[data-dsh-skin] html[...] body::after and can never match (html is not a
+   descendant of itself). The rule was dead and the canvas painted over the user's
+   wallpaper. The crystal engine was fixed first (see the note further down); the
+   material and anime engines still carried the dead form, which is also why
+   verify() rejected all eleven of them and no theme could be rebuilt. */
+body[data-dsh-wallpaper-active]::after,
+body[data-dsh-backdrop-active]::after {
+  background-color: transparent;
+  background-image: none;
+}
+
+/* ── sidebar: the theme's material as a wall, not a fill ─────────────────── */
+
+/* [data-slot="sidebar"] is the renderer's slot anchor and carries
+   display:contents, so it has no box of its own — the painted element is its
+   child (the sidebar's .root column, a flex container). Style the narrow slot
+   variant for plugin-provided sidebars too. */
+[data-slot='sidebar'] > *,
+[data-dsh-surface='sidebar'],
+[data-pane='sidebar'] {
+  background-color: var(--sk-wall) !important;
+  background-image: none;
+  box-shadow: inset -1px 0 0 var(--sk-wall-edge);
+}
+
+body[data-ds-dark-theme] [data-slot='sidebar'] > *,
+body[data-ds-dark-theme] [data-dsh-surface='sidebar'],
+body[data-ds-dark-theme] [data-pane='sidebar'] {
+  background-image: none;
+}
+
+/* the sidebar's own workspace list keeps the wall colour, not a raised card */
+[data-slot='sidebar.workspaces'] {
+  background-color: transparent !important;
+}
+
+/* ── details pane ────────────────────────────────────────────────────────── */
+
+[data-slot='details'],
+[data-slot='details'] > *,
+[data-dsh-surface='details'],
+[data-pane='details'] {
+  background-color: #ece9d8db !important;
+}
+
+body[data-ds-dark-theme] [data-slot='details'],
+body[data-ds-dark-theme] [data-slot='details'] > *,
+body[data-ds-dark-theme] [data-dsh-surface='details'],
+body[data-ds-dark-theme] [data-pane='details'] {
+  background-color: #1b1b1bdb !important;
+}
+
+/* ── hero: the empty-session screen ──────────────────────────────────────── */
+
+[data-phase='hero'] {
+  position: relative;
+  background-image: none;
+  background-repeat: no-repeat;
+  background-size: 100% 100%;
+}
+
+body[data-ds-dark-theme] [data-phase='hero'] {
+  background-image: none;
+}
+
+/* ── composer: the theme's object ────────────────────────────────────────── */
+
+[data-composer-card] {
+  border-radius: 14px;
+  box-shadow: var(--sk-composer-ring), inset 0 1px 0 var(--sk-card-top);
+}
+
+body[data-ds-dark-theme] [data-composer-card] {
+  box-shadow: var(--sk-composer-ring), inset 0 1px 0 var(--sk-card-top);
+}
+
+/* the editable surface itself stays transparent so the card reads as one piece */
+[data-input-scroll] {
+  background-color: transparent;
+}
+
+[data-composer-placeholder] {
+  color: #6B6B6B;
+}
+
+body[data-ds-dark-theme] [data-composer-placeholder] {
+  color: #9A9A9A;
+}
+
+/* ── conversation rows: the material edge ────────────────────────────────── */
+
+/* the user's own turn gets the metal; the assistant stays quiet so the reading
+   column does not turn into a stripe of colour */
+[data-chat-flow-kind='user'] {
+  box-shadow: inset 3px 0 0 var(--sk-bubble-edge);
+}
+
+[data-chat-flow-kind='assistant-step'] {
+  background-color: transparent;
+}
+
+/* tool / context rows are furniture: give them the paper's edge, not the ink's */
+[data-chat-flow-kind='tool-call'],
+[data-chat-flow-kind='context'] {
+  border-radius: 10px;
+  background-color: #ded9c780;
+}
+
+body[data-ds-dark-theme] [data-chat-flow-kind='tool-call'],
+body[data-ds-dark-theme] [data-chat-flow-kind='context'] {
+  background-color: #2e2e2e80;
+}
+
+/* ── selection carries the metal ─────────────────────────────────────────── */
+
+::selection {
+  background-color: #0054e340;
+}
+
+body[data-ds-dark-theme] ::selection {
+  background-color: #2a6fd052;
+}
+
+/* ── approvals: the one place the warning ramp is allowed to shout ───────── */
+
+[data-approval-key],
+[data-question-key],
+[data-plan-review-key] {
+  border-radius: 12px;
+  box-shadow: inset 0 0 0 1px var(--sk-approval-edge), var(--dsw-shadow-lv2);
+}
+
+/* ── links keep the theme's metal rather than the shell's blue ───────────── */
+
+a {
+  color: #0054E3;
+}
+
+body[data-ds-dark-theme] a {
+  color: #2A6FD0;
+}
+
+/* ── scrollbars ──────────────────────────────────────────────────────────── */
+
+* {
+  scrollbar-color: #6b6b6b59 transparent;
+}
+
+body[data-ds-dark-theme] * {
+  scrollbar-color: #9a9a9a66 transparent;
+}
+
+/* ── 暗色专用：钉死原生配色方案（材质引擎本来没有这条，anime 引擎有）────────
+   必须写 :root 而不是 html：作用域转换把每条选择器当成 skin root 的后代加前缀，
+   html { … } 会变成 html[data-dsh-skin] html { … }，永远匹配不上；
+   :root 被特判成 html[data-dsh-skin="<id>"] 本身，正好落在 html 元素上 ——
+   这正是 color-scheme 需要的位置（它必须作用在根元素上才管得住原生控件）。 */
+
+
+/* ── per-theme extra chrome ────────────────────────────────────────────────
+   A theme may append its own rules here — the frame, the workspace plaque, the
+   new-session plate. Kept as a *function* so it derives colours from the same
+   palette through the same alpha()/mix() helpers instead of hard-coding hexes.
+   verify() scans the result for the fragility patterns (hashed class names,
+   :global, nested :has, backticks, unresolved interpolation). */
+
+/* ══ Luna Blue · 蓝天绿丘 ═══════════════════════════ */
+
+/* ── V0. 让「画框」把底让出来（**桌面端专有的一层不透明底**）─────────────────
+   壳的 inline 样式表里有：
+     [data-windows-titlebar] .BynINW_frame          { background: var(--dsw-specific-sidebar-fill) }
+     [data-windows-titlebar] .BynINW_frame::before  { background: var(--dsw-specific-sidebar-fill) }
+   而 --dsw-specific-sidebar-fill 在**不设 panelAlpha** 的皮肤里就是 raised 的实色
+   （本套浅色 = #DED9C7）。画框是**流内元素**，天然压在皮肤中心那层 z-index:-2 的
+   壁纸之上 —— 于是桌面端整块壁纸被糊掉，而网页端完全正常（Chromium 里没有
+   data-windows-titlebar，那条规则不命中）。
+   症状：用户在桌面端看到的会话区是 #DED9C7，一张画都看不见；我却在 Chrome 里
+   验一张好一张 —— 交接里记过这条坑，这次又踩了一次。
+   复现方法：探针里手动把 data-windows-titlebar 挂到 html 上。 */
+/* 注意：**不要写 S('body [data-dsh-frame]')** —— S() 在暗色分支前拼的是
+   body[data-ds-dark-theme]，最终变成 body[data-ds-dark-theme] body [...] 要求
+   body 里再套一个 body，永远不命中：这条就只在浅色下生效，暗色照旧吃浅色的值。
+   用户报「暗色最顶部是灰白色」正是它（菜单条的底被刷成了浅色窗口面 #ECE9D8）。 */
+[data-dsh-frame] {
+  background-color: transparent !important;
+  background-image: none !important;
+}
+/* **::before 不能一起弄透明**：真壳在桌面端把「原生菜单栏（应用 / 编辑 …）那条横带」
+   的底画在它身上（网页版里它 content:none、高度 0，所以看不出来）。一起清掉，
+   菜单字就直接压在壁纸上 —— 用户报「最顶部应用/编辑那个条也变透明了」。
+   改回 XP 的菜单条：窗口面 + 下缘一条发丝。高度由壳给，不写死。 */
+[data-dsh-frame]::before {
+  background-color: #ECE9D8 !important;
+  background-image: linear-gradient(180deg, #f6f5ed 0%, #ECE9D8 100%) !important;
+  box-shadow: inset 0 -1px 0 #aca899e6;
+}
+
+/* ── V. 变量：把引擎那几支 --sk-* 换成 XP 的值 ───────────────────────────── */
+/* 引擎自己在 body / body[data-ds-dark-theme] 上写过同一批键，这里同特异性后写即赢。 */
+
+body {
+  --sk-ground: transparent;
+  --sk-pane: none;
+  --sk-wall: #ECE9D8;
+  --sk-wall-edge: #aca899eb;
+  --sk-card-top: #ffffffd9;
+  --sk-composer-ring: 0 0 0 3px #0054e338;
+  --sk-bubble: #fffffff0;
+  --sk-bubble-edge: #0054e359;
+  --sk-approval-edge: #003c74bf;
+  --xp-face: #ECE9D8;
+  --xp-face-hi: #f6f5ed;
+  --xp-face-lo: #dbd9c9;
+  --xp-client: #FFFFFF;
+  --xp-edge: #ACA899;
+  --xp-border: #7F9DB9;
+  --xp-strong: #003C74;
+  --xp-hilite: #FFFFFF;
+  --xp-select: #316AC5;
+  --xp-select-edge: #0A246A;
+  --xp-gold: #E9A63C;
+  --xp-tab-idle: #6a6961;
+  --xp-tab-on: #000000;
+}
+
+/* 皮肤中心在 body 上内联了输入卡磨砂档；XP 的窗口是不透明的，把这一档收掉。
+   内联样式要靠 !important 才压得住。 */
+body {
+  --dsh-input-card-blur: 0px !important;
+}
+body [data-dsh-composer-frost] {
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  background-color: transparent !important;
+}
+
+/* ── 0. 全局：XP 的控件几何 ─────────────────────────────────────────────── */
+
+/* XP 的按钮是 3px 圆角的小方块，不是胶囊。 */
+button {
+  border-radius: 3px;
+}
+/* XP 的焦点框是那圈 1px 点线（键盘走位时才出现）。 */
+button:focus-visible, [role="tab"]:focus-visible, input:focus-visible, [role="menuitem"]:focus-visible {
+  outline: 1px dotted #000000 !important;
+  outline-offset: -3px !important;
+}
+/* XP 的链接是蓝色 + 悬停下划线那一套。 */
+a {
+  color: #0033CC;
+}
+a:hover {
+  text-decoration: underline;
+}
+/* XP 的框选就是那块选中蓝 + 白字。 */
+::selection {
+  background-color: #316ac5d9;
+  color: #FFFFFF;
+}
+
+/* ── A. 侧栏：一台 XP 窗口 ──────────────────────────────────────────────── */
+
+/* A1 · 侧栏柱体：**只有窗口面**，标题栏见 A1b。
+   注意：真壳是 [data-pane='sidebar'] > div[data-slot=sidebar](display:contents) > .root。
+   渐变必须落在有盒子的 .root 上 —— 挂到 > * 那一层是没有盒子的，什么都不画而且不报错。 */
+[data-pane='sidebar'] > * > *, [data-dsh-surface='sidebar'] > * {
+  position: relative;
+  background-image: linear-gradient(180deg, #f6f5ed 0%, #ECE9D8 100%);
+  background-size: 100% 100%;
+  background-position: top left;
+  background-repeat: no-repeat;
+}
+/* A1b · 标题栏：挂在 logoRow（[data-window-drag]）上。
+   logoRow 的高度**不是常数**：网页版 60px（y 6..66），Windows 桌面端 40px（y 6..46）。
+   原来把标题栏写死 62px 挂在柱体上，桌面端那条蓝就盖住了「新会话」按钮的上沿 ——
+   用户报的「Win XP 几个字压在新会话上」就是它（浏览器里 logoRow 是 60px、按钮在 y70，
+   所以我在 Chrome 里验了两轮都复现不出来）。挂在 logoRow 上就跟着它走，一格布局不动。
+   注意必须限定在侧栏里：[data-window-drag] **不只在 logoRow 上**，会话头部那一行也带它，
+   不限定的话中栏顶上也会被刷成一片 Luna 蓝，压在那里的会话名/图标就不好读了。 */
+[data-pane='sidebar'] [data-window-drag] {
+  position: relative;
+}
+[data-pane='sidebar'] [data-window-drag]::before {
+  content: '';
+  position: absolute;
+  top: -6px;
+  bottom: 0;
+  left: -12px;
+  right: -12px;
+  pointer-events: none;
+  background-image: linear-gradient(180deg, #0997FF 0%, #0053EE 7%, #0050EE 40%, #0066FF 86%, #0066FF 92%, #003DD7 95%, #0055FB 97.5%, #0831D9 100%);
+  background-size: 100% 100%;
+  background-position: top left;
+  background-repeat: no-repeat;
+}
+/* 标题栏底缘那条收边：跟着同一个盒子走，所以永远贴在标题栏下沿。 */
+[data-pane='sidebar'] [data-window-drag]::after {
+  content: '';
+  position: absolute;
+  left: -12px;
+  right: -12px;
+  bottom: 0;
+  height: 1px;
+  pointer-events: none;
+  background-color: #0000004d;
+}
+
+/* A2 · 窗口图标：把壳那枚品牌 svg 换成四色旗（插槽是 display:contents，得先给它盒子）。 */
+/* 这两个插槽身上带内联的 style="display: contents"（内联样式压得住样式表），
+   所以必须 !important 才能把它们变回有盒子的元素 —— 没有盒子就既挂不上背景、
+   绝对定位的替换字也会跑去找别的包含块（实测跑到了视口左上角、垂直居中到 y=500）。 */
+[data-slot='sidebar.brand.mark'] {
+  display: inline-flex !important;
+  align-items: center;
+  justify-content: center;
+  /* 显式尺寸：下面把 svg 藏掉之后这个盒子就没人撑了，会塌成 0x0、旗子也画不出来。 */
+  width: 20px;
+  height: 16px;
+  background-image: url(assets/xp-start-flag.svg);
+  background-size: 20px 16px;
+  background-position: center;
+  background-repeat: no-repeat;
+}
+[data-slot='sidebar.brand.mark'] > svg {
+  display: none !important;
+}
+
+/* A3 · 标题栏文字：**走正常流**，不做绝对定位。
+   绝对定位的 ::after 一旦包含块不是这个盒子（插槽在别的壳版本里可能没有盒子），
+   字就会跑到别处去压住别的元素 —— 而且是静默的。放在流里就不可能跑。
+   原文那枚 wordmark svg 直接 display:none（字自己撑宽度，不需要它占位）。 */
+[data-slot='sidebar.brand.name'] {
+  display: inline-flex !important;
+  align-items: center;
+}
+[data-slot='sidebar.brand.name'] > svg {
+  display: none !important;
+}
+[data-slot='sidebar.brand.name']::after {
+  content: 'Win XP';
+  display: block;
+  font-family: var(--windows-xp-font-display);
+  font-size: 15px;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+  line-height: 1;
+  color: #FFFFFF;
+  text-shadow: 0 1px 1px #00225cbf;
+  white-space: nowrap;
+  pointer-events: none;
+}
+
+/* A4 · 标题栏按钮：壳那颗「收起侧边栏」就是 XP 标题栏上那颗小方键。 */
+[data-dsh-responsive-part='sidebar-toggle'] {
+  border-radius: 3px !important;
+  background-image: linear-gradient(180deg, #ffffff80 0%, #ffffff0a 48%, #0000001f 52%, #00000033 100%);
+  box-shadow: inset 0 0 0 1px #ffffff8c, inset 0 1px 0 #ffffffb3, 0 1px 1px #00000059 !important;
+  color: #FFFFFF !important;
+}
+[data-dsh-responsive-part='sidebar-toggle']:hover {
+  background-image: linear-gradient(180deg, #ffffff9e 0%, #ffffff29 48%, #00000024 52%, #0000003d 100%);
+}
+
+/* A5 · 新会话：XP **工具条/任务窗格**的凸起键（米灰 + 深蓝字 + 蓝图标）。
+   原来做成 Luna 蓝的默认按钮，于是它和上面的 Luna 蓝标题栏是同一块材质、
+   只隔 4px —— 看起来就像两个蓝色块叠在一起（用户报了两轮）。
+   换成米灰凸起键之后材质彻底分开；再往下让 6px，中间是一条看得见的窗口面。 */
+[data-dsh-part='new-session'] {
+  margin-top: 6px !important;
+  border-radius: 3px !important;
+  border: 1px solid #003C74 !important;
+  background-image: linear-gradient(180deg, #FFFFFF 0%, #f6f5ed 46%, #ECE9D8 52%, #dbd9c9 100%) !important;
+  box-shadow: inset 0 1px 0 #fffffff2 !important;
+  color: #003C74 !important;
+  font-weight: 700 !important;
+}
+[data-dsh-part='new-session']:hover {
+  background-image: linear-gradient(180deg, #ffebaf 0%, #ffd75e8c 52%, #ffd75e4d 100%) !important;
+  border-color: #ffd75ef2 !important;
+  color: #000000 !important;
+}
+[data-dsh-part='new-session']:active {
+  background-image: linear-gradient(180deg, #dbd9c9 0%, #ECE9D8 100%) !important;
+  box-shadow: inset 1px 1px 2px #0000002e !important;
+}
+[data-dsh-part='new-session'] kbd {
+  color: #6a6961 !important;
+  border-color: #aca899e6 !important;
+  background-color: #ffffff8c !important;
+}
+
+/* A6 · 侧栏那几条入口（插件 / 任务看板 / …）：XP 工具条上的平按钮，悬停才起琥珀光。 */
+[data-dsh-part='sidebar-entry'], [data-slot='sidebar.panellist'] button {
+  border-radius: 3px !important;
+  background-image: none !important;
+  background-color: transparent !important;
+}
+[data-dsh-part='sidebar-entry']:hover, [data-slot='sidebar.panellist'] button:hover {
+  background-image: linear-gradient(180deg, #ffd75e8c 0%, #ffd75e47 100%) !important;
+  box-shadow: inset 0 0 0 1px #ffd75ebf !important;
+}
+
+/* A7 · 「工作区」分区头：XP 工具条横带（白高光 → face → 底缘 1px）。 */
+/* XP 资源管理器左栏那种「任务窗格标题」：白 → 淡蓝的渐变 + 一圈淡蓝细边 + 深蓝粗体字。
+   侧栏原来那条米灰工具带横带太中性了，换上这条才像 XP 的任务窗格。 */
+[data-slot='sidebar.workspaces'] > * > *:first-child {
+  border-radius: 3px !important;
+  background-image: linear-gradient(180deg, #fafcfe 0%, #ccddf9 100%) !important;
+  box-shadow: inset 0 0 0 1px #0054e373, inset 0 1px 0 #ffffffcc !important;
+}
+[data-slot='sidebar.workspaces'] > * > *:first-child > span:first-child {
+  color: #003C74 !important;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+[data-slot='sidebar.workspaces'] > * > *:first-child button:hover {
+  background-image: linear-gradient(180deg, #ffd75e80 0%, #ffd75e3d 100%) !important;
+  color: #000000 !important;
+}
+
+/* A8 · 工作区列表 = XP 的白色列表框（1px 灰蓝描边 + 上缘凹陷）。 */
+[data-slot='sidebar.workspaces'] [role='tree'] {
+  background-color: #ffffffff !important;
+  box-shadow: inset 0 0 0 1px #7f9db9d9, inset 0 1px 2px #0000001a !important;
+  border-radius: 2px !important;
+}
+
+/* A9 · 分组行：XP 列表项。悬停走选中蓝的淡版；展开态加一点底 + 左竖条。 */
+[data-slot='sidebar.workspaces'] [role='treeitem'][aria-expanded] {
+  border-radius: 2px !important;
+  box-shadow: none !important;
+}
+[data-slot='sidebar.workspaces'] [role='treeitem'][aria-expanded='false']:hover {
+  background-color: #316ac529 !important;
+  box-shadow: inset 0 0 0 1px #316ac559 !important;
+}
+[data-slot='sidebar.workspaces'] [role='treeitem'][aria-expanded='true'] {
+  background-color: #316ac51f !important;
+  box-shadow: inset 2px 0 0 #0054e3bf !important;
+}
+[data-slot='sidebar.workspaces'] [role='treeitem'][aria-expanded='true']:hover {
+  background-color: #316ac533 !important;
+}
+/* 分组名：展开态加粗（XP 树里展开的节点是粗体）。 */
+[data-slot='sidebar.workspaces'] [role='treeitem'][aria-expanded='true'] > span:nth-child(3) > span {
+  font-weight: 700;
+}
+
+/* A10 · 分组行的图标 = XP 的黄色文件夹（全彩 SVG 当 background-image）。
+   svg 只能 visibility:hidden —— 那个 16px 宽是 svg 撑出来的，藏掉会让标题整列左移。 */
+[data-slot='sidebar.workspaces'] [role='treeitem'][aria-expanded] > span:first-child {
+  background-image: url(assets/xp-folder.svg) !important;
+  background-size: 16px 16px !important;
+  background-position: center !important;
+  background-repeat: no-repeat !important;
+}
+[data-slot='sidebar.workspaces'] [role='treeitem'][aria-expanded] > span:first-child > svg {
+  visibility: hidden !important;
+}
+
+/* A11 · 会话行：XP 列表项。选中 = 那块 #316AC5 + 白字（XP 里的选中就是这个）。 */
+[data-slot='sidebar.workspaces'] [role='treeitem'][aria-selected] {
+  border-radius: 2px !important;
+  box-shadow: none !important;
+  color: #000000;
+}
+[data-slot='sidebar.workspaces'] [role='treeitem'][aria-selected='false']:hover {
+  background-color: #316ac524 !important;
+  color: #000000 !important;
+}
+[data-slot='sidebar.workspaces'] [role='treeitem'][aria-selected='true'] {
+  background-color: #316AC5 !important;
+  box-shadow: inset 0 0 0 1px #0A246A !important;
+}
+[data-slot='sidebar.workspaces'] [role='treeitem'][aria-selected='true'] * {
+  color: #FFFFFF !important;
+}
+/* 会话行的空插槽贴小文档图标（XP 的列表每项都有图标）。 */
+[data-slot='sidebar.workspaces'] [role='treeitem'][aria-selected] > span:first-child {
+  background-image: url(assets/xp-doc.svg) !important;
+  background-size: 15px 15px !important;
+  background-position: center !important;
+  background-repeat: no-repeat !important;
+}
+/* 悬停才出现的那两颗行内按钮：做成 XP 的小方键。 */
+[data-slot='sidebar.workspaces'] [role='treeitem'] > span:last-child button {
+  border-radius: 2px !important;
+  background-image: none !important;
+  background-color: transparent !important;
+}
+[data-slot='sidebar.workspaces'] [role='treeitem'] > span:last-child button:hover {
+  background-image: linear-gradient(180deg, #ffd75e99 0%, #ffd75e4d 100%) !important;
+  box-shadow: inset 0 0 0 1px #ffd75ecc !important;
+}
+/* 「展开其余 N 个会话」那颗。 */
+[data-slot='sidebar.workspaces'] [role='tree'] button[aria-expanded] {
+  color: #6a6961 !important;
+  border-radius: 2px !important;
+}
+[data-slot='sidebar.workspaces'] [role='tree'] button[aria-expanded]:hover {
+  color: #0054E3 !important;
+}
+
+/* A12 · 侧栏底部的用量卡：XP 的凸起面板（客户区 + 上缘白高光 + 1px 描边）。 */
+[data-dsh-part='foot-card'] {
+  background-color: #ffffffff !important;
+  border-radius: 3px !important;
+  box-shadow: inset 0 0 0 1px #7f9db9e6, inset 0 1px 0 #ffffffe6, 0 1px 2px #0000002e !important;
+}
+[data-dsh-part='foot-card-toggle'] {
+  border-radius: 2px !important;
+  background-color: transparent !important;
+}
+[data-dsh-part='foot-card-toggle']:hover {
+  background-image: linear-gradient(180deg, #ffd75e99 0%, #ffd75e4d 100%) !important;
+}
+/* 底部那排图标键（设置 / 更新 / 远程访问）：平按钮 + 琥珀悬停。 */
+[data-slot='sidebar.settings'] button, [data-slot='sidebar.footer.action'] button {
+  background-image: none !important;
+  background-color: transparent !important;
+  border-radius: 3px !important;
+}
+[data-slot='sidebar.settings'] button:hover, [data-slot='sidebar.footer.action'] button:hover {
+  background-image: linear-gradient(180deg, #ffd75e8c 0%, #ffd75e42 100%) !important;
+  color: #000000 !important;
+}
+
+/* ── B. 输入卡：一台 XP 小窗口（上半是凹陷编辑框，下半是工具条）──────────── */
+
+/* B1 · 输入卡：**一整块同一个颜色**。原来是一台「米灰小窗口 + 里面再套一个白框」，
+   远看就是两种颜色；用户要的是统一 —— 现在整张卡本身就是那个编辑框：
+   客户区底色（浅 #FFFFFF / 暗 #1C1C1C）+ 和别处输入框**同一支描边** + 同样的内凹。
+   侧栏搜索框、表单里的 input 用的也是这一支，于是全 App 的输入框同色同边。 */
+[data-composer-card] {
+  background-color: #FFFFFF !important;
+  background-image: none !important;
+  border: 1px solid #7F9DB9 !important;
+  border-radius: 3px !important;
+  box-shadow: inset 1px 1px 2px #0000001f, 0 4px 14px #0000004d !important;
+}
+/* B2 · 原来那个「凹陷白框」的 ::before 撤掉：卡片自己就是框了，再画一层又是两种颜色。
+   输入区与工具条之间只留一条发丝 —— 那是分隔线，不是换色。
+   顺带在这条工具条的**左端**补上 XP 那个「抓手」（两列小点 ⠿，素材 xp-grip{,-dark}.svg）：
+   DOM 里没有这个元素，所以它画在那一行的左内边距里；壳给的内边距只有 8px，
+   而「+」按钮正好就落在 8px 处（实壳量到），5px 的抓手会顶到它的左沿 ——
+   所以先把左内边距放到 16px，再把 5x9 的抓手钉在 5px 处，中间留 5px 气口。
+   纵向写 calc(50% - 2px)：那一行的内边距是 2px 上 / 6px 下，按 50% 居中会低 2px。 */
+[data-composer-card] > :last-child {
+  box-shadow: inset 0 1px 0 #aca899b3 !important;
+  padding-left: 16px !important;
+  background-image: url(assets/xp-grip.svg) !important;
+  background-repeat: no-repeat !important;
+  background-size: 5px 9px !important;
+  background-position: 5px calc(50% - 2px) !important;
+}
+[data-composer-card]:focus-within {
+  border-color: #0054E3 !important;
+  box-shadow: inset 1px 1px 2px #0000001f, 0 0 0 2px #0054e34d, 0 4px 14px #0000004d !important;
+}
+[data-composer-input] {
+  color: #000000 !important;
+  caret-color: #000000;
+}
+[data-composer-placeholder] {
+  color: #808080 !important;
+}
+/* 二级/三级文字没有 data 钩子，颜色是从 token 继承来的 —— 在三个「有字的面」上重下
+   这几支即可一次生效。引擎是按「有不透明底的卡片」配的，量出来在列表与正文面上
+   只有 3.2-4.0:1（时间戳、步骤数、文件路径这些小字全落在这一档）。 */
+[data-composer-card], [data-slot='sidebar.workspaces'], [data-conversation-content] {
+  --dsw-alias-label-secondary: #3d3d3d;
+  --dsw-alias-label-caption: #525252;
+  --dsw-alias-label-tertiary: #575757;
+  --dsw-alias-label-dimmed: #808080;
+}
+
+/* B3 · 工具栏按钮：XP 工具条上的平按钮，悬停起琥珀光（XP 的按钮热点是黄的，不是蓝的）。 */
+[data-composer-card] button {
+  border-radius: 3px !important;
+  box-shadow: none !important;
+}
+[data-composer-card] button[aria-haspopup] {
+  background-image: none !important;
+  background-color: transparent !important;
+  border: 1px solid transparent !important;
+  color: #1c1c1a !important;
+}
+[data-composer-card] button[aria-haspopup]:hover {
+  background-image: linear-gradient(180deg, #ffd75e8c 0%, #ffd75e42 100%) !important;
+  border-color: #ffd75ecc !important;
+  color: #000000 !important;
+}
+[data-composer-card] button[aria-haspopup][aria-expanded='true'] {
+  background-image: linear-gradient(180deg, #ffd75ebf 0%, #ffd75e73 100%) !important;
+  border-color: #ffd75ef2 !important;
+  color: #000000 !important;
+}
+/* B4 · 发送键 = XP 的蓝色默认按钮。卡里「没有 aria-haspopup」的按钮只有它和权限那颗，
+   所以紧接着用「插槽 + 后代按钮」把权限那颗还原成 chip（同特异性，后写即赢）。 */
+[data-composer-card] button:not([aria-haspopup]) {
+  border-radius: 3px !important;
+  border: 1px solid #003C74 !important;
+  background-image: linear-gradient(180deg, #8cb2f2 0%, #246ce7 46%, #0054E3 52%, #0043b6 100%) !important;
+  box-shadow: inset 0 1px 0 #ffffff99, 0 1px 2px #0000004d !important;
+  color: #FFFFFF !important;
+}
+[data-composer-card] button:not([aria-haspopup]):hover {
+  background-image: linear-gradient(180deg, #b8cff7 0%, #578eed 46%, #246ce7 52%, #004fd5 100%) !important;
+}
+[data-composer-card] button:not([aria-haspopup]):disabled {
+  background-image: linear-gradient(180deg, #f6f5ed 0%, #dbd9c9 100%) !important;
+  border-color: #ACA899 !important;
+  color: #828077cc !important;
+  box-shadow: inset 0 1px 0 #ffffffb3 !important;
+}
+[data-composer-card] [data-slot='conversation.input.permission'] button {
+  border: 1px solid transparent !important;
+  background-image: none !important;
+  background-color: transparent !important;
+  box-shadow: none !important;
+  color: #2f2f2b !important;
+  border-radius: 3px !important;
+}
+[data-composer-card] [data-slot='conversation.input.permission'] button:hover {
+  background-image: linear-gradient(180deg, #ffd75e80 0%, #ffd75e3d 100%) !important;
+  border-color: #ffd75ebf !important;
+  color: #000000 !important;
+}
+/* 输入卡底部那排附件（统计 / 上下文百分比 / 模型 …）由壳的一条 var() 上色：
+   var(--dsh-composer-accessory-bg, var(--dsw-specific-tip, …))，而且是挂在
+   dock 那一层上的 —— 挂在卡片上不继承（dock 与卡片是兄弟，不是后代）。
+   会话里那层纱收薄之后，这排小字直接压在壁纸上只有 3:1，所以两处一起下。 */
+[data-composer-seat], [data-composer-card] {
+  --dsh-composer-accessory-bg: #ffffffff;
+  --dsw-specific-tip: #ffffffff;
+}
+
+/* 引用 chip：XP 的标签片。 */
+[data-dsh-part='composer-chip'] {
+  background-color: #0054e31f !important;
+  border: 1px solid #0054e373 !important;
+  border-radius: 2px !important;
+  color: #00112d !important;
+}
+
+/* ── C. 会话区：桌面上的那台窗口 ────────────────────────────────────────── */
+
+/* C1 · 头部工具带：整条 76px 的横带画在中栏列上（hero 与会话两个相位都在），
+   底缘 1px 分隔线烘在渐变里。 */
+[data-pane='conversation'] {
+  background-image: linear-gradient(180deg, #0997FF 0%, #0053EE 7%, #0050EE 40%, #0066FF 86%, #0066FF 92%, #003DD7 95%, #0055FB 97.5%, #0831D9 100%), linear-gradient(180deg, #f0ede0 0px, #ECE9D8 31px, #ACA899 34px, #ACA899 36px) !important;
+  background-size: 100% 40px, 100% 36px !important;
+  background-position: top left, left 40px !important;
+  background-repeat: no-repeat, no-repeat !important;
+}
+/* C1b · 标题栏上的字与窗口键：白字 + 深蓝柔光（单层，不做四向描边）。
+   页签（role=tab）不在这一层里 —— 它们坐在下面的米灰工具带上。 */
+[data-dsh-surface='session-header'] nav, [data-dsh-surface='session-header'] nav * {
+  color: #FFFFFF !important;
+  text-shadow: 0 1px 1px #00225ccc;
+}
+[data-dsh-surface='session-header'] nav * {
+  font-weight: 600 !important;
+}
+[data-dsh-surface='session-header'] button:not([role='tab']) {
+  color: #FFFFFF !important;
+  border-radius: 3px !important;
+  background-image: linear-gradient(180deg, #ffffff6b 0%, #ffffff0d 48%, #00000029 52%, #0000002e 100%) !important;
+  box-shadow: inset 0 0 0 1px #ffffff80, inset 0 1px 0 #ffffff99 !important;
+  filter: drop-shadow(0 1px 1px #00225c99);
+}
+[data-dsh-surface='session-header'] button:not([role='tab']):hover {
+  background-image: linear-gradient(180deg, #ffffff9e 0%, #ffffff38 48%, #0000001a 52%, #00000033 100%) !important;
+}
+[data-phase='hero'] {
+  background-image: none !important;
+}
+/* 首屏的标题与那几颗建议是直接压在画上的：白天那张的中段是蓝天，纯黑字只有 4.0:1、
+   品牌蓝的 chip 只有 2.3:1。给一层「桌面图标底下那种打光」——柔光，不是面板，
+   画还是画。暗色那张的夜空本来就够暗，不加。 */
+[data-content-phase='hero'] {
+  background-image: radial-gradient(58% 24% at 50% 40%, #ffffffb3 0%, #ffffff57 46%, transparent 78%);
+  background-repeat: no-repeat !important;
+}
+
+/* C2 · 三个标签页 = XP 页签，**只有选中那个是页签**。
+   原来三个都套了一圈 1px 内描边，于是并排三个方框（用户：「还有边框线」）。
+   现在：未选 = 纯文字 + 悬停琥珀光；选中 = 一个凸起的 XP 页签（圆角顶 + 两侧/顶 1px 发丝
+   + 顶上一道品牌色 accent），并且**不带下边框**、向下压 1px 盖住页签条那条基线，
+   和下面的客户区连成一片。
+   宽度靠左右 padding 撑（不再是贴字的 26px），页签之间只留 3px。 */
+[data-conversation-tabs] {
+  gap: 4px !important;
+  /* 连页签条底下那条基线也去掉 —— 用户点名的就是「还有边框线」。 */
+  box-shadow: none !important;
+  align-items: flex-end !important;
+}
+[data-conversation-tabs] [role='tab'] {
+  /* 纵向 4px 不能省：壳原来靠它把页签撑到 25px，写成 padding: 0 14px 会让
+     页签塌成一行字的 16px（而 tablist 是内容撑高的，于是整条也跟着缩）。 */
+  padding: 4px 14px !important;
+  min-width: 46px !important;
+  justify-content: center !important;
+  /* 用户点名：页签要**直角**，不要圆角。 */
+  border-radius: 0 !important;
+  background-image: none !important;
+  box-shadow: none !important;
+  position: relative !important;
+  color: #6a6961 !important;
+  font-weight: 400 !important;
+}
+[data-conversation-tabs] [role='tab']:hover {
+  background-image: linear-gradient(180deg, #ffd75e66 0%, #ffd75e29 100%) !important;
+  color: #000000 !important;
+}
+[data-conversation-tabs] [role='tab'][aria-selected='true'] {
+  background-image: linear-gradient(180deg, #ffffffe6 0%, #ffffff59 100%) !important;
+  color: #000000 !important;
+  font-weight: 700 !important;
+}
+/* 选中指示：一条 2px 品牌色底线。用 ::after 画，**不用 box-shadow** ——
+   一来 inset 那条 2px 在实机里落在了下缘（不是设计意图），二来用户要的就是「没有边框线」，
+   显式画一条线比一条 4 段的 inset 好读也好量。 */
+[data-conversation-tabs] [role='tab'][aria-selected='true']::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 2px;
+  border-radius: 1px;
+  background-color: #0054E3;
+  pointer-events: none;
+}
+
+/* C3 · 会话正文：一台压在桌面上的窗口客户区。半透明，让壁纸透上来 ——
+   0.80 时壁纸几乎看不见（用户点名「背景皮肤没有」），收到 0.62/0.72 之后
+   正文仍有 6 以上对比度（见交接里的表）。 */
+[data-conversation-content]:not([data-content-phase='hero']) {
+  background-color: #ffffffb3 !important;
+  box-shadow: inset 1px 0 0 #aca89980, inset -1px 0 0 #aca89980 !important;
+}
+
+/* C4 · 用户那一句 = XP 的信息条（淡蓝底 + 左侧品牌竖条）。 */
+[data-chat-flow-kind='user'] {
+  background-color: #0054e317 !important;
+  border: 1px solid #7f9db9d9 !important;
+  border-radius: 3px !important;
+  box-shadow: inset 3px 0 0 #0054e3d9 !important;
+}
+
+/* C4b · 「正在运行」那一行（实壳钩子是 [data-chat-running]）：
+   它自己不带底，会话里纱一薄就直接压在壁纸上（实测 3.8:1）。
+   给它一层 XP 分组条的窗口面。 */
+[data-chat-running] {
+  background-color: #ece9d8f0 !important;
+  border-radius: 3px !important;
+  box-shadow: inset 0 0 0 1px #aca89999 !important;
+}
+
+/* C5 · 过程行 / 工具调用 = XP 的分组条：face 底 + 1px 描边。 */
+[data-chat-flow-kind='tool-call'], [data-chat-flow-kind='turn-process'], [data-chat-flow-kind='context'] {
+  background-color: #ece9d8e0 !important;
+  border: 1px solid #aca899b3 !important;
+  border-radius: 3px !important;
+}
+[data-chat-flow-kind='assistant-step'] {
+  background-color: transparent !important;
+}
+
+/* C6 · 代码块 / 行内码 = XP 的等宽框。 */
+[data-conversation-content] pre {
+  border: 1px solid #7f9db9bf !important;
+  border-radius: 2px !important;
+}
+[data-conversation-content] code {
+  border-radius: 2px !important;
+}
+
+/* C7 · 统计条 = XP 状态栏；会话尾部 / 交付卡 = XP 面板。 */
+/* 统计条读的是 specific-tip 这支 token，而壳自己那条规则也带 !important ——
+   同特异性同权重时后写的不一定赢（实测没赢），所以把变量本身换掉。 */
+[data-composer-stats] {
+  /* 壳那条规则读的是**非 alias** 的 --dsw-specific-tip（还套了一层
+     var(--dsh-composer-accessory-bg, ...)），而且它的特异性 (0,3,1) 比
+     皮肤被强制加前缀后的 (0,2,1) 高 —— 硬写 background-color 是打不过的。
+     换变量才是一次到位的做法：三支一起下。 */
+  --dsw-specific-tip: #ece9d8f0;
+  --dsh-composer-accessory-bg: #ece9d8f0;
+  --dsw-alias-specific-tip: #ece9d8f0;
+  background-color: #ece9d8f0 !important;
+  box-shadow: inset 0 1px 0 #aca899cc !important;
+  border-radius: 3px !important;
+}
+[data-turn-tail] {
+  border-top: 1px solid #aca8998c !important;
+}
+[data-presented-file] {
+  background-color: #ffffffff !important;
+  border: 1px solid #7f9db9e6 !important;
+  border-radius: 3px !important;
+  box-shadow: inset 3px 0 0 #0054e3cc !important;
+}
+/* 消息尾部那排动作图标（复制 / 重试）：平按钮 + 琥珀悬停。 */
+[data-clock] button {
+  border-radius: 2px !important;
+  background-image: none !important;
+  background-color: transparent !important;
+}
+[data-clock] button:hover {
+  background-image: linear-gradient(180deg, #ffd75e80 0%, #ffd75e3d 100%) !important;
+  color: #000000 !important;
+}
+
+/* C8 · 会话头部与右栏的按钮：XP 工具条平按钮。 */
+[data-dsh-surface='session-header'] button, [data-conversation-header-corner] button {
+  border-radius: 3px !important;
+  background-image: none !important;
+  background-color: transparent !important;
+}
+[data-dsh-surface='session-header'] button:hover, [data-conversation-header-corner] button:hover {
+  background-image: linear-gradient(180deg, #ffd75e8c 0%, #ffd75e42 100%) !important;
+  box-shadow: inset 0 0 0 1px #ffd75ecc !important;
+  color: #000000 !important;
+}
+
+/* C9 · 右详情栏：XP 窗口面 + 左缘 1px。 */
+[data-dsh-surface='details'], [data-pane='details'], [data-rightbar-col] {
+  background-color: #ECE9D8 !important;
+  box-shadow: inset 1px 0 0 #aca899e6 !important;
+}
+
+/* ── D. 审批 / 提问 / 计划卡：XP 对话框 ─────────────────────────────────── */
+
+[data-approval-key], [data-question-key], [data-plan-review-key] {
+  background-color: #ECE9D8 !important;
+  border: 1px solid #003C74 !important;
+  border-radius: 6px !important;
+  box-shadow: 0 6px 20px #0000003d, inset 0 1px 0 #fffffff2 !important;
+}
+[data-approval-key] button, [data-question-key] button, [data-plan-review-key] button {
+  border-radius: 3px !important;
+  border: 1px solid #003C74 !important;
+  background-image: linear-gradient(180deg, #FFFFFF 0%, #f6f5ed 46%, #ECE9D8 52%, #dbd9c9 100%) !important;
+  box-shadow: inset 0 1px 0 #fffffff2 !important;
+  color: #000000 !important;
+}
+[data-approval-key] button:hover, [data-question-key] button:hover, [data-plan-review-key] button:hover {
+  background-image: linear-gradient(180deg, #ffebaf 0%, #ffd75e80 100%) !important;
+}
+
+/* ── E. 弹出菜单 / 列表 / 提示条 ───────────────────────────────────────── */
+
+[role='menu'], [role='listbox'] {
+  background-color: #FFFFFF !important;
+  border: 1px solid #7F9DB9 !important;
+  border-radius: 2px !important;
+  box-shadow: 2px 3px 8px #00000047, inset 0 1px 0 #ffffffb3 !important;
+}
+[role='menuitem'], [role='option'] {
+  border-radius: 0 !important;
+}
+[role='menuitem']:hover, [role='option']:hover, [role='menuitem'][data-highlighted], [role='option'][data-highlighted], [role='menuitem'][aria-selected='true'], [role='option'][aria-selected='true'] {
+  background-color: #316AC5 !important;
+  color: #FFFFFF !important;
+}
+/* XP 的提示条是那条极标志性的淡黄底 + 1px 黑边 + 直角。两个主题都保留。 */
+[role='tooltip'] {
+  background-color: #FFFFE1 !important;
+  color: #000000 !important;
+  border: 1px solid #000000 !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+  font-family: 'Tahoma', 'Segoe UI', 'Microsoft YaHei UI', 'Microsoft YaHei', 'PingFang SC', system-ui, sans-serif !important;
+}
+[role='tooltip'] kbd, [role='tooltip'] code {
+  background-color: #E4E4C8 !important;
+  color: #000000 !important;
+  border: 1px solid #00000059 !important;
+  border-radius: 2px !important;
+}
+/* 设置那类模态：加一圈 XP 窗口边，底色不动（里面用的是 token，跟着明暗走）。 */
+[role='dialog'] {
+  border: 1px solid #003C74 !important;
+  border-radius: 6px !important;
+  box-shadow: 0 10px 34px #0000004d !important;
+}
+
+/* ── F. 表单控件 / 滚动条 ───────────────────────────────────────────────── */
+
+/* 输入框：XP 的凹陷白框。 */
+input[type='text'], input[type='search'], input[type='password'], textarea {
+  border: 1px solid #7F9DB9 !important;
+  border-radius: 2px !important;
+  background-color: #FFFFFF !important;
+  color: #000000 !important;
+  box-shadow: inset 1px 1px 2px #0000001a !important;
+}
+[data-slot='sidebar.workspaces'] input {
+  background-color: #FFFFFF !important;
+}
+[data-slot='sidebar.workspaces'] input::placeholder {
+  color: #808080 !important;
+}
+
+/* 滚动条：XP 那条 16px 的槽 + 凸起滑块（左上白高光、右下压深）。 */
+* {
+  scrollbar-color: #ece9d8f2 #dbd9c999;
+}
+::-webkit-scrollbar {
+  width: 16px;
+  height: 16px;
+}
+::-webkit-scrollbar-track {
+  background-color: #f6f5ed;
+  box-shadow: inset 1px 0 0 #aca89980;
+}
+::-webkit-scrollbar-thumb {
+  background-image: linear-gradient(90deg, #f6f5ed 0%, #ECE9D8 45%, #dbd9c9 100%);
+  box-shadow: inset 1px 1px 0 #FFFFFF, inset -1px -1px 0 #00000047;
+  border-radius: 0;
+}
+::-webkit-scrollbar-thumb:hover {
+  background-image: linear-gradient(90deg, #f9ebbb 0%, #f2e4b3 100%);
+}
+::-webkit-scrollbar-corner {
+  background-color: #dbd9c9;
+}
+/* XP 的滚动条两端有凸起的箭头键。三角画在 SVG 里（只画三角），
+   凹凸由这一层的渐变给 —— 于是明暗各自一份三角、一份按钮，不用出四张彩图。 */
+::-webkit-scrollbar-button {
+  display: block;
+  background-image: linear-gradient(90deg, #f6f5ed 0%, #ECE9D8 45%, #dbd9c9 100%);
+  background-size: 100% 100%;
+  background-repeat: no-repeat;
+  background-position: center;
+  box-shadow: inset 1px 1px 0 #FFFFFF, inset -1px -1px 0 #00000047;
+}
+::-webkit-scrollbar-button:vertical:start:decrement {
+  background-image: url(assets/xp-scroll-up.svg), linear-gradient(90deg, #f6f5ed 0%, #ECE9D8 45%, #dbd9c9 100%);
+  background-size: 12px 12px, 100% 100%;
+  background-position: center, center;
+  background-repeat: no-repeat, no-repeat;
+}
+::-webkit-scrollbar-button:vertical:end:increment {
+  background-image: url(assets/xp-scroll-down.svg), linear-gradient(90deg, #f6f5ed 0%, #ECE9D8 45%, #dbd9c9 100%);
+  background-size: 12px 12px, 100% 100%;
+  background-position: center, center;
+  background-repeat: no-repeat, no-repeat;
+}
+::-webkit-scrollbar-button:horizontal:start:decrement {
+  background-image: url(assets/xp-scroll-left.svg), linear-gradient(180deg, #f6f5ed 0%, #ECE9D8 45%, #dbd9c9 100%);
+  background-size: 12px 12px, 100% 100%;
+  background-position: center, center;
+  background-repeat: no-repeat, no-repeat;
+}
+::-webkit-scrollbar-button:horizontal:end:increment {
+  background-image: url(assets/xp-scroll-right.svg), linear-gradient(180deg, #f6f5ed 0%, #ECE9D8 45%, #dbd9c9 100%);
+  background-size: 12px 12px, 100% 100%;
+  background-position: center, center;
+  background-repeat: no-repeat, no-repeat;
+}
+
+/* ── H. 设置面板：一台 XP 属性页 ───────────────────────────────────────────
+   实壳结构（量具 probe-xp-settings*.mjs）：[role='dialog'] > nav + content，控件**全是 button**
+   而且都带稳定 aria，不用碰哈希类名：
+     导航项 aria-current="true" / 下拉 aria-haspopup="menu" / 主题卡 aria-pressed
+     开关 role="switch" aria-checked / 步进箭头 aria-label
+   这一节的每一处都是量出来的，不是为了好看：插件把「描述行」画在 bg-layer-3 上
+   （浅色 3.3:1），而且它那排**正按钮的字色读的就是 bg-layer-3** —— 于是蓝底上的字
+   和底同色，实测 1.1:1，等于隐形的。 */
+
+/* H1 · 盘面：XP 窗口面 + 1px 深蓝边 + 3px 圆角（原来吃 raised 实色 + 6px 圆角）。
+   盘内重下 token：描述行的底换成客户区，正按钮的字色跟着一起正常。 */
+[role='dialog'] {
+  background-color: #ECE9D8 !important;
+  border: 1px solid #003C74 !important;
+  border-radius: 3px !important;
+  box-shadow: 0 10px 34px #0000004d !important;
+  --dsw-alias-bg-layer-3: #FFFFFF;
+  --dsw-alias-label-secondary: #3d3d3d;
+  --dsw-alias-label-caption: #525252;
+  --dsw-alias-label-tertiary: #575757;
+  --dsw-alias-label-dimmed: #808080;
+  /* 暗色把这个「正按钮的底」提亮一档：它的字色是 bg-layer-3（近黑），
+     不提亮的话近黑压在中蓝上只有 3.4:1。提亮后 8:1 以上。 */
+  --dsw-alias-button-primary-fill: #0054E3;
+  /* 盘里那些「品牌色的小字」（推荐 / 打开配置文件的文档 / 滑杆读数）压在窗口面上
+     只有 4.4（浅）/ 3.5（暗）—— 但**不能改 brand 本身**：它同时是白字正按钮的底，
+     提亮会让白字失效。所以只把「品牌色文字」这一支换掉。 */
+  --dsw-alias-brand-text: #0049CE;
+  --dsw-alias-label-primary-bluish: #0049CE;
+  /* 实测（probe-xp-token2.mjs：在盘上逐个把候选 token 改成洋红看谁变）：
+     插件那排「品牌色小字」读的是 --dsw-alias-brand-primary 本身 —— 推荐 / 滑杆读数
+     都是它。同样不能动全局 brand（它同时是白字正按钮的底），只在这个盘里换掉。 */
+  --dsw-alias-brand-primary: #0049CE;
+}
+
+/* H2 · 左导航 = XP 任务窗格：一条右缘分隔线 + 平按钮，选中给品牌左竖条。 */
+[role='dialog'] nav {
+  box-shadow: inset -1px 0 0 #aca899e6 !important;
+}
+[role='dialog'] nav button {
+  border: 1px solid transparent !important;
+  border-radius: 2px !important;
+  background-image: none !important;
+  background-color: transparent !important;
+  box-shadow: none !important;
+  color: #6a6961 !important;
+  font-weight: 400 !important;
+}
+[role='dialog'] nav button:hover {
+  background-image: linear-gradient(180deg, #ffd75e73 0%, #ffd75e33 100%) !important;
+  border-color: #ffd75eb3 !important;
+  color: #000000 !important;
+}
+[role='dialog'] nav button[aria-current='true'] {
+  background-image: linear-gradient(180deg, #ffffffb3 0%, #0054e329 100%) !important;
+  border-color: #0054e38c !important;
+  box-shadow: inset 2px 0 0 #0054E3 !important;
+  color: #000000 !important;
+  font-weight: 700 !important;
+}
+
+/* H3 · 面板里所有按钮 = XP 凸起键（标签一律用正文色 —— 插件的正按钮标签是隐形的）。
+   这一条放前面，下面四条按 aria 精修，特异性更高、写在后面。 */
+[role='dialog'] button {
+  border: 1px solid #003C74 !important;
+  border-radius: 3px !important;
+  background-image: linear-gradient(180deg, #FFFFFF 0%, #f6f5ed 46%, #ECE9D8 52%, #dbd9c9 100%) !important;
+  box-shadow: inset 0 1px 0 #fffffff2 !important;
+  color: #000000 !important;
+}
+[role='dialog'] button:hover {
+  background-image: linear-gradient(180deg, #ffebaf 0%, #ffd75e8c 52%, #ffd75e4d 100%) !important;
+  border-color: #ffd75ef2 !important;
+}
+[role='dialog'] button[aria-expanded='true'] {
+  background-image: linear-gradient(180deg, #dbd9c9 0%, #ECE9D8 100%) !important;
+  box-shadow: inset 1px 1px 2px #0000002e !important;
+}
+
+/* H4 · 主题卡 = XP 选框卡：未选是客户区 + 深蓝细边，选中加一圈品牌内环。 */
+[role='dialog'] button[aria-pressed] {
+  border-color: #003c74d9 !important;
+  background-image: linear-gradient(180deg, #fffffff2 0%, #f6f5ede6 100%) !important;
+}
+[role='dialog'] button[aria-pressed='true'] {
+  background-image: linear-gradient(180deg, #e6eefc 0%, #ccddf9 100%) !important;
+  box-shadow: inset 0 0 0 1px #0054E3, inset 0 1px 0 #ffffffcc !important;
+  font-weight: 700 !important;
+}
+[role='dialog'] button[aria-pressed='false']:hover {
+  border-color: #ffd75ee6 !important;
+}
+
+/* H5 · 开关 = XP 的小方钮（直角 + 方头滑块）。 */
+[role='dialog'] [role='switch'] {
+  border: 1px solid #003C74 !important;
+  border-radius: 2px !important;
+  background-image: linear-gradient(180deg, #dbd9c9 0%, #ECE9D8 100%) !important;
+  box-shadow: inset 1px 1px 2px #0000002e !important;
+}
+[role='dialog'] [role='switch'][aria-checked='true'] {
+  background-image: linear-gradient(180deg, #407fea 0%, #0047c1 100%) !important;
+  box-shadow: inset 0 1px 0 #ffffff73 !important;
+}
+[role='dialog'] [role='switch'] > span {
+  border-radius: 1px !important;
+  box-shadow: inset 0 0 0 1px #003c74cc !important;
+}
+
+/* H6 · 右栏（详情栏）那一列：页签做成和「对话 / 轨迹 / 工具统计」同一套（直角 +
+   未选纯文字 + 选中白面 + 2px 品牌底线），图标键走平按钮 + 琥珀悬停。
+   实壳量到：右栏 tablist [714,0,582,38]，tab 100x28 圆角 8px、选中项底色是空的。 */
+/* H6b · 右栏顶上那 38px 就是这台任务窗格的**标题带**（和侧栏「工作区」那条同款：
+   白高光 → face → 底缘 1px）。原来那里只有裸页签、底下也没有分界，右栏读起来不像一台窗格。
+   页签自身的形状不动（直角 + 选中白面 + 2px 品牌底线），只给它一条底。 */
+[data-dsh-surface='details'] [role='tablist'] {
+  background-image: linear-gradient(180deg, #f6f5ed 0%, #ECE9D8 62%, #ECE9D8 100%) !important;
+  box-shadow: inset 0 -1px 0 #aca899e6 !important;
+}
+[data-dsh-surface='details'] [role='tab'] {
+  border-radius: 0 !important;
+  background-image: none !important;
+  color: #6a6961 !important;
+  font-weight: 400 !important;
+  position: relative !important;
+}
+[data-dsh-surface='details'] [role='tab']:hover {
+  background-image: linear-gradient(180deg, #ffd75e66 0%, #ffd75e29 100%) !important;
+  color: #000000 !important;
+}
+[data-dsh-surface='details'] [role='tab'][aria-selected='true'] {
+  background-image: linear-gradient(180deg, #ffffffe6 0%, #ffffff59 100%) !important;
+  color: #000000 !important;
+  font-weight: 700 !important;
+}
+[data-dsh-surface='details'] [role='tab'][aria-selected='true']::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 2px;
+  background-color: #0054E3;
+  pointer-events: none;
+}
+/* H6 · 右栏那一列页签与图标键：平按钮 + 琥珀悬停（跟侧栏同一套语言）。 */
+[data-dsh-surface='details'] button, [data-slot='rightbar'] button {
+  border-radius: 3px !important;
+  background-image: none !important;
+  background-color: transparent !important;
+}
+[data-dsh-surface='details'] button:hover, [data-slot='rightbar'] button:hover {
+  background-image: linear-gradient(180deg, #ffd75e80 0%, #ffd75e3d 100%) !important;
+  box-shadow: inset 0 0 0 1px #ffd75ebf !important;
+  color: #000000 !important;
+}
+
+/* ── I. 桌面（窗口边框）──────────────────────────────────────────────────── */
+
+/* I1 · 首屏左上那两颗「桌面图标」（工作区 / 会话）**按用户要求去掉了** ——
+   空会话那一页现在就是一张干净的桌面，只留中栏那层柔光给标题让路。
+   素材 xp-desktop-{folder,doc}.svg 还留在 _assets/ 里（构建会照旧拷进 dist），
+   要还原就把下面这段加回来（几何照旧：84x62 一颗、第二颗 +74px）：
+
+   [data-content-phase='hero']::before {
+     content: ''; position: absolute; left: 20px; top: 16px;
+     width: 84px; height: 140px; pointer-events: none;
+     background-image: url(assets/xp-desktop-folder.svg), url(assets/xp-desktop-doc.svg);
+     background-size: 84px 62px, 84px 62px;
+     background-position: 0 0, 0 74px; background-repeat: no-repeat, no-repeat;
+   } */
+
+/* I2 · 列的拖拽手柄 = XP 的**窗口边框**：平时看不见，鼠标抓上去才亮起一条 Luna 蓝
+   （XP 里拖窗口就是抓边框）。手柄本身 8px 宽，线画在正中 3px。 */
+[data-dsh-part='resize-handle'] {
+  z-index: 40;
+}
+[data-dsh-part='resize-handle']:hover {
+  background-image: linear-gradient(90deg, transparent 0 2px, #0054E3 2px 5px, transparent 5px) !important;
+  background-repeat: no-repeat !important;
+  background-size: 8px 100% !important;
+}
+
+/* ── G. 任务栏：视口最底 24px ─────────────────────────────────────────────
+   注意 [data-dsh-frame] 的高度**随「有没有 backgroundMedia」变**：
+   不挂背景的皮实测是 100vh-26px（底下有一条空带），挂了 backgroundMedia 就是 100vh。
+   所以不能靠「底下那条空带」，改成自己给 frame 留位（padding-bottom）+ 任务栏
+   position: fixed; bottom: 0。纯装饰：pointer-events: none，绝不吃点击。 */
+/* 任务栏占了视口最底 24px，而真壳的 frame 就是 100vh —— 不给它留位，
+   侧栏最底下那排按钮（设置 / 检查更新 / 远程访问）会被压掉一截。
+   给 frame 补一条 padding-bottom：整台窗口连侧栏带中栏一起让位。 */
+/* 必须连 box-sizing 一起钉住：真壳这个 frame 是 content-box + height:100%，
+   只加 padding-bottom 不会把内容压小，反而把盒子撑到 100vh+24px（实测 828 的视口
+   量出 852 的 frame），children 还是 100% 高 —— 等于什么都没让。 */
+[data-dsh-frame] {
+  box-sizing: border-box !important;
+  padding-bottom: 24px !important;
+}
+[data-dsh-frame]::after {
+  content: '';
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 24px;
+  pointer-events: none;
+  background-image:
+    url(assets/xp-taskbar-start.svg),
+    url(assets/xp-start-flag.svg),
+    linear-gradient(90deg, transparent 0 71px, #1E5E14 71px 72px, transparent 72px),
+    linear-gradient(90deg, #ffffff38 0 1px, transparent 1px),
+    linear-gradient(90deg, transparent 0 2px, #ffffff29 2px 72px, transparent 72px),
+    linear-gradient(180deg, #8FD470 0%, #5FB83E 44%, #4CA72F 50%, #3B8A23 100%),
+    /* 「任务按钮」：XP 的任务栏中间那颗「正在运行的窗口」。这里放本应用自己那一个
+       （四色旗 + 蓝键），中间那块空白因此不像一张没用的蓝纸。
+       **标题不在任何一层里** —— R3 曾把写死文字的 assets/xp-taskbar-task.svg 换成
+       hooks 塞进来的活字（会话名 + 钟），R4 又把 hooks 退掉了（见 §4.6 第 31 条）。
+       现在这颗按钮就是一颗空键，下面 G2 那两条规则也没有对应的节点。 */
+    url(assets/xp-start-flag.svg),
+    linear-gradient(180deg, #6FA8F0 0%, #3F7AD8 45%, #2E62C4 55%, #1D4A9C 100%),
+    /* 托盘那两颗小图标要排在那块凹槽**之前** —— 层序里第一条在最上面，
+       排在后面就会被凹槽盖掉（这一版第一遍就是这么写的，量出来只剩凹槽色）。 */
+    radial-gradient(circle at 50% 50%, #7FD46F 0 45%, #2F7B22 46% 100%),
+    radial-gradient(circle at 50% 50%, #8FC7FF 0 45%, #1E5EC8 46% 100%),
+    linear-gradient(90deg, #00000073 0 1px, transparent 1px),
+    linear-gradient(180deg, #00000052 0%, #0000001f 100%),
+    linear-gradient(180deg, #1B52BE 0%, #3F8CF3 6%, #245EDB 10%, #245EDB 86%, #1941A5 94%, #1A48BC 100%);
+  background-size: 46px 16px, 17px 14px, 72px 100%, 72px 100%, 72px 100%, 72px 100%, 17px 14px, 148px 18px, 9px 9px, 9px 9px, 1px 100%, 88px 18px, 100% 100%;
+  background-position: 32px center, 13px center, left center, left center, left center, left center, 116px center, 104px center, right 72px center, right 58px center, right 96px center, right 4px center, left center;
+  background-repeat: no-repeat, no-repeat, no-repeat, no-repeat, no-repeat, no-repeat, no-repeat, no-repeat, no-repeat, no-repeat, no-repeat, no-repeat, no-repeat;
+  box-shadow: inset 0 1px 0 #ffffff57;
+}
+
+/* G2 · 任务栏上那两个「活字」的样式：① [data-xp-tasklabel] = 会话名；② [data-xp-clock] = HH:MM。
+   **现在没有节点用它们** —— R4 把 hooks 退掉了（§4.6 第 31 条），所以这两条规则是空转的，
+   留着是为了「想启用时只要把 _xp-hooks.mjs 挪回去 + 加一行 hooksEntry」。
+   它们本来挂在皮肤中心的装饰层 ctx.layers.bottom（position:fixed 贴底、pointer-events:none）里 ——
+   只画上去、不吃点击。要启用时必须按内置皮装（scripts/install-xp-builtin.mjs）+ 重启 App。
+   几何对齐 ::after 那几层：任务按钮的蓝键是 104..252 / 高 18（竖着落在 3..21），旗在 116..133，
+   所以标题从 140 起、最多 104px（超了省略号）；钟钉在右端 8px 处。 */
+[data-dsh-skin-layer='bottom'] [data-xp-live] {
+  position: fixed !important;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 24px;
+  pointer-events: none;
+}
+[data-xp-tasklabel] {
+  position: absolute;
+  left: 140px;
+  top: 3px;
+  max-width: 104px;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  font: 400 10.5px/18px 'Tahoma', 'Segoe UI', 'Microsoft YaHei UI', 'Microsoft YaHei', 'PingFang SC', system-ui, sans-serif;
+  color: #FFFFFF !important;
+  text-shadow: 0.5px 1px 0 #0a2a5499;
+}
+[data-xp-clock] {
+  position: absolute;
+  right: 8px;
+  top: 3px;
+  font: 400 11px/18px 'Tahoma', 'Segoe UI', 'Microsoft YaHei UI', 'Microsoft YaHei', 'PingFang SC', system-ui, sans-serif;
+  color: #FFFFFF !important;
+  text-shadow: 0.5px 1px 0 #0a2a5499;
+  font-variant-numeric: tabular-nums;
+}
+
+/* ══ Royale Noir · 夜里的绿丘 ═══════════════════════════ */
+
+/* ── V0. 让「画框」把底让出来（**桌面端专有的一层不透明底**）─────────────────
+   壳的 inline 样式表里有：
+     [data-windows-titlebar] .BynINW_frame          { background: var(--dsw-specific-sidebar-fill) }
+     [data-windows-titlebar] .BynINW_frame::before  { background: var(--dsw-specific-sidebar-fill) }
+   而 --dsw-specific-sidebar-fill 在**不设 panelAlpha** 的皮肤里就是 raised 的实色
+   （本套浅色 = #DED9C7）。画框是**流内元素**，天然压在皮肤中心那层 z-index:-2 的
+   壁纸之上 —— 于是桌面端整块壁纸被糊掉，而网页端完全正常（Chromium 里没有
+   data-windows-titlebar，那条规则不命中）。
+   症状：用户在桌面端看到的会话区是 #DED9C7，一张画都看不见；我却在 Chrome 里
+   验一张好一张 —— 交接里记过这条坑，这次又踩了一次。
+   复现方法：探针里手动把 data-windows-titlebar 挂到 html 上。 */
+/* 注意：**不要写 S('body [data-dsh-frame]')** —— S() 在暗色分支前拼的是
+   body[data-ds-dark-theme]，最终变成 body[data-ds-dark-theme] body [...] 要求
+   body 里再套一个 body，永远不命中：这条就只在浅色下生效，暗色照旧吃浅色的值。
+   用户报「暗色最顶部是灰白色」正是它（菜单条的底被刷成了浅色窗口面 #ECE9D8）。 */
+body[data-ds-dark-theme] [data-dsh-frame] {
+  background-color: transparent !important;
+  background-image: none !important;
+}
+/* **::before 不能一起弄透明**：真壳在桌面端把「原生菜单栏（应用 / 编辑 …）那条横带」
+   的底画在它身上（网页版里它 content:none、高度 0，所以看不出来）。一起清掉，
+   菜单字就直接压在壁纸上 —— 用户报「最顶部应用/编辑那个条也变透明了」。
+   改回 XP 的菜单条：窗口面 + 下缘一条发丝。高度由壳给，不写死。 */
+body[data-ds-dark-theme] [data-dsh-frame]::before {
+  background-color: #2B2B2B !important;
+  background-image: linear-gradient(180deg, #404040 0%, #2B2B2B 100%) !important;
+  box-shadow: inset 0 -1px 0 #3f3f3fe6;
+}
+
+/* ── V. 变量：把引擎那几支 --sk-* 换成 XP 的值 ───────────────────────────── */
+/* 引擎自己在 body / body[data-ds-dark-theme] 上写过同一批键，这里同特异性后写即赢。 */
+
+body[data-ds-dark-theme] {
+  --sk-ground: transparent;
+  --sk-pane: none;
+  --sk-wall: #2B2B2B;
+  --sk-wall-edge: #3f3f3feb;
+  --sk-card-top: #4e4e4ed9;
+  --sk-composer-ring: 0 0 0 3px #2a6fd038;
+  --sk-bubble: #1c1c1cf0;
+  --sk-bubble-edge: #2a6fd080;
+  --sk-approval-edge: #8c8c8cbf;
+  --xp-face: #2B2B2B;
+  --xp-face-hi: #404040;
+  --xp-face-lo: #232323;
+  --xp-client: #1C1C1C;
+  --xp-edge: #3F3F3F;
+  --xp-border: #5C5C5C;
+  --xp-strong: #8C8C8C;
+  --xp-hilite: #4E4E4E;
+  --xp-select: #2A5C9E;
+  --xp-select-edge: #0E2C55;
+  --xp-gold: #E0B45C;
+  --xp-tab-idle: #a6a6a6;
+  --xp-tab-on: #E8E8E8;
+}
+
+/* 皮肤中心在 body 上内联了输入卡磨砂档；XP 的窗口是不透明的，把这一档收掉。
+   内联样式要靠 !important 才压得住。 */
+body {
+  --dsh-input-card-blur: 0px !important;
+}
+body [data-dsh-composer-frost] {
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  background-color: transparent !important;
+}
+
+/* ── 0. 全局：XP 的控件几何 ─────────────────────────────────────────────── */
+
+/* XP 的按钮是 3px 圆角的小方块，不是胶囊。 */
+body[data-ds-dark-theme] button {
+  border-radius: 3px;
+}
+/* XP 的焦点框是那圈 1px 点线（键盘走位时才出现）。 */
+body[data-ds-dark-theme] button:focus-visible, body[data-ds-dark-theme] [role="tab"]:focus-visible, body[data-ds-dark-theme] input:focus-visible, body[data-ds-dark-theme] [role="menuitem"]:focus-visible {
+  outline: 1px dotted #E8E8E8 !important;
+  outline-offset: -3px !important;
+}
+/* XP 的链接是蓝色 + 悬停下划线那一套。 */
+body[data-ds-dark-theme] a {
+  color: #9fbeea;
+}
+body[data-ds-dark-theme] a:hover {
+  text-decoration: underline;
+}
+/* XP 的框选就是那块选中蓝 + 白字。 */
+body[data-ds-dark-theme] ::selection {
+  background-color: #2a5c9ed9;
+  color: #FFFFFF;
+}
+
+/* ── A. 侧栏：一台 XP 窗口 ──────────────────────────────────────────────── */
+
+/* A1 · 侧栏柱体：**只有窗口面**，标题栏见 A1b。
+   注意：真壳是 [data-pane='sidebar'] > div[data-slot=sidebar](display:contents) > .root。
+   渐变必须落在有盒子的 .root 上 —— 挂到 > * 那一层是没有盒子的，什么都不画而且不报错。 */
+body[data-ds-dark-theme] [data-pane='sidebar'] > * > *, body[data-ds-dark-theme] [data-dsh-surface='sidebar'] > * {
+  position: relative;
+  background-image: linear-gradient(180deg, #404040 0%, #2B2B2B 100%);
+  background-size: 100% 100%;
+  background-position: top left;
+  background-repeat: no-repeat;
+}
+/* A1b · 标题栏：挂在 logoRow（[data-window-drag]）上。
+   logoRow 的高度**不是常数**：网页版 60px（y 6..66），Windows 桌面端 40px（y 6..46）。
+   原来把标题栏写死 62px 挂在柱体上，桌面端那条蓝就盖住了「新会话」按钮的上沿 ——
+   用户报的「Win XP 几个字压在新会话上」就是它（浏览器里 logoRow 是 60px、按钮在 y70，
+   所以我在 Chrome 里验了两轮都复现不出来）。挂在 logoRow 上就跟着它走，一格布局不动。
+   注意必须限定在侧栏里：[data-window-drag] **不只在 logoRow 上**，会话头部那一行也带它，
+   不限定的话中栏顶上也会被刷成一片 Luna 蓝，压在那里的会话名/图标就不好读了。 */
+body[data-ds-dark-theme] [data-pane='sidebar'] [data-window-drag] {
+  position: relative;
+}
+body[data-ds-dark-theme] [data-pane='sidebar'] [data-window-drag]::before {
+  content: '';
+  position: absolute;
+  top: -6px;
+  bottom: 0;
+  left: -12px;
+  right: -12px;
+  pointer-events: none;
+  background-image: linear-gradient(180deg, #6B7C92 0%, #2C3948 7%, #232E3B 40%, #3B4B5F 86%, #3B4B5F 92%, #141C25 95%, #2F3E50 97.5%, #101821 100%);
+  background-size: 100% 100%;
+  background-position: top left;
+  background-repeat: no-repeat;
+}
+/* 标题栏底缘那条收边：跟着同一个盒子走，所以永远贴在标题栏下沿。 */
+body[data-ds-dark-theme] [data-pane='sidebar'] [data-window-drag]::after {
+  content: '';
+  position: absolute;
+  left: -12px;
+  right: -12px;
+  bottom: 0;
+  height: 1px;
+  pointer-events: none;
+  background-color: #00000073;
+}
+
+/* A2 · 窗口图标：把壳那枚品牌 svg 换成四色旗（插槽是 display:contents，得先给它盒子）。 */
+/* 这两个插槽身上带内联的 style="display: contents"（内联样式压得住样式表），
+   所以必须 !important 才能把它们变回有盒子的元素 —— 没有盒子就既挂不上背景、
+   绝对定位的替换字也会跑去找别的包含块（实测跑到了视口左上角、垂直居中到 y=500）。 */
+body[data-ds-dark-theme] [data-slot='sidebar.brand.mark'] {
+  display: inline-flex !important;
+  align-items: center;
+  justify-content: center;
+  /* 显式尺寸：下面把 svg 藏掉之后这个盒子就没人撑了，会塌成 0x0、旗子也画不出来。 */
+  width: 20px;
+  height: 16px;
+  background-image: url(assets/xp-start-flag.svg);
+  background-size: 20px 16px;
+  background-position: center;
+  background-repeat: no-repeat;
+}
+body[data-ds-dark-theme] [data-slot='sidebar.brand.mark'] > svg {
+  display: none !important;
+}
+
+/* A3 · 标题栏文字：**走正常流**，不做绝对定位。
+   绝对定位的 ::after 一旦包含块不是这个盒子（插槽在别的壳版本里可能没有盒子），
+   字就会跑到别处去压住别的元素 —— 而且是静默的。放在流里就不可能跑。
+   原文那枚 wordmark svg 直接 display:none（字自己撑宽度，不需要它占位）。 */
+body[data-ds-dark-theme] [data-slot='sidebar.brand.name'] {
+  display: inline-flex !important;
+  align-items: center;
+}
+body[data-ds-dark-theme] [data-slot='sidebar.brand.name'] > svg {
+  display: none !important;
+}
+body[data-ds-dark-theme] [data-slot='sidebar.brand.name']::after {
+  content: 'Win XP';
+  display: block;
+  font-family: var(--windows-xp-font-display);
+  font-size: 15px;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+  line-height: 1;
+  color: #FFFFFF;
+  text-shadow: 0 1px 1px #00225cbf;
+  white-space: nowrap;
+  pointer-events: none;
+}
+
+/* A4 · 标题栏按钮：壳那颗「收起侧边栏」就是 XP 标题栏上那颗小方键。 */
+body[data-ds-dark-theme] [data-dsh-responsive-part='sidebar-toggle'] {
+  border-radius: 3px !important;
+  background-image: linear-gradient(180deg, #ffffff57 0%, #ffffff0a 48%, #00000047 52%, #00000066 100%);
+  box-shadow: inset 0 0 0 1px #ffffff8c, inset 0 1px 0 #ffffffb3, 0 1px 1px #00000059 !important;
+  color: #FFFFFF !important;
+}
+body[data-ds-dark-theme] [data-dsh-responsive-part='sidebar-toggle']:hover {
+  background-image: linear-gradient(180deg, #ffffff9e 0%, #ffffff29 48%, #00000024 52%, #0000003d 100%);
+}
+
+/* A5 · 新会话：XP **工具条/任务窗格**的凸起键（米灰 + 深蓝字 + 蓝图标）。
+   原来做成 Luna 蓝的默认按钮，于是它和上面的 Luna 蓝标题栏是同一块材质、
+   只隔 4px —— 看起来就像两个蓝色块叠在一起（用户报了两轮）。
+   换成米灰凸起键之后材质彻底分开；再往下让 6px，中间是一条看得见的窗口面。 */
+body[data-ds-dark-theme] [data-dsh-part='new-session'] {
+  margin-top: 6px !important;
+  border-radius: 3px !important;
+  border: 1px solid #8C8C8C !important;
+  background-image: linear-gradient(180deg, #FFFFFF 0%, #404040 46%, #2B2B2B 52%, #232323 100%) !important;
+  box-shadow: inset 0 1px 0 #4e4e4ef2 !important;
+  color: #9fbeea !important;
+  font-weight: 700 !important;
+}
+body[data-ds-dark-theme] [data-dsh-part='new-session']:hover {
+  background-image: linear-gradient(180deg, #c5b590 0%, #8a6a208c 52%, #8a6a204d 100%) !important;
+  border-color: #8a6a20f2 !important;
+  color: #E8E8E8 !important;
+}
+body[data-ds-dark-theme] [data-dsh-part='new-session']:active {
+  background-image: linear-gradient(180deg, #232323 0%, #2B2B2B 100%) !important;
+  box-shadow: inset 1px 1px 2px #00000080 !important;
+}
+body[data-ds-dark-theme] [data-dsh-part='new-session'] kbd {
+  color: #9c9c9c !important;
+  border-color: #3f3f3fe6 !important;
+  background-color: #ffffff0f !important;
+}
+
+/* A6 · 侧栏那几条入口（插件 / 任务看板 / …）：XP 工具条上的平按钮，悬停才起琥珀光。 */
+body[data-ds-dark-theme] [data-dsh-part='sidebar-entry'], body[data-ds-dark-theme] [data-slot='sidebar.panellist'] button {
+  border-radius: 3px !important;
+  background-image: none !important;
+  background-color: transparent !important;
+}
+body[data-ds-dark-theme] [data-dsh-part='sidebar-entry']:hover, body[data-ds-dark-theme] [data-slot='sidebar.panellist'] button:hover {
+  background-image: linear-gradient(180deg, #8a6a208c 0%, #8a6a2047 100%) !important;
+  box-shadow: inset 0 0 0 1px #8a6a20bf !important;
+}
+
+/* A7 · 「工作区」分区头：XP 工具条横带（白高光 → face → 底缘 1px）。 */
+/* XP 资源管理器左栏那种「任务窗格标题」：白 → 淡蓝的渐变 + 一圈淡蓝细边 + 深蓝粗体字。
+   侧栏原来那条米灰工具带横带太中性了，换上这条才像 XP 的任务窗格。 */
+body[data-ds-dark-theme] [data-slot='sidebar.workspaces'] > * > *:first-child {
+  border-radius: 3px !important;
+  background-image: linear-gradient(180deg, #1d2127 0%, #203552 100%) !important;
+  box-shadow: inset 0 0 0 1px #2a6fd073, inset 0 1px 0 #ffffff1f !important;
+}
+body[data-ds-dark-theme] [data-slot='sidebar.workspaces'] > * > *:first-child > span:first-child {
+  color: #95b7e8 !important;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+body[data-ds-dark-theme] [data-slot='sidebar.workspaces'] > * > *:first-child button:hover {
+  background-image: linear-gradient(180deg, #8a6a2080 0%, #8a6a203d 100%) !important;
+  color: #E8E8E8 !important;
+}
+
+/* A8 · 工作区列表 = XP 的白色列表框（1px 灰蓝描边 + 上缘凹陷）。 */
+body[data-ds-dark-theme] [data-slot='sidebar.workspaces'] [role='tree'] {
+  background-color: #1c1c1ceb !important;
+  box-shadow: inset 0 0 0 1px #5c5c5cb3, inset 0 1px 2px #00000066 !important;
+  border-radius: 2px !important;
+}
+
+/* A9 · 分组行：XP 列表项。悬停走选中蓝的淡版；展开态加一点底 + 左竖条。 */
+body[data-ds-dark-theme] [data-slot='sidebar.workspaces'] [role='treeitem'][aria-expanded] {
+  border-radius: 2px !important;
+  box-shadow: none !important;
+}
+body[data-ds-dark-theme] [data-slot='sidebar.workspaces'] [role='treeitem'][aria-expanded='false']:hover {
+  background-color: #2a5c9e4d !important;
+  box-shadow: inset 0 0 0 1px #2a5c9e59 !important;
+}
+body[data-ds-dark-theme] [data-slot='sidebar.workspaces'] [role='treeitem'][aria-expanded='true'] {
+  background-color: #2a5c9e38 !important;
+  box-shadow: inset 2px 0 0 #2a6fd0d9 !important;
+}
+body[data-ds-dark-theme] [data-slot='sidebar.workspaces'] [role='treeitem'][aria-expanded='true']:hover {
+  background-color: #2a5c9e57 !important;
+}
+/* 分组名：展开态加粗（XP 树里展开的节点是粗体）。 */
+body[data-ds-dark-theme] [data-slot='sidebar.workspaces'] [role='treeitem'][aria-expanded='true'] > span:nth-child(3) > span {
+  font-weight: 700;
+}
+
+/* A10 · 分组行的图标 = XP 的黄色文件夹（全彩 SVG 当 background-image）。
+   svg 只能 visibility:hidden —— 那个 16px 宽是 svg 撑出来的，藏掉会让标题整列左移。 */
+body[data-ds-dark-theme] [data-slot='sidebar.workspaces'] [role='treeitem'][aria-expanded] > span:first-child {
+  background-image: url(assets/xp-folder.svg) !important;
+  background-size: 16px 16px !important;
+  background-position: center !important;
+  background-repeat: no-repeat !important;
+}
+body[data-ds-dark-theme] [data-slot='sidebar.workspaces'] [role='treeitem'][aria-expanded] > span:first-child > svg {
+  visibility: hidden !important;
+}
+
+/* A11 · 会话行：XP 列表项。选中 = 那块 #316AC5 + 白字（XP 里的选中就是这个）。 */
+body[data-ds-dark-theme] [data-slot='sidebar.workspaces'] [role='treeitem'][aria-selected] {
+  border-radius: 2px !important;
+  box-shadow: none !important;
+  color: #E8E8E8;
+}
+body[data-ds-dark-theme] [data-slot='sidebar.workspaces'] [role='treeitem'][aria-selected='false']:hover {
+  background-color: #2a5c9e4d !important;
+  color: #E8E8E8 !important;
+}
+body[data-ds-dark-theme] [data-slot='sidebar.workspaces'] [role='treeitem'][aria-selected='true'] {
+  background-color: #2A5C9E !important;
+  box-shadow: inset 0 0 0 1px #0E2C55 !important;
+}
+body[data-ds-dark-theme] [data-slot='sidebar.workspaces'] [role='treeitem'][aria-selected='true'] * {
+  color: #FFFFFF !important;
+}
+/* 会话行的空插槽贴小文档图标（XP 的列表每项都有图标）。 */
+body[data-ds-dark-theme] [data-slot='sidebar.workspaces'] [role='treeitem'][aria-selected] > span:first-child {
+  background-image: url(assets/xp-doc.svg) !important;
+  background-size: 15px 15px !important;
+  background-position: center !important;
+  background-repeat: no-repeat !important;
+}
+/* 悬停才出现的那两颗行内按钮：做成 XP 的小方键。 */
+body[data-ds-dark-theme] [data-slot='sidebar.workspaces'] [role='treeitem'] > span:last-child button {
+  border-radius: 2px !important;
+  background-image: none !important;
+  background-color: transparent !important;
+}
+body[data-ds-dark-theme] [data-slot='sidebar.workspaces'] [role='treeitem'] > span:last-child button:hover {
+  background-image: linear-gradient(180deg, #8a6a2099 0%, #8a6a204d 100%) !important;
+  box-shadow: inset 0 0 0 1px #8a6a20cc !important;
+}
+/* 「展开其余 N 个会话」那颗。 */
+body[data-ds-dark-theme] [data-slot='sidebar.workspaces'] [role='tree'] button[aria-expanded] {
+  color: #939393 !important;
+  border-radius: 2px !important;
+}
+body[data-ds-dark-theme] [data-slot='sidebar.workspaces'] [role='tree'] button[aria-expanded]:hover {
+  color: #2A6FD0 !important;
+}
+
+/* A12 · 侧栏底部的用量卡：XP 的凸起面板（客户区 + 上缘白高光 + 1px 描边）。 */
+body[data-ds-dark-theme] [data-dsh-part='foot-card'] {
+  background-color: #1c1c1cf0 !important;
+  border-radius: 3px !important;
+  box-shadow: inset 0 0 0 1px #5c5c5ce6, inset 0 1px 0 #4e4e4ee6, 0 1px 2px #0000002e !important;
+}
+body[data-ds-dark-theme] [data-dsh-part='foot-card-toggle'] {
+  border-radius: 2px !important;
+  background-color: transparent !important;
+}
+body[data-ds-dark-theme] [data-dsh-part='foot-card-toggle']:hover {
+  background-image: linear-gradient(180deg, #8a6a2099 0%, #8a6a204d 100%) !important;
+}
+/* 底部那排图标键（设置 / 更新 / 远程访问）：平按钮 + 琥珀悬停。 */
+body[data-ds-dark-theme] [data-slot='sidebar.settings'] button, body[data-ds-dark-theme] [data-slot='sidebar.footer.action'] button {
+  background-image: none !important;
+  background-color: transparent !important;
+  border-radius: 3px !important;
+}
+body[data-ds-dark-theme] [data-slot='sidebar.settings'] button:hover, body[data-ds-dark-theme] [data-slot='sidebar.footer.action'] button:hover {
+  background-image: linear-gradient(180deg, #8a6a208c 0%, #8a6a2042 100%) !important;
+  color: #E8E8E8 !important;
+}
+
+/* ── B. 输入卡：一台 XP 小窗口（上半是凹陷编辑框，下半是工具条）──────────── */
+
+/* B1 · 输入卡：**一整块同一个颜色**。原来是一台「米灰小窗口 + 里面再套一个白框」，
+   远看就是两种颜色；用户要的是统一 —— 现在整张卡本身就是那个编辑框：
+   客户区底色（浅 #FFFFFF / 暗 #1C1C1C）+ 和别处输入框**同一支描边** + 同样的内凹。
+   侧栏搜索框、表单里的 input 用的也是这一支，于是全 App 的输入框同色同边。 */
+body[data-ds-dark-theme] [data-composer-card] {
+  background-color: #1C1C1C !important;
+  background-image: none !important;
+  border: 1px solid #5C5C5C !important;
+  border-radius: 3px !important;
+  box-shadow: inset 1px 1px 2px #00000073, 0 4px 14px #0000008c !important;
+}
+/* B2 · 原来那个「凹陷白框」的 ::before 撤掉：卡片自己就是框了，再画一层又是两种颜色。
+   输入区与工具条之间只留一条发丝 —— 那是分隔线，不是换色。
+   顺带在这条工具条的**左端**补上 XP 那个「抓手」（两列小点 ⠿，素材 xp-grip{,-dark}.svg）：
+   DOM 里没有这个元素，所以它画在那一行的左内边距里；壳给的内边距只有 8px，
+   而「+」按钮正好就落在 8px 处（实壳量到），5px 的抓手会顶到它的左沿 ——
+   所以先把左内边距放到 16px，再把 5x9 的抓手钉在 5px 处，中间留 5px 气口。
+   纵向写 calc(50% - 2px)：那一行的内边距是 2px 上 / 6px 下，按 50% 居中会低 2px。 */
+body[data-ds-dark-theme] [data-composer-card] > :last-child {
+  box-shadow: inset 0 1px 0 #3f3f3f80 !important;
+  padding-left: 16px !important;
+  background-image: url(assets/xp-grip-dark.svg) !important;
+  background-repeat: no-repeat !important;
+  background-size: 5px 9px !important;
+  background-position: 5px calc(50% - 2px) !important;
+}
+body[data-ds-dark-theme] [data-composer-card]:focus-within {
+  border-color: #2A6FD0 !important;
+  box-shadow: inset 1px 1px 2px #00000073, 0 0 0 2px #2a6fd04d, 0 4px 14px #0000008c !important;
+}
+body[data-ds-dark-theme] [data-composer-input] {
+  color: #E8E8E8 !important;
+  caret-color: #E8E8E8;
+}
+body[data-ds-dark-theme] [data-composer-placeholder] {
+  color: #7A7A7A !important;
+}
+/* 二级/三级文字没有 data 钩子，颜色是从 token 继承来的 —— 在三个「有字的面」上重下
+   这几支即可一次生效。引擎是按「有不透明底的卡片」配的，量出来在列表与正文面上
+   只有 3.2-4.0:1（时间戳、步骤数、文件路径这些小字全落在这一档）。 */
+body[data-ds-dark-theme] [data-composer-card], body[data-ds-dark-theme] [data-slot='sidebar.workspaces'], body[data-ds-dark-theme] [data-conversation-content] {
+  --dsw-alias-label-secondary: #c5c5c5;
+  --dsw-alias-label-caption: #b9b9b9;
+  --dsw-alias-label-tertiary: #b1b1b1;
+  --dsw-alias-label-dimmed: #999999;
+}
+
+/* B3 · 工具栏按钮：XP 工具条上的平按钮，悬停起琥珀光（XP 的按钮热点是黄的，不是蓝的）。 */
+body[data-ds-dark-theme] [data-composer-card] button {
+  border-radius: 3px !important;
+  box-shadow: none !important;
+}
+body[data-ds-dark-theme] [data-composer-card] button[aria-haspopup] {
+  background-image: none !important;
+  background-color: transparent !important;
+  border: 1px solid transparent !important;
+  color: #d1d1d1 !important;
+}
+body[data-ds-dark-theme] [data-composer-card] button[aria-haspopup]:hover {
+  background-image: linear-gradient(180deg, #8a6a208c 0%, #8a6a2042 100%) !important;
+  border-color: #8a6a20cc !important;
+  color: #E8E8E8 !important;
+}
+body[data-ds-dark-theme] [data-composer-card] button[aria-haspopup][aria-expanded='true'] {
+  background-image: linear-gradient(180deg, #8a6a20bf 0%, #8a6a2073 100%) !important;
+  border-color: #8a6a20f2 !important;
+  color: #E8E8E8 !important;
+}
+/* B4 · 发送键 = XP 的蓝色默认按钮。卡里「没有 aria-haspopup」的按钮只有它和权限那颗，
+   所以紧接着用「插槽 + 后代按钮」把权限那颗还原成 chip（同特异性，后写即赢）。 */
+body[data-ds-dark-theme] [data-composer-card] button:not([aria-haspopup]) {
+  border-radius: 3px !important;
+  border: 1px solid #16345E !important;
+  background-image: linear-gradient(180deg, #83abe4 0%, #4883d7 46%, #2A6FD0 52%, #2259a6 100%) !important;
+  box-shadow: inset 0 1px 0 #ffffff99, 0 1px 2px #0000004d !important;
+  color: #FFFFFF !important;
+}
+body[data-ds-dark-theme] [data-composer-card] button:not([aria-haspopup]):hover {
+  background-image: linear-gradient(180deg, #c3d7f2 0%, #72a0e0 46%, #4883d7 52%, #2768c4 100%) !important;
+}
+body[data-ds-dark-theme] [data-composer-card] button:not([aria-haspopup]):disabled {
+  background-image: linear-gradient(180deg, #404040 0%, #232323 100%) !important;
+  border-color: #3F3F3F !important;
+  color: #808080cc !important;
+  box-shadow: inset 0 1px 0 #4e4e4eb3 !important;
+}
+body[data-ds-dark-theme] [data-composer-card] [data-slot='conversation.input.permission'] button {
+  border: 1px solid transparent !important;
+  background-image: none !important;
+  background-color: transparent !important;
+  box-shadow: none !important;
+  color: #c2c2c2 !important;
+  border-radius: 3px !important;
+}
+body[data-ds-dark-theme] [data-composer-card] [data-slot='conversation.input.permission'] button:hover {
+  background-image: linear-gradient(180deg, #8a6a2080 0%, #8a6a203d 100%) !important;
+  border-color: #8a6a20bf !important;
+  color: #E8E8E8 !important;
+}
+/* 输入卡底部那排附件（统计 / 上下文百分比 / 模型 …）由壳的一条 var() 上色：
+   var(--dsh-composer-accessory-bg, var(--dsw-specific-tip, …))，而且是挂在
+   dock 那一层上的 —— 挂在卡片上不继承（dock 与卡片是兄弟，不是后代）。
+   会话里那层纱收薄之后，这排小字直接压在壁纸上只有 3:1，所以两处一起下。 */
+body[data-ds-dark-theme] [data-composer-seat], body[data-ds-dark-theme] [data-composer-card] {
+  --dsh-composer-accessory-bg: #1c1c1ceb;
+  --dsw-specific-tip: #1c1c1ceb;
+}
+
+/* 引用 chip：XP 的标签片。 */
+body[data-ds-dark-theme] [data-dsh-part='composer-chip'] {
+  background-color: #2a6fd042 !important;
+  border: 1px solid #2a6fd073 !important;
+  border-radius: 2px !important;
+  color: #c2d0e3 !important;
+}
+
+/* ── C. 会话区：桌面上的那台窗口 ────────────────────────────────────────── */
+
+/* C1 · 头部工具带：整条 76px 的横带画在中栏列上（hero 与会话两个相位都在），
+   底缘 1px 分隔线烘在渐变里。 */
+body[data-ds-dark-theme] [data-pane='conversation'] {
+  background-image: linear-gradient(180deg, #6B7C92 0%, #2C3948 7%, #232E3B 40%, #3B4B5F 86%, #3B4B5F 92%, #141C25 95%, #2F3E50 97.5%, #101821 100%), linear-gradient(180deg, #333537 0px, #2B2B2B 31px, #3F3F3F 34px, #3F3F3F 36px) !important;
+  background-size: 100% 40px, 100% 36px !important;
+  background-position: top left, left 40px !important;
+  background-repeat: no-repeat, no-repeat !important;
+}
+/* C1b · 标题栏上的字与窗口键：白字 + 深蓝柔光（单层，不做四向描边）。
+   页签（role=tab）不在这一层里 —— 它们坐在下面的米灰工具带上。 */
+body[data-ds-dark-theme] [data-dsh-surface='session-header'] nav, body[data-ds-dark-theme] [data-dsh-surface='session-header'] nav * {
+  color: #FFFFFF !important;
+  text-shadow: 0 1px 1px #00225ccc;
+}
+body[data-ds-dark-theme] [data-dsh-surface='session-header'] nav * {
+  font-weight: 600 !important;
+}
+body[data-ds-dark-theme] [data-dsh-surface='session-header'] button:not([role='tab']) {
+  color: #FFFFFF !important;
+  border-radius: 3px !important;
+  background-image: linear-gradient(180deg, #ffffff4d 0%, #ffffff0d 48%, #00000029 52%, #00000052 100%) !important;
+  box-shadow: inset 0 0 0 1px #ffffff80, inset 0 1px 0 #ffffff99 !important;
+  filter: drop-shadow(0 1px 1px #00225c99);
+}
+body[data-ds-dark-theme] [data-dsh-surface='session-header'] button:not([role='tab']):hover {
+  background-image: linear-gradient(180deg, #ffffff9e 0%, #ffffff38 48%, #0000001a 52%, #00000033 100%) !important;
+}
+body[data-ds-dark-theme] [data-phase='hero'] {
+  background-image: none !important;
+}
+/* 首屏的标题与那几颗建议是直接压在画上的：白天那张的中段是蓝天，纯黑字只有 4.0:1、
+   品牌蓝的 chip 只有 2.3:1。给一层「桌面图标底下那种打光」——柔光，不是面板，
+   画还是画。暗色那张的夜空本来就够暗，不加。 */
+body[data-ds-dark-theme] [data-content-phase='hero'] {
+  background-image: radial-gradient(58% 26% at 50% 40%, #0000008c 0%, #00000042 46%, transparent 78%);
+  background-repeat: no-repeat !important;
+}
+
+/* C2 · 三个标签页 = XP 页签，**只有选中那个是页签**。
+   原来三个都套了一圈 1px 内描边，于是并排三个方框（用户：「还有边框线」）。
+   现在：未选 = 纯文字 + 悬停琥珀光；选中 = 一个凸起的 XP 页签（圆角顶 + 两侧/顶 1px 发丝
+   + 顶上一道品牌色 accent），并且**不带下边框**、向下压 1px 盖住页签条那条基线，
+   和下面的客户区连成一片。
+   宽度靠左右 padding 撑（不再是贴字的 26px），页签之间只留 3px。 */
+body[data-ds-dark-theme] [data-conversation-tabs] {
+  gap: 4px !important;
+  /* 连页签条底下那条基线也去掉 —— 用户点名的就是「还有边框线」。 */
+  box-shadow: none !important;
+  align-items: flex-end !important;
+}
+body[data-ds-dark-theme] [data-conversation-tabs] [role='tab'] {
+  /* 纵向 4px 不能省：壳原来靠它把页签撑到 25px，写成 padding: 0 14px 会让
+     页签塌成一行字的 16px（而 tablist 是内容撑高的，于是整条也跟着缩）。 */
+  padding: 4px 14px !important;
+  min-width: 46px !important;
+  justify-content: center !important;
+  /* 用户点名：页签要**直角**，不要圆角。 */
+  border-radius: 0 !important;
+  background-image: none !important;
+  box-shadow: none !important;
+  position: relative !important;
+  color: #a6a6a6 !important;
+  font-weight: 400 !important;
+}
+body[data-ds-dark-theme] [data-conversation-tabs] [role='tab']:hover {
+  background-image: linear-gradient(180deg, #8a6a2066 0%, #8a6a2029 100%) !important;
+  color: #E8E8E8 !important;
+}
+body[data-ds-dark-theme] [data-conversation-tabs] [role='tab'][aria-selected='true'] {
+  background-image: linear-gradient(180deg, #1c1c1c80 0%, #1c1c1c26 100%) !important;
+  color: #E8E8E8 !important;
+  font-weight: 700 !important;
+}
+/* 选中指示：一条 2px 品牌色底线。用 ::after 画，**不用 box-shadow** ——
+   一来 inset 那条 2px 在实机里落在了下缘（不是设计意图），二来用户要的就是「没有边框线」，
+   显式画一条线比一条 4 段的 inset 好读也好量。 */
+body[data-ds-dark-theme] [data-conversation-tabs] [role='tab'][aria-selected='true']::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 2px;
+  border-radius: 1px;
+  background-color: #2A6FD0;
+  pointer-events: none;
+}
+
+/* C3 · 会话正文：一台压在桌面上的窗口客户区。半透明，让壁纸透上来 ——
+   0.80 时壁纸几乎看不见（用户点名「背景皮肤没有」），收到 0.62/0.72 之后
+   正文仍有 6 以上对比度（见交接里的表）。 */
+body[data-ds-dark-theme] [data-conversation-content]:not([data-content-phase='hero']) {
+  background-color: #1c1c1cc7 !important;
+  box-shadow: inset 1px 0 0 #3f3f3f80, inset -1px 0 0 #3f3f3f80 !important;
+}
+
+/* C4 · 用户那一句 = XP 的信息条（淡蓝底 + 左侧品牌竖条）。 */
+body[data-ds-dark-theme] [data-chat-flow-kind='user'] {
+  background-color: #2a6fd033 !important;
+  border: 1px solid #5c5c5cd9 !important;
+  border-radius: 3px !important;
+  box-shadow: inset 3px 0 0 #2a6fd0d9 !important;
+}
+
+/* C4b · 「正在运行」那一行（实壳钩子是 [data-chat-running]）：
+   它自己不带底，会话里纱一薄就直接压在壁纸上（实测 3.8:1）。
+   给它一层 XP 分组条的窗口面。 */
+body[data-ds-dark-theme] [data-chat-running] {
+  background-color: #2b2b2bcc !important;
+  border-radius: 3px !important;
+  box-shadow: inset 0 0 0 1px #3f3f3f99 !important;
+}
+
+/* C5 · 过程行 / 工具调用 = XP 的分组条：face 底 + 1px 描边。 */
+body[data-ds-dark-theme] [data-chat-flow-kind='tool-call'], body[data-ds-dark-theme] [data-chat-flow-kind='turn-process'], body[data-ds-dark-theme] [data-chat-flow-kind='context'] {
+  background-color: #2b2b2bb8 !important;
+  border: 1px solid #3f3f3fb3 !important;
+  border-radius: 3px !important;
+}
+body[data-ds-dark-theme] [data-chat-flow-kind='assistant-step'] {
+  background-color: transparent !important;
+}
+
+/* C6 · 代码块 / 行内码 = XP 的等宽框。 */
+body[data-ds-dark-theme] [data-conversation-content] pre {
+  border: 1px solid #5c5c5cbf !important;
+  border-radius: 2px !important;
+}
+body[data-ds-dark-theme] [data-conversation-content] code {
+  border-radius: 2px !important;
+}
+
+/* C7 · 统计条 = XP 状态栏；会话尾部 / 交付卡 = XP 面板。 */
+/* 统计条读的是 specific-tip 这支 token，而壳自己那条规则也带 !important ——
+   同特异性同权重时后写的不一定赢（实测没赢），所以把变量本身换掉。 */
+body[data-ds-dark-theme] [data-composer-stats] {
+  /* 壳那条规则读的是**非 alias** 的 --dsw-specific-tip（还套了一层
+     var(--dsh-composer-accessory-bg, ...)），而且它的特异性 (0,3,1) 比
+     皮肤被强制加前缀后的 (0,2,1) 高 —— 硬写 background-color 是打不过的。
+     换变量才是一次到位的做法：三支一起下。 */
+  --dsw-specific-tip: #2b2b2bd1;
+  --dsh-composer-accessory-bg: #2b2b2bd1;
+  --dsw-alias-specific-tip: #2b2b2bd1;
+  background-color: #2b2b2bd1 !important;
+  box-shadow: inset 0 1px 0 #3f3f3fcc !important;
+  border-radius: 3px !important;
+}
+body[data-ds-dark-theme] [data-turn-tail] {
+  border-top: 1px solid #3f3f3f8c !important;
+}
+body[data-ds-dark-theme] [data-presented-file] {
+  background-color: #1c1c1ce6 !important;
+  border: 1px solid #5c5c5ce6 !important;
+  border-radius: 3px !important;
+  box-shadow: inset 3px 0 0 #2a6fd0cc !important;
+}
+/* 消息尾部那排动作图标（复制 / 重试）：平按钮 + 琥珀悬停。 */
+body[data-ds-dark-theme] [data-clock] button {
+  border-radius: 2px !important;
+  background-image: none !important;
+  background-color: transparent !important;
+}
+body[data-ds-dark-theme] [data-clock] button:hover {
+  background-image: linear-gradient(180deg, #8a6a2080 0%, #8a6a203d 100%) !important;
+  color: #E8E8E8 !important;
+}
+
+/* C8 · 会话头部与右栏的按钮：XP 工具条平按钮。 */
+body[data-ds-dark-theme] [data-dsh-surface='session-header'] button, body[data-ds-dark-theme] [data-conversation-header-corner] button {
+  border-radius: 3px !important;
+  background-image: none !important;
+  background-color: transparent !important;
+}
+body[data-ds-dark-theme] [data-dsh-surface='session-header'] button:hover, body[data-ds-dark-theme] [data-conversation-header-corner] button:hover {
+  background-image: linear-gradient(180deg, #8a6a208c 0%, #8a6a2042 100%) !important;
+  box-shadow: inset 0 0 0 1px #8a6a20cc !important;
+  color: #E8E8E8 !important;
+}
+
+/* C9 · 右详情栏：XP 窗口面 + 左缘 1px。 */
+body[data-ds-dark-theme] [data-dsh-surface='details'], body[data-ds-dark-theme] [data-pane='details'], body[data-ds-dark-theme] [data-rightbar-col] {
+  background-color: #2B2B2B !important;
+  box-shadow: inset 1px 0 0 #3f3f3fe6 !important;
+}
+
+/* ── D. 审批 / 提问 / 计划卡：XP 对话框 ─────────────────────────────────── */
+
+body[data-ds-dark-theme] [data-approval-key], body[data-ds-dark-theme] [data-question-key], body[data-ds-dark-theme] [data-plan-review-key] {
+  background-color: #2B2B2B !important;
+  border: 1px solid #8C8C8C !important;
+  border-radius: 6px !important;
+  box-shadow: 0 6px 20px #00000080, inset 0 1px 0 #4e4e4ef2 !important;
+}
+body[data-ds-dark-theme] [data-approval-key] button, body[data-ds-dark-theme] [data-question-key] button, body[data-ds-dark-theme] [data-plan-review-key] button {
+  border-radius: 3px !important;
+  border: 1px solid #8C8C8C !important;
+  background-image: linear-gradient(180deg, #FFFFFF 0%, #404040 46%, #2B2B2B 52%, #232323 100%) !important;
+  box-shadow: inset 0 1px 0 #4e4e4ef2 !important;
+  color: #E8E8E8 !important;
+}
+body[data-ds-dark-theme] [data-approval-key] button:hover, body[data-ds-dark-theme] [data-question-key] button:hover, body[data-ds-dark-theme] [data-plan-review-key] button:hover {
+  background-image: linear-gradient(180deg, #c5b590 0%, #8a6a2080 100%) !important;
+}
+
+/* ── E. 弹出菜单 / 列表 / 提示条 ───────────────────────────────────────── */
+
+body[data-ds-dark-theme] [role='menu'], body[data-ds-dark-theme] [role='listbox'] {
+  background-color: #1C1C1C !important;
+  border: 1px solid #5C5C5C !important;
+  border-radius: 2px !important;
+  box-shadow: 2px 3px 8px #0000008c, inset 0 1px 0 #4e4e4eb3 !important;
+}
+body[data-ds-dark-theme] [role='menuitem'], body[data-ds-dark-theme] [role='option'] {
+  border-radius: 0 !important;
+}
+body[data-ds-dark-theme] [role='menuitem']:hover, body[data-ds-dark-theme] [role='option']:hover, body[data-ds-dark-theme] [role='menuitem'][data-highlighted], body[data-ds-dark-theme] [role='option'][data-highlighted], body[data-ds-dark-theme] [role='menuitem'][aria-selected='true'], body[data-ds-dark-theme] [role='option'][aria-selected='true'] {
+  background-color: #2A5C9E !important;
+  color: #FFFFFF !important;
+}
+/* XP 的提示条是那条极标志性的淡黄底 + 1px 黑边 + 直角。两个主题都保留。 */
+body[data-ds-dark-theme] [role='tooltip'] {
+  background-color: #FFFFE1 !important;
+  color: #000000 !important;
+  border: 1px solid #000000 !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+  font-family: 'Tahoma', 'Segoe UI', 'Microsoft YaHei UI', 'Microsoft YaHei', 'PingFang SC', system-ui, sans-serif !important;
+}
+body[data-ds-dark-theme] [role='tooltip'] kbd, body[data-ds-dark-theme] [role='tooltip'] code {
+  background-color: #E4E4C8 !important;
+  color: #000000 !important;
+  border: 1px solid #00000059 !important;
+  border-radius: 2px !important;
+}
+/* 设置那类模态：加一圈 XP 窗口边，底色不动（里面用的是 token，跟着明暗走）。 */
+body[data-ds-dark-theme] [role='dialog'] {
+  border: 1px solid #8C8C8C !important;
+  border-radius: 6px !important;
+  box-shadow: 0 10px 34px #00000099 !important;
+}
+
+/* ── F. 表单控件 / 滚动条 ───────────────────────────────────────────────── */
+
+/* 输入框：XP 的凹陷白框。 */
+body[data-ds-dark-theme] input[type='text'], body[data-ds-dark-theme] input[type='search'], body[data-ds-dark-theme] input[type='password'], body[data-ds-dark-theme] textarea {
+  border: 1px solid #5C5C5C !important;
+  border-radius: 2px !important;
+  background-color: #1C1C1C !important;
+  color: #E8E8E8 !important;
+  box-shadow: inset 1px 1px 2px #00000073 !important;
+}
+body[data-ds-dark-theme] [data-slot='sidebar.workspaces'] input {
+  background-color: #1C1C1C !important;
+}
+body[data-ds-dark-theme] [data-slot='sidebar.workspaces'] input::placeholder {
+  color: #7A7A7A !important;
+}
+
+/* 滚动条：XP 那条 16px 的槽 + 凸起滑块（左上白高光、右下压深）。 */
+body[data-ds-dark-theme] * {
+  scrollbar-color: #2b2b2bf2 #23232399;
+}
+body[data-ds-dark-theme] ::-webkit-scrollbar {
+  width: 16px;
+  height: 16px;
+}
+body[data-ds-dark-theme] ::-webkit-scrollbar-track {
+  background-color: #383838;
+  box-shadow: inset 1px 0 0 #3f3f3f80;
+}
+body[data-ds-dark-theme] ::-webkit-scrollbar-thumb {
+  background-image: linear-gradient(90deg, #404040 0%, #2B2B2B 45%, #232323 100%);
+  box-shadow: inset 1px 1px 0 #4E4E4E, inset -1px -1px 0 #00000047;
+  border-radius: 0;
+}
+body[data-ds-dark-theme] ::-webkit-scrollbar-thumb:hover {
+  background-image: linear-gradient(90deg, #5a4f35 0%, #483e28 100%);
+}
+body[data-ds-dark-theme] ::-webkit-scrollbar-corner {
+  background-color: #232323;
+}
+/* XP 的滚动条两端有凸起的箭头键。三角画在 SVG 里（只画三角），
+   凹凸由这一层的渐变给 —— 于是明暗各自一份三角、一份按钮，不用出四张彩图。 */
+body[data-ds-dark-theme] ::-webkit-scrollbar-button {
+  display: block;
+  background-image: linear-gradient(90deg, #404040 0%, #2B2B2B 45%, #232323 100%);
+  background-size: 100% 100%;
+  background-repeat: no-repeat;
+  background-position: center;
+  box-shadow: inset 1px 1px 0 #4E4E4E, inset -1px -1px 0 #00000047;
+}
+body[data-ds-dark-theme] ::-webkit-scrollbar-button:vertical:start:decrement {
+  background-image: url(assets/xp-scroll-up-dark.svg), linear-gradient(90deg, #404040 0%, #2B2B2B 45%, #232323 100%);
+  background-size: 12px 12px, 100% 100%;
+  background-position: center, center;
+  background-repeat: no-repeat, no-repeat;
+}
+body[data-ds-dark-theme] ::-webkit-scrollbar-button:vertical:end:increment {
+  background-image: url(assets/xp-scroll-down-dark.svg), linear-gradient(90deg, #404040 0%, #2B2B2B 45%, #232323 100%);
+  background-size: 12px 12px, 100% 100%;
+  background-position: center, center;
+  background-repeat: no-repeat, no-repeat;
+}
+body[data-ds-dark-theme] ::-webkit-scrollbar-button:horizontal:start:decrement {
+  background-image: url(assets/xp-scroll-left-dark.svg), linear-gradient(180deg, #404040 0%, #2B2B2B 45%, #232323 100%);
+  background-size: 12px 12px, 100% 100%;
+  background-position: center, center;
+  background-repeat: no-repeat, no-repeat;
+}
+body[data-ds-dark-theme] ::-webkit-scrollbar-button:horizontal:end:increment {
+  background-image: url(assets/xp-scroll-right-dark.svg), linear-gradient(180deg, #404040 0%, #2B2B2B 45%, #232323 100%);
+  background-size: 12px 12px, 100% 100%;
+  background-position: center, center;
+  background-repeat: no-repeat, no-repeat;
+}
+
+/* ── H. 设置面板：一台 XP 属性页 ───────────────────────────────────────────
+   实壳结构（量具 probe-xp-settings*.mjs）：[role='dialog'] > nav + content，控件**全是 button**
+   而且都带稳定 aria，不用碰哈希类名：
+     导航项 aria-current="true" / 下拉 aria-haspopup="menu" / 主题卡 aria-pressed
+     开关 role="switch" aria-checked / 步进箭头 aria-label
+   这一节的每一处都是量出来的，不是为了好看：插件把「描述行」画在 bg-layer-3 上
+   （浅色 3.3:1），而且它那排**正按钮的字色读的就是 bg-layer-3** —— 于是蓝底上的字
+   和底同色，实测 1.1:1，等于隐形的。 */
+
+/* H1 · 盘面：XP 窗口面 + 1px 深蓝边 + 3px 圆角（原来吃 raised 实色 + 6px 圆角）。
+   盘内重下 token：描述行的底换成客户区，正按钮的字色跟着一起正常。 */
+body[data-ds-dark-theme] [role='dialog'] {
+  background-color: #2B2B2B !important;
+  border: 1px solid #8C8C8C !important;
+  border-radius: 3px !important;
+  box-shadow: 0 10px 34px #0000008c !important;
+  --dsw-alias-bg-layer-3: #1C1C1C;
+  --dsw-alias-label-secondary: #c5c5c5;
+  --dsw-alias-label-caption: #b9b9b9;
+  --dsw-alias-label-tertiary: #b1b1b1;
+  --dsw-alias-label-dimmed: #999999;
+  /* 暗色把这个「正按钮的底」提亮一档：它的字色是 bg-layer-3（近黑），
+     不提亮的话近黑压在中蓝上只有 3.4:1。提亮后 8:1 以上。 */
+  --dsw-alias-button-primary-fill: #95b7e8;
+  /* 盘里那些「品牌色的小字」（推荐 / 打开配置文件的文档 / 滑杆读数）压在窗口面上
+     只有 4.4（浅）/ 3.5（暗）—— 但**不能改 brand 本身**：它同时是白字正按钮的底，
+     提亮会让白字失效。所以只把「品牌色文字」这一支换掉。 */
+  --dsw-alias-brand-text: #6FA8E8;
+  --dsw-alias-label-primary-bluish: #6FA8E8;
+  /* 实测（probe-xp-token2.mjs：在盘上逐个把候选 token 改成洋红看谁变）：
+     插件那排「品牌色小字」读的是 --dsw-alias-brand-primary 本身 —— 推荐 / 滑杆读数
+     都是它。同样不能动全局 brand（它同时是白字正按钮的底），只在这个盘里换掉。 */
+  --dsw-alias-brand-primary: #7FB2EC;
+}
+
+/* H2 · 左导航 = XP 任务窗格：一条右缘分隔线 + 平按钮，选中给品牌左竖条。 */
+body[data-ds-dark-theme] [role='dialog'] nav {
+  box-shadow: inset -1px 0 0 #3f3f3fe6 !important;
+}
+body[data-ds-dark-theme] [role='dialog'] nav button {
+  border: 1px solid transparent !important;
+  border-radius: 2px !important;
+  background-image: none !important;
+  background-color: transparent !important;
+  box-shadow: none !important;
+  color: #a6a6a6 !important;
+  font-weight: 400 !important;
+}
+body[data-ds-dark-theme] [role='dialog'] nav button:hover {
+  background-image: linear-gradient(180deg, #8a6a2073 0%, #8a6a2033 100%) !important;
+  border-color: #8a6a20b3 !important;
+  color: #E8E8E8 !important;
+}
+body[data-ds-dark-theme] [role='dialog'] nav button[aria-current='true'] {
+  background-image: linear-gradient(180deg, #1c1c1c38 0%, #2a6fd04d 100%) !important;
+  border-color: #2a6fd08c !important;
+  box-shadow: inset 2px 0 0 #2A6FD0 !important;
+  color: #E8E8E8 !important;
+  font-weight: 700 !important;
+}
+
+/* H3 · 面板里所有按钮 = XP 凸起键（标签一律用正文色 —— 插件的正按钮标签是隐形的）。
+   这一条放前面，下面四条按 aria 精修，特异性更高、写在后面。 */
+body[data-ds-dark-theme] [role='dialog'] button {
+  border: 1px solid #8C8C8C !important;
+  border-radius: 3px !important;
+  background-image: linear-gradient(180deg, #FFFFFF 0%, #404040 46%, #2B2B2B 52%, #232323 100%) !important;
+  box-shadow: inset 0 1px 0 #4e4e4ef2 !important;
+  color: #E8E8E8 !important;
+}
+body[data-ds-dark-theme] [role='dialog'] button:hover {
+  background-image: linear-gradient(180deg, #c5b590 0%, #8a6a208c 52%, #8a6a204d 100%) !important;
+  border-color: #8a6a20f2 !important;
+}
+body[data-ds-dark-theme] [role='dialog'] button[aria-expanded='true'] {
+  background-image: linear-gradient(180deg, #232323 0%, #2B2B2B 100%) !important;
+  box-shadow: inset 1px 1px 2px #00000080 !important;
+}
+
+/* H4 · 主题卡 = XP 选框卡：未选是客户区 + 深蓝细边，选中加一圈品牌内环。 */
+body[data-ds-dark-theme] [role='dialog'] button[aria-pressed] {
+  border-color: #8c8c8cd9 !important;
+  background-image: linear-gradient(180deg, #1c1c1cf2 0%, #404040e6 100%) !important;
+}
+body[data-ds-dark-theme] [role='dialog'] button[aria-pressed='true'] {
+  background-image: linear-gradient(180deg, #1f3047 0%, #223d64 100%) !important;
+  box-shadow: inset 0 0 0 1px #2A6FD0, inset 0 1px 0 #4e4e4ecc !important;
+  font-weight: 700 !important;
+}
+body[data-ds-dark-theme] [role='dialog'] button[aria-pressed='false']:hover {
+  border-color: #8a6a20e6 !important;
+}
+
+/* H5 · 开关 = XP 的小方钮（直角 + 方头滑块）。 */
+body[data-ds-dark-theme] [role='dialog'] [role='switch'] {
+  border: 1px solid #8C8C8C !important;
+  border-radius: 2px !important;
+  background-image: linear-gradient(180deg, #232323 0%, #2B2B2B 100%) !important;
+  box-shadow: inset 1px 1px 2px #00000080 !important;
+}
+body[data-ds-dark-theme] [role='dialog'] [role='switch'][aria-checked='true'] {
+  background-image: linear-gradient(180deg, #5f93dc 0%, #245eb1 100%) !important;
+  box-shadow: inset 0 1px 0 #ffffff73 !important;
+}
+body[data-ds-dark-theme] [role='dialog'] [role='switch'] > span {
+  border-radius: 1px !important;
+  box-shadow: inset 0 0 0 1px #8c8c8ccc !important;
+}
+
+/* H6 · 右栏（详情栏）那一列：页签做成和「对话 / 轨迹 / 工具统计」同一套（直角 +
+   未选纯文字 + 选中白面 + 2px 品牌底线），图标键走平按钮 + 琥珀悬停。
+   实壳量到：右栏 tablist [714,0,582,38]，tab 100x28 圆角 8px、选中项底色是空的。 */
+/* H6b · 右栏顶上那 38px 就是这台任务窗格的**标题带**（和侧栏「工作区」那条同款：
+   白高光 → face → 底缘 1px）。原来那里只有裸页签、底下也没有分界，右栏读起来不像一台窗格。
+   页签自身的形状不动（直角 + 选中白面 + 2px 品牌底线），只给它一条底。 */
+body[data-ds-dark-theme] [data-dsh-surface='details'] [role='tablist'] {
+  background-image: linear-gradient(180deg, #404040 0%, #2B2B2B 62%, #2B2B2B 100%) !important;
+  box-shadow: inset 0 -1px 0 #3f3f3fe6 !important;
+}
+body[data-ds-dark-theme] [data-dsh-surface='details'] [role='tab'] {
+  border-radius: 0 !important;
+  background-image: none !important;
+  color: #a6a6a6 !important;
+  font-weight: 400 !important;
+  position: relative !important;
+}
+body[data-ds-dark-theme] [data-dsh-surface='details'] [role='tab']:hover {
+  background-image: linear-gradient(180deg, #8a6a2066 0%, #8a6a2029 100%) !important;
+  color: #E8E8E8 !important;
+}
+body[data-ds-dark-theme] [data-dsh-surface='details'] [role='tab'][aria-selected='true'] {
+  background-image: linear-gradient(180deg, #1c1c1c80 0%, #1c1c1c26 100%) !important;
+  color: #E8E8E8 !important;
+  font-weight: 700 !important;
+}
+body[data-ds-dark-theme] [data-dsh-surface='details'] [role='tab'][aria-selected='true']::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 2px;
+  background-color: #2A6FD0;
+  pointer-events: none;
+}
+/* H6 · 右栏那一列页签与图标键：平按钮 + 琥珀悬停（跟侧栏同一套语言）。 */
+body[data-ds-dark-theme] [data-dsh-surface='details'] button, body[data-ds-dark-theme] [data-slot='rightbar'] button {
+  border-radius: 3px !important;
+  background-image: none !important;
+  background-color: transparent !important;
+}
+body[data-ds-dark-theme] [data-dsh-surface='details'] button:hover, body[data-ds-dark-theme] [data-slot='rightbar'] button:hover {
+  background-image: linear-gradient(180deg, #8a6a2080 0%, #8a6a203d 100%) !important;
+  box-shadow: inset 0 0 0 1px #8a6a20bf !important;
+  color: #E8E8E8 !important;
+}
+
+/* ── I. 桌面（窗口边框）──────────────────────────────────────────────────── */
+
+/* I1 · 首屏左上那两颗「桌面图标」（工作区 / 会话）**按用户要求去掉了** ——
+   空会话那一页现在就是一张干净的桌面，只留中栏那层柔光给标题让路。
+   素材 xp-desktop-{folder,doc}.svg 还留在 _assets/ 里（构建会照旧拷进 dist），
+   要还原就把下面这段加回来（几何照旧：84x62 一颗、第二颗 +74px）：
+
+   [data-content-phase='hero']::before {
+     content: ''; position: absolute; left: 20px; top: 16px;
+     width: 84px; height: 140px; pointer-events: none;
+     background-image: url(assets/xp-desktop-folder.svg), url(assets/xp-desktop-doc.svg);
+     background-size: 84px 62px, 84px 62px;
+     background-position: 0 0, 0 74px; background-repeat: no-repeat, no-repeat;
+   } */
+
+/* I2 · 列的拖拽手柄 = XP 的**窗口边框**：平时看不见，鼠标抓上去才亮起一条 Luna 蓝
+   （XP 里拖窗口就是抓边框）。手柄本身 8px 宽，线画在正中 3px。 */
+body[data-ds-dark-theme] [data-dsh-part='resize-handle'] {
+  z-index: 40;
+}
+body[data-ds-dark-theme] [data-dsh-part='resize-handle']:hover {
+  background-image: linear-gradient(90deg, transparent 0 2px, #2A6FD0 2px 5px, transparent 5px) !important;
+  background-repeat: no-repeat !important;
+  background-size: 8px 100% !important;
+}
+
+/* ── G. 任务栏：视口最底 24px ─────────────────────────────────────────────
+   注意 [data-dsh-frame] 的高度**随「有没有 backgroundMedia」变**：
+   不挂背景的皮实测是 100vh-26px（底下有一条空带），挂了 backgroundMedia 就是 100vh。
+   所以不能靠「底下那条空带」，改成自己给 frame 留位（padding-bottom）+ 任务栏
+   position: fixed; bottom: 0。纯装饰：pointer-events: none，绝不吃点击。 */
+/* 任务栏占了视口最底 24px，而真壳的 frame 就是 100vh —— 不给它留位，
+   侧栏最底下那排按钮（设置 / 检查更新 / 远程访问）会被压掉一截。
+   给 frame 补一条 padding-bottom：整台窗口连侧栏带中栏一起让位。 */
+/* 必须连 box-sizing 一起钉住：真壳这个 frame 是 content-box + height:100%，
+   只加 padding-bottom 不会把内容压小，反而把盒子撑到 100vh+24px（实测 828 的视口
+   量出 852 的 frame），children 还是 100% 高 —— 等于什么都没让。 */
+body[data-ds-dark-theme] [data-dsh-frame] {
+  box-sizing: border-box !important;
+  padding-bottom: 24px !important;
+}
+body[data-ds-dark-theme] [data-dsh-frame]::after {
+  content: '';
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 24px;
+  pointer-events: none;
+  background-image:
+    url(assets/xp-taskbar-start.svg),
+    url(assets/xp-start-flag.svg),
+    linear-gradient(90deg, transparent 0 71px, #123A0E 71px 72px, transparent 72px),
+    linear-gradient(90deg, #ffffff38 0 1px, transparent 1px),
+    linear-gradient(90deg, transparent 0 2px, #ffffff29 2px 72px, transparent 72px),
+    linear-gradient(180deg, #7CC35B 0%, #4C9C32 44%, #3E8A27 50%, #2E7019 100%),
+    /* 「任务按钮」：XP 的任务栏中间那颗「正在运行的窗口」。这里放本应用自己那一个
+       （四色旗 + 蓝键），中间那块空白因此不像一张没用的蓝纸。
+       **标题不在任何一层里** —— R3 曾把写死文字的 assets/xp-taskbar-task.svg 换成
+       hooks 塞进来的活字（会话名 + 钟），R4 又把 hooks 退掉了（见 §4.6 第 31 条）。
+       现在这颗按钮就是一颗空键，下面 G2 那两条规则也没有对应的节点。 */
+    url(assets/xp-start-flag.svg),
+    linear-gradient(180deg, #6FA8F0 0%, #3F7AD8 45%, #2E62C4 55%, #1D4A9C 100%),
+    /* 托盘那两颗小图标要排在那块凹槽**之前** —— 层序里第一条在最上面，
+       排在后面就会被凹槽盖掉（这一版第一遍就是这么写的，量出来只剩凹槽色）。 */
+    radial-gradient(circle at 50% 50%, #7FD46F 0 45%, #2F7B22 46% 100%),
+    radial-gradient(circle at 50% 50%, #8FC7FF 0 45%, #1E5EC8 46% 100%),
+    linear-gradient(90deg, #00000073 0 1px, transparent 1px),
+    linear-gradient(180deg, #00000052 0%, #0000001f 100%),
+    linear-gradient(180deg, #0B0B0B 0%, #333333 6%, #1B1B1B 10%, #1B1B1B 86%, #050505 94%, #242424 100%);
+  background-size: 46px 16px, 17px 14px, 72px 100%, 72px 100%, 72px 100%, 72px 100%, 17px 14px, 148px 18px, 9px 9px, 9px 9px, 1px 100%, 88px 18px, 100% 100%;
+  background-position: 32px center, 13px center, left center, left center, left center, left center, 116px center, 104px center, right 72px center, right 58px center, right 96px center, right 4px center, left center;
+  background-repeat: no-repeat, no-repeat, no-repeat, no-repeat, no-repeat, no-repeat, no-repeat, no-repeat, no-repeat, no-repeat, no-repeat, no-repeat, no-repeat;
+  box-shadow: inset 0 1px 0 #ffffff24;
+}
+
+/* G2 · 任务栏上那两个「活字」的样式：① [data-xp-tasklabel] = 会话名；② [data-xp-clock] = HH:MM。
+   **现在没有节点用它们** —— R4 把 hooks 退掉了（§4.6 第 31 条），所以这两条规则是空转的，
+   留着是为了「想启用时只要把 _xp-hooks.mjs 挪回去 + 加一行 hooksEntry」。
+   它们本来挂在皮肤中心的装饰层 ctx.layers.bottom（position:fixed 贴底、pointer-events:none）里 ——
+   只画上去、不吃点击。要启用时必须按内置皮装（scripts/install-xp-builtin.mjs）+ 重启 App。
+   几何对齐 ::after 那几层：任务按钮的蓝键是 104..252 / 高 18（竖着落在 3..21），旗在 116..133，
+   所以标题从 140 起、最多 104px（超了省略号）；钟钉在右端 8px 处。 */
+body[data-ds-dark-theme] [data-dsh-skin-layer='bottom'] [data-xp-live] {
+  position: fixed !important;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 24px;
+  pointer-events: none;
+}
+body[data-ds-dark-theme] [data-xp-tasklabel] {
+  position: absolute;
+  left: 140px;
+  top: 3px;
+  max-width: 104px;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  font: 400 10.5px/18px 'Tahoma', 'Segoe UI', 'Microsoft YaHei UI', 'Microsoft YaHei', 'PingFang SC', system-ui, sans-serif;
+  color: #FFFFFF !important;
+  text-shadow: 0.5px 1px 0 #0a2a5499;
+}
+body[data-ds-dark-theme] [data-xp-clock] {
+  position: absolute;
+  right: 8px;
+  top: 3px;
+  font: 400 11px/18px 'Tahoma', 'Segoe UI', 'Microsoft YaHei UI', 'Microsoft YaHei', 'PingFang SC', system-ui, sans-serif;
+  color: #FFFFFF !important;
+  text-shadow: 0.5px 1px 0 #0a2a5499;
+  font-variant-numeric: tabular-nums;
+}
+
