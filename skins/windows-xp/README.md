@@ -3,9 +3,11 @@
 English | [中文](README.zh.md)
 
 A **dual-theme** dsh skin that disassembles the shell into a Windows XP machine: the
-sidebar is one XP window (a Luna title bar over a task pane), the conversation column is
-a second one sitting on the desktop, the composer is a small XP window with an inset
-edit box and a toolbar, and the bottom 24 px of the viewport is drawn as the taskbar.
+application's own window bar is the top 40 px (the 应用 / 编辑 menu on the left, the system
+minimise / restore / close keys on the right), the sidebar is one XP window whose top row
+is a task pane header band, the conversation column's header is a single 76 px tool band,
+the composer is a small XP window with an inset edit box and a toolbar, and the bottom
+24 px of the viewport is drawn as the taskbar.
 
 The two themes are **not** a light/dark twin of one palette. They are the two real
 Windows XP visual styles, and each is anchored to one of the author's own photographs:
@@ -24,7 +26,7 @@ There are no constants shared between the two groups.
 ## What it is
 
 - **Pure assets**: `skin.json` (v2 manifest) + `skin.css` (full `--dsw-alias-*` token
-  remap) + `patches.css` (L3 free selectors) + 19 hand-authored SVGs and the two
+  remap) + `patches.css` (L3 free selectors) + 17 hand-authored SVGs and the two
   wallpapers. No package.json, no build step, **no hooks** — nothing in this skin
   executes.
 - **A photographic background** (`backgroundMedia.type = "image"`, one WebP per theme)
@@ -39,13 +41,16 @@ There are no constants shared between the two groups.
 
 | XP element | where it lands | how |
 | --- | --- | --- |
-| Luna title bar | sidebar, top 62 px | eight-stop vertical gradient: top highlight, body, a second highlight at the bottom edge, dark closing line |
+| window title bar | top 40 px of the viewport (`[data-dsh-frame]::before`) | eight-stop Luna gradient (graphite blue in dark) with a dark bottom hairline. This strip **is** the application's real caption — the OS window keys are drawn at its right end |
+| 应用 / 编辑 menu | `body > div[data-windows-menu]` (injected by the desktop preload, inside a shadow root) | a shadow root only lets a stylesheet reach **inherited** tokens, so the skin re-declares those few on the host element: white labels, translucent white hover |
+| system window keys | Electron `titleBarOverlay` (not reachable from CSS) | the preload measures a probe span's `--dsw-specific-sidebar-fill` and `--dsw-alias-label-primary` and forwards them to `setTitleBarOverlay()`; the skin sets those two tokens **on that span** — transparent fill, white symbols — so the keys land on the blue bar |
 | four-colour window icon | left of the brand row | inline SVG as a background-image |
-| title bar buttons | the shell's own sidebar toggle | translucent white highlight plus a 1px outline |
+| sidebar task pane header | the sidebar's top row (`logoRow`) | white highlight fading into pale blue, a white hairline on top and a brand-blue one below; 「Win XP」 is dark blue bold (9.5:1 light / 6.9:1 dark) |
+| sidebar toggle | the shell's own toggle | a uniform light key with a dark blue glyph (inverted in dark). It has two landing spots a stylesheet cannot tell apart — the sidebar's task pane header in the browser, the caption's top-left corner on the desktop — so one style has to read on both |
 | task pane | lower half of the sidebar | face-coloured band over a white list box with a 1px inset blue-grey outline |
 | yellow folder / white document icons | workspace group rows / session rows | full-colour SVGs as background-images; the shell's own glyph is hidden with `visibility`, not `display`, so the 16 px slot does not move |
 | XP selection blue | selected session row | `#316AC5` fill, white label, 1px dark blue inner edge |
-| menu / tool band | conversation header, 76 px | 40 px Luna title bar over a 36 px tool band, the 1px separator baked into the gradient |
+| menu / tool band | conversation header, 76 px | one beige tool band (the title row plus the tab row), the 1 px bottom separator baked into the gradient |
 | XP tabs | 对话 / 轨迹 / 工具统计 | square; unselected is plain text, selected is a white face with a 2 px brand underline |
 | inset edit box | the whole composer card | client-area fill with the same `#7F9DB9` border the shell's own inputs get, so every input in the app matches |
 | toolbar grip | left end of the composer toolbar | a 5x9 two-column dot glyph drawn into the row's left padding |
@@ -54,7 +59,7 @@ There are no constants shared between the two groups.
 | pale yellow tooltip | `role="tooltip"` | `#FFFFE1` fill, 1px black outline, square corners — kept in both themes |
 | 16 px scrollbar | everywhere | raised track and thumb with the two arrow keys at each end |
 | task pane header band | top 38 px of the right rail | the same white-to-face band the sidebar's task pane header uses |
-| taskbar | bottom 24 px of the viewport | the frame reserves the space with `padding-bottom`; the bar itself is a stack of 13 background layers on `::after`: start key, flag, task button, tray groove and two tray icons |
+| taskbar | bottom 24 px of the viewport | the frame reserves the space with `padding-bottom`; the bar itself is a stack of 14 background layers on `::after`: start key, twelve layers of task button and tray, and the bar gradient. The task button is flag → caption → blue key, in that order |
 | window frame | dragging a column divider | hovering the resize handle lights a 3 px Luna blue line, the way XP shows a window edge |
 
 The three atmosphere layers (`pane` / `sidebar` / `hero`) are all `none`: the wallpaper
@@ -62,14 +67,18 @@ is the whole picture and the only darkening is the declared `scrim`.
 
 ## Measured in the real shell
 
-At 1296x828, on the desktop condition (`html[data-windows-titlebar]`):
+At 1296x828, on the desktop condition — `html[data-windows-titlebar]` **and**
+`--dsh-windows-titlebar-height: 40px` (the preload sets both; with the attribute alone
+`padding-top: var(…)` is invalid at computed-value time, so every column measures at y = 0
+and the caption has no height):
 
 | item | value |
 | --- | --- |
-| sidebar | `0,0,280,804` (viewport minus the 24 px taskbar), title bar 62 px |
-| conversation header | `0..40` Luna gradient, `40..76` tool band with a 1px bottom separator |
+| window caption | `0,0,1296,40`, the skin's Luna gradient and a `rgba(0,0,0,.3)` bottom hairline; the preload's probe span resolves to `rgba(0,0,0,0)` fill + `rgb(255,255,255)` symbol |
+| sidebar | `0,40,280,764` (viewport minus the 40 px caption and the 24 px taskbar); its top 40 px is the task pane header band |
+| conversation header | `40..116` one 76 px tool band with a 1 px bottom separator; the caption above it is the window bar |
 | composer card | `928x116` on the empty session, `928x100` inside one; flat client fill, `#7F9DB9` outline, inset |
-| taskbar | start key `0..72` (green key `0..71`, a 1 px dark green divider at `71..72`, flag `13..30`, the two glyphs `32..56`), task button `104..252`, tray from `right 96px` |
+| taskbar | start key `0..72` (green key `0..71`, a 1 px dark green divider at `71..72`, flag `13..30`, the two glyphs `32..56`), task button `104..252` (flag `116..133`, caption `138..248`), tray from `right 96px` |
 | composer toolbar | row `710x42`, `padding: 2px 8px 6px` raised to a 16 px left padding so the grip sits at 5 px and the "+" button keeps a 5 px gap |
 | right rail band | tablist `714,0,582,38`; `#F6F5ED` to `#ECE9D8` with a `#ACA899` separator at 37.7 px |
 | settings panel | `802x782`, left nav 188 px wide |
@@ -98,13 +107,15 @@ figure is a plugin's own hard-coded orange, not this skin's.
 
 ## Limitations
 
-- The two labels baked into the taskbar (the start key's 「开始」 and the task button's
-  caption) are fixed-size SVGs. CSS cannot draw text, so on an English UI they still
-  read as the Chinese strings, and the caption is a static application name rather than
-  the live session title. Making them live would need hooks, which this skin
-  deliberately does not declare.
-- The window minimise/maximise/close triple is not drawn: the conversation header only
-  owns one or two real shell buttons, and three fake ones would lie about what they do.
+- The labels the skin draws are **fixed-size SVGs** (the start key's 「开始」 and the task
+  button's caption). CSS cannot draw text, so on an English UI the start key still reads
+  in Chinese, and the task button always shows the application name rather than the live
+  session title. Making them live would need hooks, which this skin deliberately does not
+  declare.
+- The minimise / restore / close keys in the caption are **Electron's own
+  `titleBarOverlay`**, not skin art: the skin can only make the overlay transparent and
+  its symbols white so they sit on the blue bar. In the browser the caption strip is
+  absent (`content: none`, height 0), so neither the menu nor those keys exist there.
 
 ## Install
 
@@ -114,7 +125,7 @@ center. Both themes are declared, so the system theme switch works without a rel
 ## Licence and provenance
 
 The engineering of this skin (`skin.css`, `patches.css` and their entire token and
-geometry system) and the 19 SVGs are the author's own work, released under
+geometry system) and the 17 SVGs are the author's own work, released under
 **CC BY-NC-SA 4.0**.
 
 The two wallpapers are **the author's own photographs** — the day frame, and the night

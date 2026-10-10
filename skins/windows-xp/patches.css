@@ -253,14 +253,43 @@ body[data-ds-dark-theme] * {
   background-color: transparent !important;
   background-image: none !important;
 }
-/* **::before 不能一起弄透明**：真壳在桌面端把「原生菜单栏（应用 / 编辑 …）那条横带」
-   的底画在它身上（网页版里它 content:none、高度 0，所以看不出来）。一起清掉，
-   菜单字就直接压在壁纸上 —— 用户报「最顶部应用/编辑那个条也变透明了」。
-   改回 XP 的菜单条：窗口面 + 下缘一条发丝。高度由壳给，不写死。 */
+/* **::before 不能一起弄透明**：桌面端这条 40px 横带就是**本应用那台窗口的标题栏** ——
+   壳在 [data-windows-titlebar] .frame::before 上给它 height: var(--dsh-windows-titlebar-height)
+   （桌面端 preload 钉成 40px）与 -webkit-app-region: drag，Electron 那三个窗口键就画在它右端。
+   原来这里画的是 XP 的菜单条（米灰 + 下缘发丝），蓝色窗口条挂在会话列顶上；
+   用户要求对调：**这一条就是那条 Luna 蓝窗口条，右上角正好对上最小化 / 还原 / 关闭**。
+   高度由壳给，不写死。下缘那条深色收边和侧栏标题栏（A1b）同款 —— 它同时是
+   「标题栏结束、下面两台窗口的横带开始」的那条分界。 */
 [data-dsh-frame]::before {
-  background-color: #ECE9D8 !important;
-  background-image: linear-gradient(180deg, #f6f5ed 0%, #ECE9D8 100%) !important;
-  box-shadow: inset 0 -1px 0 #aca899e6;
+  background-color: #0050EE !important;
+  background-image: linear-gradient(180deg, #0997FF 0%, #0053EE 7%, #0050EE 40%, #0066FF 86%, #0066FF 92%, #003DD7 95%, #0055FB 97.5%, #0831D9 100%) !important;
+  box-shadow: inset 0 -1px 0 #0000004d;
+}
+/* V0b · 顶栏上那两个字「应用 / 编辑」：桌面端 preload 注入的一颗 div[data-windows-menu]，
+   挂在 body 上、开着一个影子根（网页端没有这个节点）。影子根里的按钮只读几支**继承下来的**
+   token，所以在宿主这一层重下就够了 —— 影子外面任何东西都读不到这几支。
+   标题栏上的字是白的（XP 的窗口标题就是白字），悬停给一层半透明白，
+   和左边那颗「收起侧栏」的方键（A4）同一套语言。 */
+[data-windows-menu] {
+  --dsw-alias-label-secondary: #FFFFFF;
+  --dsw-alias-label-primary: #FFFFFF;
+  --dsw-alias-interactive-bg-hover: #ffffff38;
+  --dsw-alias-state-business-primary: #FFFFFF;
+}
+/* V0c · 右上角那三个系统窗口键（最小化 / 还原 / 关闭）是 Electron 的 titleBarOverlay 画的，
+   样式表碰不到它们。但桌面端 preload 会往 body 里塞一个 span，用它的
+     background-color: var(--dsw-specific-sidebar-fill)
+     color:            var(--dsw-alias-label-primary)
+   量出两个颜色再经 IPC 交给主进程 setTitleBarOverlay()。于是把这两支 token 下到
+   **那个 span 自己**身上（认它的内联样式）就够了：
+     · 底全透明 → 我们这条 Luna 蓝从它底下透出来，三个键正好落在蓝条上
+       （这是 Electron 官方支持的做法，欢迎窗口自己就是 '#00000000'）；
+     · 符号色转白 → XP 标题栏上的窗口键本来就是白的（蓝底上 5.6:1，暗色石墨蓝上 4.7:1）。
+   它失配时（比如 preload 换了量法）只是退回「右上角一条米灰空槽」，不会坏别的东西。
+   注意**只下给那个 span**：全局改 --dsw-alias-label-primary 会让弹出的对话框上白字压白底。 */
+span[style*='dsw-specific-sidebar-fill'] {
+  --dsw-specific-sidebar-fill: #00000000;
+  --dsw-alias-label-primary: #FFFFFF;
 }
 
 /* ── V. 变量：把引擎那几支 --sk-* 换成 XP 的值 ───────────────────────────── */
@@ -347,30 +376,34 @@ a:hover {
    不限定的话中栏顶上也会被刷成一片 Luna 蓝，压在那里的会话名/图标就不好读了。 */
 [data-pane='sidebar'] [data-window-drag] {
   position: relative;
+  /* 壳给 logoRow 带了 overflow: hidden，会把下面那条 ::before **剪在 logoRow 的盒子里** ——
+     于是「left/right: -12px」从来没生效过：标题栏被缩到 x12..268（左右各留 12px 的窗口面），
+     上缘也到不了侧栏顶端，桌面端那条 40px 顶栏下面就露着一条 6px 的米灰缝
+     （以前顶栏是米灰的，看不出来；现在顶栏是 Luna 蓝，这条缝就是一道亮线）。
+     放开它，::before 才能铺满整条侧栏；外沿由 [data-pane='sidebar'] 自己的 overflow: hidden 兜住，
+     既不会溢进上面那条窗口标题栏，也不会横向溢到中栏。 */
+  overflow: visible !important;
 }
 [data-pane='sidebar'] [data-window-drag]::before {
   content: '';
   position: absolute;
+  /* -6：.root 的 padding-top 是 6px，所以这条正好从侧栏顶端开始（桌面端才看得到那 6px，
+     网页端它落在 .frame 之外、被裁掉）。前提是上面那条 overflow: visible —— 壳默认
+     overflow: hidden 会把它剪在 logoRow 盒子里，那样这 -6 是白写的。 */
   top: -6px;
   bottom: 0;
   left: -12px;
   right: -12px;
   pointer-events: none;
-  background-image: linear-gradient(180deg, #0997FF 0%, #0053EE 7%, #0050EE 40%, #0066FF 86%, #0066FF 92%, #003DD7 95%, #0055FB 97.5%, #0831D9 100%);
+  background-image: linear-gradient(180deg, #fafcfe 0%, #ccddf9 100%);
   background-size: 100% 100%;
   background-position: top left;
   background-repeat: no-repeat;
-}
-/* 标题栏底缘那条收边：跟着同一个盒子走，所以永远贴在标题栏下沿。 */
-[data-pane='sidebar'] [data-window-drag]::after {
-  content: '';
-  position: absolute;
-  left: -12px;
-  right: -12px;
-  bottom: 0;
-  height: 1px;
-  pointer-events: none;
-  background-color: #0000004d;
+  /* 上下两条收边：上缘一道白高光（XP 任务窗格的壳），下缘一条淡蓝发丝，
+     把这条标题带和下面的米灰窗口面分开。原来那圈「深色收边」是配蓝标题栏的，
+     挪到淡蓝底上会像一道脏边。 */
+  box-shadow: inset 0 1px 0 #ffffffd9,
+    inset 0 -1px 0 #0054e373;
 }
 
 /* A2 · 窗口图标：把壳那枚品牌 svg 换成四色旗（插槽是 display:contents，得先给它盒子）。 */
@@ -393,10 +426,12 @@ a:hover {
   display: none !important;
 }
 
-/* A3 · 标题栏文字：**走正常流**，不做绝对定位。
+/* A3 · 标题窗格上的字「Win XP」：**走正常流**，不做绝对定位。
    绝对定位的 ::after 一旦包含块不是这个盒子（插槽在别的壳版本里可能没有盒子），
    字就会跑到别处去压住别的元素 —— 而且是静默的。放在流里就不可能跑。
-   原文那枚 wordmark svg 直接 display:none（字自己撑宽度，不需要它占位）。 */
+   原文那枚 wordmark svg 直接 display:none（字自己撑宽度，不需要它占位）。
+   R6b：底从 Luna 蓝换成淡蓝任务窗格标题，字跟着从白字转**深蓝**（和「工作区」那条同色），
+   描边从深蓝柔光换成一层白下缘的高光 —— 淡蓝底上白字只有 1.4:1，等于没有。 */
 [data-slot='sidebar.brand.name'] {
   display: inline-flex !important;
   align-items: center;
@@ -412,18 +447,28 @@ a:hover {
   font-weight: 700;
   letter-spacing: 0.01em;
   line-height: 1;
-  color: #FFFFFF;
-  text-shadow: 0 1px 1px #00225cbf;
+  color: #003C74;
+  text-shadow: 0 1px 0 #ffffffb3;
   white-space: nowrap;
   pointer-events: none;
 }
 
-/* A4 · 标题栏按钮：壳那颗「收起侧边栏」就是 XP 标题栏上那颗小方键。 */
+/* A4 · 那颗「收起侧边栏」的方键。它有两种落点，样式表分不出来（同一个 DOM 节点）：
+   · 网页端 —— 留在 logoRow 右端，坐在淡蓝任务窗格标题上；
+   · 桌面端 —— 壳把它 position: fixed 到窗口标题栏左上角（x12 / y6），坐在 Luna 蓝上。
+   所以键本身做成「半透明白方键 + 深蓝图标」：白键在蓝底上是一块亮起的小方块（图标 4.7:1），
+   在白键上也是同一个深蓝图标（5.6:1）—— 两种底都读得清。原来图标是白的，压在
+   半透明白键上只有 1.5:1（两种底都不合格，只是以前没人盯着那颗键看）。 */
 [data-dsh-responsive-part='sidebar-toggle'] {
   border-radius: 3px !important;
-  background-image: linear-gradient(180deg, #ffffff80 0%, #ffffff0a 48%, #0000001f 52%, #00000033 100%);
-  box-shadow: inset 0 0 0 1px #ffffff8c, inset 0 1px 0 #ffffffb3, 0 1px 1px #00000059 !important;
-  color: #FFFFFF !important;
+  /* 键面**不能**用 XP 那种「上亮下暗」的立体键：图标是居中的，下半截落在暗色那半边，
+     深蓝图标压上去只剩 1.3:1（量过：那半个图标等于没有）。所以这里是一个**均匀的浅键**
+     ——亮面在上、到下面只淡一点，深蓝图标整颗都压在同一档上（5.2:1）。
+     暗色反过来：深键 + 亮图标（7.8:1）。描边用品牌蓝，浅色底（网页端的淡蓝任务窗格带）
+     上也能看出这颗键的边。 */
+  background-image: linear-gradient(180deg, #ffffff94 0%, #ffffff4d 100%);
+  box-shadow: inset 0 0 0 1px #0054e36b, 0 1px 1px #00000047 !important;
+  color: #003C74 !important;
 }
 [data-dsh-responsive-part='sidebar-toggle']:hover {
   background-image: linear-gradient(180deg, #ffffff9e 0%, #ffffff29 48%, #00000024 52%, #0000003d 100%);
@@ -713,32 +758,26 @@ a:hover {
 
 /* ── C. 会话区：桌面上的那台窗口 ────────────────────────────────────────── */
 
-/* C1 · 头部工具带：整条 76px 的横带画在中栏列上（hero 与会话两个相位都在），
-   底缘 1px 分隔线烘在渐变里。 */
+/* C1 · 会话头部：整条 76px 的横带画在中栏列上（hero 与会话两个相位都在），
+   整条都是米灰工具带，底缘 1px 分隔线烘在渐变里 —— 蓝的那 40px 已经挪到最顶上那条
+   [data-dsh-frame]::before（真正的窗口标题栏）。 */
 [data-pane='conversation'] {
-  background-image: linear-gradient(180deg, #0997FF 0%, #0053EE 7%, #0050EE 40%, #0066FF 86%, #0066FF 92%, #003DD7 95%, #0055FB 97.5%, #0831D9 100%), linear-gradient(180deg, #f0ede0 0px, #ECE9D8 31px, #ACA899 34px, #ACA899 36px) !important;
-  background-size: 100% 40px, 100% 36px !important;
-  background-position: top left, left 40px !important;
-  background-repeat: no-repeat, no-repeat !important;
+  background-image: linear-gradient(180deg, #f0ede0 0px, #ECE9D8 71px, #ACA899 74px, #ACA899 76px) !important;
+  background-size: 100% 76px !important;
+  background-position: top left !important;
+  background-repeat: no-repeat !important;
 }
-/* C1b · 标题栏上的字与窗口键：白字 + 深蓝柔光（单层，不做四向描边）。
-   页签（role=tab）不在这一层里 —— 它们坐在下面的米灰工具带上。 */
+/* C1b · 标题行那排字：原来压在 Luna 蓝上所以是白字 + 深蓝柔光；蓝底撤掉之后
+   白字直接落在 #ECE9D8 上（暗色落在 #2B2B2B 上，浅色那边几乎 1:1，等于看不见），
+   所以整排回到正文色 —— 浅色纯黑 / 暗色 #E8E8E8，都是 10:1 以上。
+   原来那条「标题栏上的玻璃键」也一起删了：右上角那几颗（会话日志 / 更多）现在走
+   C8 的 XP 平按钮 + 琥珀悬停，和工具带里别的键一致。 */
 [data-dsh-surface='session-header'] nav, [data-dsh-surface='session-header'] nav * {
-  color: #FFFFFF !important;
-  text-shadow: 0 1px 1px #00225ccc;
+  color: #000000 !important;
+  text-shadow: none !important;
 }
 [data-dsh-surface='session-header'] nav * {
   font-weight: 600 !important;
-}
-[data-dsh-surface='session-header'] button:not([role='tab']) {
-  color: #FFFFFF !important;
-  border-radius: 3px !important;
-  background-image: linear-gradient(180deg, #ffffff6b 0%, #ffffff0d 48%, #00000029 52%, #0000002e 100%) !important;
-  box-shadow: inset 0 0 0 1px #ffffff80, inset 0 1px 0 #ffffff99 !important;
-  filter: drop-shadow(0 1px 1px #00225c99);
-}
-[data-dsh-surface='session-header'] button:not([role='tab']):hover {
-  background-image: linear-gradient(180deg, #ffffff9e 0%, #ffffff38 48%, #0000001a 52%, #00000033 100%) !important;
 }
 [data-phase='hero'] {
   background-image: none !important;
@@ -1242,12 +1281,16 @@ input[type='text'], input[type='search'], input[type='password'], textarea {
     linear-gradient(90deg, #ffffff38 0 1px, transparent 1px),
     linear-gradient(90deg, transparent 0 2px, #ffffff29 2px 72px, transparent 72px),
     linear-gradient(180deg, #8FD470 0%, #5FB83E 44%, #4CA72F 50%, #3B8A23 100%),
-    /* 「任务按钮」：XP 的任务栏中间那颗「正在运行的窗口」。这里放本应用自己那一个
-       （四色旗 + 蓝键），中间那块空白因此不像一张没用的蓝纸。
-       **标题不在任何一层里** —— R3 曾把写死文字的 assets/xp-taskbar-task.svg 换成
-       hooks 塞进来的活字（会话名 + 钟），R4 又把 hooks 退掉了（见 §4.6 第 31 条）。
-       现在这颗按钮就是一颗空键，下面 G2 那两条规则也没有对应的节点。 */
+    /* 「任务按钮」：XP 的任务栏中间那颗「正在运行的窗口」= 本应用自己那一颗（四色旗 + 蓝键）。
+       R7：键里**写上窗口名**「DeepSeek Harness」—— 用户点名的「那个位置是空的」。
+       这里走的还是**纯静态**那条路：CSS 画不出字，所以名字是一张固定尺寸的小 SVG
+       （assets/xp-taskbar-task.svg，110x14，白字 + 深蓝投影），当一层背景钉在键里 ——
+       跟隔壁「开始」那两个字同一套做法（xp-taskbar-start.svg）。
+       层序：旗 → 名字 → 蓝键；只有排在这三档才对（第一条在最上面），名字写进蓝键底下会被盖掉。
+       R3 曾经把这张图换成 hooks 塞进来的**活字**（会话名 + 钟），R4 又把 hooks 退掉
+       （见 §4.6 第 31 条）—— 所以现在键里是写死的应用名，不是会话名。要活字得装内置皮。 */
     url(assets/xp-start-flag.svg),
+    url(assets/xp-taskbar-task.svg),
     linear-gradient(180deg, #6FA8F0 0%, #3F7AD8 45%, #2E62C4 55%, #1D4A9C 100%),
     /* 托盘那两颗小图标要排在那块凹槽**之前** —— 层序里第一条在最上面，
        排在后面就会被凹槽盖掉（这一版第一遍就是这么写的，量出来只剩凹槽色）。 */
@@ -1256,9 +1299,9 @@ input[type='text'], input[type='search'], input[type='password'], textarea {
     linear-gradient(90deg, #00000073 0 1px, transparent 1px),
     linear-gradient(180deg, #00000052 0%, #0000001f 100%),
     linear-gradient(180deg, #1B52BE 0%, #3F8CF3 6%, #245EDB 10%, #245EDB 86%, #1941A5 94%, #1A48BC 100%);
-  background-size: 46px 16px, 17px 14px, 72px 100%, 72px 100%, 72px 100%, 72px 100%, 17px 14px, 148px 18px, 9px 9px, 9px 9px, 1px 100%, 88px 18px, 100% 100%;
-  background-position: 32px center, 13px center, left center, left center, left center, left center, 116px center, 104px center, right 72px center, right 58px center, right 96px center, right 4px center, left center;
-  background-repeat: no-repeat, no-repeat, no-repeat, no-repeat, no-repeat, no-repeat, no-repeat, no-repeat, no-repeat, no-repeat, no-repeat, no-repeat, no-repeat;
+  background-size: 46px 16px, 17px 14px, 72px 100%, 72px 100%, 72px 100%, 72px 100%, 17px 14px, 110px 14px, 148px 18px, 9px 9px, 9px 9px, 1px 100%, 88px 18px, 100% 100%;
+  background-position: 32px center, 13px center, left center, left center, left center, left center, 116px center, 138px center, 104px center, right 72px center, right 58px center, right 96px center, right 4px center, left center;
+  background-repeat: no-repeat, no-repeat, no-repeat, no-repeat, no-repeat, no-repeat, no-repeat, no-repeat, no-repeat, no-repeat, no-repeat, no-repeat, no-repeat, no-repeat;
   box-shadow: inset 0 1px 0 #ffffff57;
 }
 
@@ -1320,14 +1363,43 @@ body[data-ds-dark-theme] [data-dsh-frame] {
   background-color: transparent !important;
   background-image: none !important;
 }
-/* **::before 不能一起弄透明**：真壳在桌面端把「原生菜单栏（应用 / 编辑 …）那条横带」
-   的底画在它身上（网页版里它 content:none、高度 0，所以看不出来）。一起清掉，
-   菜单字就直接压在壁纸上 —— 用户报「最顶部应用/编辑那个条也变透明了」。
-   改回 XP 的菜单条：窗口面 + 下缘一条发丝。高度由壳给，不写死。 */
+/* **::before 不能一起弄透明**：桌面端这条 40px 横带就是**本应用那台窗口的标题栏** ——
+   壳在 [data-windows-titlebar] .frame::before 上给它 height: var(--dsh-windows-titlebar-height)
+   （桌面端 preload 钉成 40px）与 -webkit-app-region: drag，Electron 那三个窗口键就画在它右端。
+   原来这里画的是 XP 的菜单条（米灰 + 下缘发丝），蓝色窗口条挂在会话列顶上；
+   用户要求对调：**这一条就是那条 Luna 蓝窗口条，右上角正好对上最小化 / 还原 / 关闭**。
+   高度由壳给，不写死。下缘那条深色收边和侧栏标题栏（A1b）同款 —— 它同时是
+   「标题栏结束、下面两台窗口的横带开始」的那条分界。 */
 body[data-ds-dark-theme] [data-dsh-frame]::before {
-  background-color: #2B2B2B !important;
-  background-image: linear-gradient(180deg, #404040 0%, #2B2B2B 100%) !important;
-  box-shadow: inset 0 -1px 0 #3f3f3fe6;
+  background-color: #232E3B !important;
+  background-image: linear-gradient(180deg, #6B7C92 0%, #2C3948 7%, #232E3B 40%, #3B4B5F 86%, #3B4B5F 92%, #141C25 95%, #2F3E50 97.5%, #101821 100%) !important;
+  box-shadow: inset 0 -1px 0 #00000073;
+}
+/* V0b · 顶栏上那两个字「应用 / 编辑」：桌面端 preload 注入的一颗 div[data-windows-menu]，
+   挂在 body 上、开着一个影子根（网页端没有这个节点）。影子根里的按钮只读几支**继承下来的**
+   token，所以在宿主这一层重下就够了 —— 影子外面任何东西都读不到这几支。
+   标题栏上的字是白的（XP 的窗口标题就是白字），悬停给一层半透明白，
+   和左边那颗「收起侧栏」的方键（A4）同一套语言。 */
+body[data-ds-dark-theme] [data-windows-menu] {
+  --dsw-alias-label-secondary: #FFFFFF;
+  --dsw-alias-label-primary: #FFFFFF;
+  --dsw-alias-interactive-bg-hover: #ffffff29;
+  --dsw-alias-state-business-primary: #FFFFFF;
+}
+/* V0c · 右上角那三个系统窗口键（最小化 / 还原 / 关闭）是 Electron 的 titleBarOverlay 画的，
+   样式表碰不到它们。但桌面端 preload 会往 body 里塞一个 span，用它的
+     background-color: var(--dsw-specific-sidebar-fill)
+     color:            var(--dsw-alias-label-primary)
+   量出两个颜色再经 IPC 交给主进程 setTitleBarOverlay()。于是把这两支 token 下到
+   **那个 span 自己**身上（认它的内联样式）就够了：
+     · 底全透明 → 我们这条 Luna 蓝从它底下透出来，三个键正好落在蓝条上
+       （这是 Electron 官方支持的做法，欢迎窗口自己就是 '#00000000'）；
+     · 符号色转白 → XP 标题栏上的窗口键本来就是白的（蓝底上 5.6:1，暗色石墨蓝上 4.7:1）。
+   它失配时（比如 preload 换了量法）只是退回「右上角一条米灰空槽」，不会坏别的东西。
+   注意**只下给那个 span**：全局改 --dsw-alias-label-primary 会让弹出的对话框上白字压白底。 */
+span[style*='dsw-specific-sidebar-fill'] {
+  --dsw-specific-sidebar-fill: #00000000;
+  --dsw-alias-label-primary: #FFFFFF;
 }
 
 /* ── V. 变量：把引擎那几支 --sk-* 换成 XP 的值 ───────────────────────────── */
@@ -1414,30 +1486,34 @@ body[data-ds-dark-theme] [data-pane='sidebar'] > * > *, body[data-ds-dark-theme]
    不限定的话中栏顶上也会被刷成一片 Luna 蓝，压在那里的会话名/图标就不好读了。 */
 body[data-ds-dark-theme] [data-pane='sidebar'] [data-window-drag] {
   position: relative;
+  /* 壳给 logoRow 带了 overflow: hidden，会把下面那条 ::before **剪在 logoRow 的盒子里** ——
+     于是「left/right: -12px」从来没生效过：标题栏被缩到 x12..268（左右各留 12px 的窗口面），
+     上缘也到不了侧栏顶端，桌面端那条 40px 顶栏下面就露着一条 6px 的米灰缝
+     （以前顶栏是米灰的，看不出来；现在顶栏是 Luna 蓝，这条缝就是一道亮线）。
+     放开它，::before 才能铺满整条侧栏；外沿由 [data-pane='sidebar'] 自己的 overflow: hidden 兜住，
+     既不会溢进上面那条窗口标题栏，也不会横向溢到中栏。 */
+  overflow: visible !important;
 }
 body[data-ds-dark-theme] [data-pane='sidebar'] [data-window-drag]::before {
   content: '';
   position: absolute;
+  /* -6：.root 的 padding-top 是 6px，所以这条正好从侧栏顶端开始（桌面端才看得到那 6px，
+     网页端它落在 .frame 之外、被裁掉）。前提是上面那条 overflow: visible —— 壳默认
+     overflow: hidden 会把它剪在 logoRow 盒子里，那样这 -6 是白写的。 */
   top: -6px;
   bottom: 0;
   left: -12px;
   right: -12px;
   pointer-events: none;
-  background-image: linear-gradient(180deg, #6B7C92 0%, #2C3948 7%, #232E3B 40%, #3B4B5F 86%, #3B4B5F 92%, #141C25 95%, #2F3E50 97.5%, #101821 100%);
+  background-image: linear-gradient(180deg, #1d2127 0%, #213a5d 100%);
   background-size: 100% 100%;
   background-position: top left;
   background-repeat: no-repeat;
-}
-/* 标题栏底缘那条收边：跟着同一个盒子走，所以永远贴在标题栏下沿。 */
-body[data-ds-dark-theme] [data-pane='sidebar'] [data-window-drag]::after {
-  content: '';
-  position: absolute;
-  left: -12px;
-  right: -12px;
-  bottom: 0;
-  height: 1px;
-  pointer-events: none;
-  background-color: #00000073;
+  /* 上下两条收边：上缘一道白高光（XP 任务窗格的壳），下缘一条淡蓝发丝，
+     把这条标题带和下面的米灰窗口面分开。原来那圈「深色收边」是配蓝标题栏的，
+     挪到淡蓝底上会像一道脏边。 */
+  box-shadow: inset 0 1px 0 #ffffff1f,
+    inset 0 -1px 0 #2a6fd08c;
 }
 
 /* A2 · 窗口图标：把壳那枚品牌 svg 换成四色旗（插槽是 display:contents，得先给它盒子）。 */
@@ -1460,10 +1536,12 @@ body[data-ds-dark-theme] [data-slot='sidebar.brand.mark'] > svg {
   display: none !important;
 }
 
-/* A3 · 标题栏文字：**走正常流**，不做绝对定位。
+/* A3 · 标题窗格上的字「Win XP」：**走正常流**，不做绝对定位。
    绝对定位的 ::after 一旦包含块不是这个盒子（插槽在别的壳版本里可能没有盒子），
    字就会跑到别处去压住别的元素 —— 而且是静默的。放在流里就不可能跑。
-   原文那枚 wordmark svg 直接 display:none（字自己撑宽度，不需要它占位）。 */
+   原文那枚 wordmark svg 直接 display:none（字自己撑宽度，不需要它占位）。
+   R6b：底从 Luna 蓝换成淡蓝任务窗格标题，字跟着从白字转**深蓝**（和「工作区」那条同色），
+   描边从深蓝柔光换成一层白下缘的高光 —— 淡蓝底上白字只有 1.4:1，等于没有。 */
 body[data-ds-dark-theme] [data-slot='sidebar.brand.name'] {
   display: inline-flex !important;
   align-items: center;
@@ -1479,18 +1557,28 @@ body[data-ds-dark-theme] [data-slot='sidebar.brand.name']::after {
   font-weight: 700;
   letter-spacing: 0.01em;
   line-height: 1;
-  color: #FFFFFF;
-  text-shadow: 0 1px 1px #00225cbf;
+  color: #95b7e8;
+  text-shadow: 0 1px 0 #ffffff14;
   white-space: nowrap;
   pointer-events: none;
 }
 
-/* A4 · 标题栏按钮：壳那颗「收起侧边栏」就是 XP 标题栏上那颗小方键。 */
+/* A4 · 那颗「收起侧边栏」的方键。它有两种落点，样式表分不出来（同一个 DOM 节点）：
+   · 网页端 —— 留在 logoRow 右端，坐在淡蓝任务窗格标题上；
+   · 桌面端 —— 壳把它 position: fixed 到窗口标题栏左上角（x12 / y6），坐在 Luna 蓝上。
+   所以键本身做成「半透明白方键 + 深蓝图标」：白键在蓝底上是一块亮起的小方块（图标 4.7:1），
+   在白键上也是同一个深蓝图标（5.6:1）—— 两种底都读得清。原来图标是白的，压在
+   半透明白键上只有 1.5:1（两种底都不合格，只是以前没人盯着那颗键看）。 */
 body[data-ds-dark-theme] [data-dsh-responsive-part='sidebar-toggle'] {
   border-radius: 3px !important;
-  background-image: linear-gradient(180deg, #ffffff57 0%, #ffffff0a 48%, #00000047 52%, #00000066 100%);
-  box-shadow: inset 0 0 0 1px #ffffff8c, inset 0 1px 0 #ffffffb3, 0 1px 1px #00000059 !important;
-  color: #FFFFFF !important;
+  /* 键面**不能**用 XP 那种「上亮下暗」的立体键：图标是居中的，下半截落在暗色那半边，
+     深蓝图标压上去只剩 1.3:1（量过：那半个图标等于没有）。所以这里是一个**均匀的浅键**
+     ——亮面在上、到下面只淡一点，深蓝图标整颗都压在同一档上（5.2:1）。
+     暗色反过来：深键 + 亮图标（7.8:1）。描边用品牌蓝，浅色底（网页端的淡蓝任务窗格带）
+     上也能看出这颗键的边。 */
+  background-image: linear-gradient(180deg, #00000061 0%, #00000033 100%);
+  box-shadow: inset 0 0 0 1px #ffffff4d, 0 1px 1px #00000080 !important;
+  color: #9fbeea !important;
 }
 body[data-ds-dark-theme] [data-dsh-responsive-part='sidebar-toggle']:hover {
   background-image: linear-gradient(180deg, #ffffff9e 0%, #ffffff29 48%, #00000024 52%, #0000003d 100%);
@@ -1780,32 +1868,26 @@ body[data-ds-dark-theme] [data-dsh-part='composer-chip'] {
 
 /* ── C. 会话区：桌面上的那台窗口 ────────────────────────────────────────── */
 
-/* C1 · 头部工具带：整条 76px 的横带画在中栏列上（hero 与会话两个相位都在），
-   底缘 1px 分隔线烘在渐变里。 */
+/* C1 · 会话头部：整条 76px 的横带画在中栏列上（hero 与会话两个相位都在），
+   整条都是米灰工具带，底缘 1px 分隔线烘在渐变里 —— 蓝的那 40px 已经挪到最顶上那条
+   [data-dsh-frame]::before（真正的窗口标题栏）。 */
 body[data-ds-dark-theme] [data-pane='conversation'] {
-  background-image: linear-gradient(180deg, #6B7C92 0%, #2C3948 7%, #232E3B 40%, #3B4B5F 86%, #3B4B5F 92%, #141C25 95%, #2F3E50 97.5%, #101821 100%), linear-gradient(180deg, #333537 0px, #2B2B2B 31px, #3F3F3F 34px, #3F3F3F 36px) !important;
-  background-size: 100% 40px, 100% 36px !important;
-  background-position: top left, left 40px !important;
-  background-repeat: no-repeat, no-repeat !important;
+  background-image: linear-gradient(180deg, #333537 0px, #2B2B2B 71px, #3F3F3F 74px, #3F3F3F 76px) !important;
+  background-size: 100% 76px !important;
+  background-position: top left !important;
+  background-repeat: no-repeat !important;
 }
-/* C1b · 标题栏上的字与窗口键：白字 + 深蓝柔光（单层，不做四向描边）。
-   页签（role=tab）不在这一层里 —— 它们坐在下面的米灰工具带上。 */
+/* C1b · 标题行那排字：原来压在 Luna 蓝上所以是白字 + 深蓝柔光；蓝底撤掉之后
+   白字直接落在 #ECE9D8 上（暗色落在 #2B2B2B 上，浅色那边几乎 1:1，等于看不见），
+   所以整排回到正文色 —— 浅色纯黑 / 暗色 #E8E8E8，都是 10:1 以上。
+   原来那条「标题栏上的玻璃键」也一起删了：右上角那几颗（会话日志 / 更多）现在走
+   C8 的 XP 平按钮 + 琥珀悬停，和工具带里别的键一致。 */
 body[data-ds-dark-theme] [data-dsh-surface='session-header'] nav, body[data-ds-dark-theme] [data-dsh-surface='session-header'] nav * {
-  color: #FFFFFF !important;
-  text-shadow: 0 1px 1px #00225ccc;
+  color: #E8E8E8 !important;
+  text-shadow: none !important;
 }
 body[data-ds-dark-theme] [data-dsh-surface='session-header'] nav * {
   font-weight: 600 !important;
-}
-body[data-ds-dark-theme] [data-dsh-surface='session-header'] button:not([role='tab']) {
-  color: #FFFFFF !important;
-  border-radius: 3px !important;
-  background-image: linear-gradient(180deg, #ffffff4d 0%, #ffffff0d 48%, #00000029 52%, #00000052 100%) !important;
-  box-shadow: inset 0 0 0 1px #ffffff80, inset 0 1px 0 #ffffff99 !important;
-  filter: drop-shadow(0 1px 1px #00225c99);
-}
-body[data-ds-dark-theme] [data-dsh-surface='session-header'] button:not([role='tab']):hover {
-  background-image: linear-gradient(180deg, #ffffff9e 0%, #ffffff38 48%, #0000001a 52%, #00000033 100%) !important;
 }
 body[data-ds-dark-theme] [data-phase='hero'] {
   background-image: none !important;
@@ -2309,12 +2391,16 @@ body[data-ds-dark-theme] [data-dsh-frame]::after {
     linear-gradient(90deg, #ffffff38 0 1px, transparent 1px),
     linear-gradient(90deg, transparent 0 2px, #ffffff29 2px 72px, transparent 72px),
     linear-gradient(180deg, #7CC35B 0%, #4C9C32 44%, #3E8A27 50%, #2E7019 100%),
-    /* 「任务按钮」：XP 的任务栏中间那颗「正在运行的窗口」。这里放本应用自己那一个
-       （四色旗 + 蓝键），中间那块空白因此不像一张没用的蓝纸。
-       **标题不在任何一层里** —— R3 曾把写死文字的 assets/xp-taskbar-task.svg 换成
-       hooks 塞进来的活字（会话名 + 钟），R4 又把 hooks 退掉了（见 §4.6 第 31 条）。
-       现在这颗按钮就是一颗空键，下面 G2 那两条规则也没有对应的节点。 */
+    /* 「任务按钮」：XP 的任务栏中间那颗「正在运行的窗口」= 本应用自己那一颗（四色旗 + 蓝键）。
+       R7：键里**写上窗口名**「DeepSeek Harness」—— 用户点名的「那个位置是空的」。
+       这里走的还是**纯静态**那条路：CSS 画不出字，所以名字是一张固定尺寸的小 SVG
+       （assets/xp-taskbar-task.svg，110x14，白字 + 深蓝投影），当一层背景钉在键里 ——
+       跟隔壁「开始」那两个字同一套做法（xp-taskbar-start.svg）。
+       层序：旗 → 名字 → 蓝键；只有排在这三档才对（第一条在最上面），名字写进蓝键底下会被盖掉。
+       R3 曾经把这张图换成 hooks 塞进来的**活字**（会话名 + 钟），R4 又把 hooks 退掉
+       （见 §4.6 第 31 条）—— 所以现在键里是写死的应用名，不是会话名。要活字得装内置皮。 */
     url(assets/xp-start-flag.svg),
+    url(assets/xp-taskbar-task.svg),
     linear-gradient(180deg, #6FA8F0 0%, #3F7AD8 45%, #2E62C4 55%, #1D4A9C 100%),
     /* 托盘那两颗小图标要排在那块凹槽**之前** —— 层序里第一条在最上面，
        排在后面就会被凹槽盖掉（这一版第一遍就是这么写的，量出来只剩凹槽色）。 */
@@ -2323,9 +2409,9 @@ body[data-ds-dark-theme] [data-dsh-frame]::after {
     linear-gradient(90deg, #00000073 0 1px, transparent 1px),
     linear-gradient(180deg, #00000052 0%, #0000001f 100%),
     linear-gradient(180deg, #0B0B0B 0%, #333333 6%, #1B1B1B 10%, #1B1B1B 86%, #050505 94%, #242424 100%);
-  background-size: 46px 16px, 17px 14px, 72px 100%, 72px 100%, 72px 100%, 72px 100%, 17px 14px, 148px 18px, 9px 9px, 9px 9px, 1px 100%, 88px 18px, 100% 100%;
-  background-position: 32px center, 13px center, left center, left center, left center, left center, 116px center, 104px center, right 72px center, right 58px center, right 96px center, right 4px center, left center;
-  background-repeat: no-repeat, no-repeat, no-repeat, no-repeat, no-repeat, no-repeat, no-repeat, no-repeat, no-repeat, no-repeat, no-repeat, no-repeat, no-repeat;
+  background-size: 46px 16px, 17px 14px, 72px 100%, 72px 100%, 72px 100%, 72px 100%, 17px 14px, 110px 14px, 148px 18px, 9px 9px, 9px 9px, 1px 100%, 88px 18px, 100% 100%;
+  background-position: 32px center, 13px center, left center, left center, left center, left center, 116px center, 138px center, 104px center, right 72px center, right 58px center, right 96px center, right 4px center, left center;
+  background-repeat: no-repeat, no-repeat, no-repeat, no-repeat, no-repeat, no-repeat, no-repeat, no-repeat, no-repeat, no-repeat, no-repeat, no-repeat, no-repeat, no-repeat;
   box-shadow: inset 0 1px 0 #ffffff24;
 }
 
