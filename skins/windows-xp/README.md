@@ -58,6 +58,8 @@ There are no constants shared between the two groups.
 | blue default button | send | Luna blue gradient, dark blue outline, white top highlight; disabled falls back to the window face |
 | amber hot state | every toolbar button | XP's button hot state is yellow, not blue |
 | pale yellow tooltip | `role="tooltip"` | `#FFFFE1` fill, 1px black outline, square corners — kept in both themes |
+| menus **and their submenus** | `role="menu"` — both levels carry the same plate | a cream band with a hairline down its right side, a hard silver border, square corners, 22 px rows at 12.5 px, the `#316AC5` highlight starting **after** the band, and a `►` drawn on submenu parents |
+| dropdown list boxes | `role="listbox"` (the composer's + menu, the model / permission pickers) | the white XP list box: 1px `#7F9DB9` outline, square corners, rows highlighted in `#316AC5`; the row's label, key name and icon all turn white with it |
 | 16 px scrollbar | everywhere | raised track and thumb with the two arrow keys at each end |
 | task pane header band | top 38 px of the right rail | the same white-to-face band the sidebar's task pane header uses |
 | taskbar | bottom 24 px of the viewport | the frame reserves the space with `padding-bottom`; the bar itself is a stack of 14 background layers on `::after`: start key, twelve layers of task button and tray, and the bar gradient. The task button is flag → caption → blue key, in that order |

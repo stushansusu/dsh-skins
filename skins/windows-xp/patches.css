@@ -724,18 +724,22 @@ a:hover {
   color: #000000 !important;
 }
 /* B4 · 发送键 = XP 的蓝色默认按钮。卡里「没有 aria-haspopup」的按钮只有它和权限那颗，
-   所以紧接着用「插槽 + 后代按钮」把权限那颗还原成 chip（同特异性，后写即赢）。 */
-[data-composer-card] button:not([aria-haspopup]) {
+   所以紧接着用「插槽 + 后代按钮」把权限那颗还原成 chip（同特异性，后写即赢）。
+   **必须把菜单角色也排掉**：输入卡那个「+」弹出的菜单/列表是挂在卡片**里面**的（同一个 DOM 树），
+   于是这条「没有 aria-haspopup 就刷成蓝底白字」的规则把菜单里的每一行也刷成了白字 ——
+   白底白字，实测「文件 / 目标 / 计划…」这些行标题整行看不见（菜单只看得见灰色副标题）。
+   排掉 [role='option'/'menuitem…'] 之后，菜单行回到壳自己写的 label-primary。 */
+[data-composer-card] button:not([aria-haspopup]):not([role='option']):not([role='menuitem']):not([role='menuitemcheckbox']):not([role='menuitemradio']) {
   border-radius: 3px !important;
   border: 1px solid #003C74 !important;
   background-image: linear-gradient(180deg, #8cb2f2 0%, #246ce7 46%, #0054E3 52%, #0043b6 100%) !important;
   box-shadow: inset 0 1px 0 #ffffff99, 0 1px 2px #0000004d !important;
   color: #FFFFFF !important;
 }
-[data-composer-card] button:not([aria-haspopup]):hover {
+[data-composer-card] button:not([aria-haspopup]):not([role='option']):not([role='menuitem']):not([role='menuitemcheckbox']):not([role='menuitemradio']):hover {
   background-image: linear-gradient(180deg, #b8cff7 0%, #578eed 46%, #246ce7 52%, #004fd5 100%) !important;
 }
-[data-composer-card] button:not([aria-haspopup]):disabled {
+[data-composer-card] button:not([aria-haspopup]):not([role='option']):not([role='menuitem']):not([role='menuitemcheckbox']):not([role='menuitemradio']):disabled {
   background-image: linear-gradient(180deg, #f6f5ed 0%, #dbd9c9 100%) !important;
   border-color: #ACA899 !important;
   color: #828077cc !important;
@@ -976,17 +980,105 @@ a:hover {
 
 /* ── E. 弹出菜单 / 列表 / 提示条 ───────────────────────────────────────── */
 
-[role='menu'], [role='listbox'] {
+/* E1 · 菜单 = XP 的下拉菜单。XP 菜单最有辨识度的不是边框，而是**左边那条「菜单带」**
+   （图标与勾位那一列）与它右边那条 1px 竖线，再加一圈银灰硬边 + 直角 + 投影。
+   菜单带用一条 90deg 渐变画：先 24px 窗口面，再 1px 灰线，之后透明（透出白底）。
+   注意**子菜单也是同一个 [role='menu']**：壳把它 portal 到 body 上，和一级菜单是兄弟，
+   所以一条规则同时管两级 —— 这正是我们要的（XP 里二级菜单长得和一级一模一样）。 */
+[role='menu'] {
+  background-color: #FFFFFF !important;
+  position: relative !important;
+  overflow: visible !important;   /* 子菜单要能探出去 */
+  border: 1px solid #ACA899 !important;
+  border-radius: 0 !important;
+  padding: 3px !important;
+  box-shadow: 2px 3px 8px #00000047 !important;
+}
+/* E1a · 菜单带本身用 ::before 画，不用渐变 —— 渐变那条路子试过两种写法都不稳：
+   写成 background-size: 100% 100% 时 24px/25px 两个断点会被当作「整张图」的坐标拉满整卡
+   （整块菜单都变成菜单带色、竖线被拉到 24/25 卡宽处）；改成 25px 100% 又受 background-origin
+   影响、起算点跑到内边距盒上。一条绝对定位的 1px 竖线加一块面，量出来是什么就是什么。 */
+[role='menu']::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 24px;
+  background-color: #ECE9D8;
+  border-right: 1px solid #ACA899;
+  pointer-events: none;
+  z-index: 0;
+}
+/* 条目要压在菜单带上面 */
+[role='menu'] [role='menuitem'], [role='menu'] [role='menuitemcheckbox'], [role='menu'] [role='menuitemradio'] {
+  z-index: 1 !important;
+}
+/* E1b · 壳在弹层里还铺了一层「玻璃纱」—— 一级子元素上是 rgba(248,249,250,0.58)，
+   正好把菜单带和那条 1px 竖线洗掉三分之一（实测菜单带被洗成 #F6F6EF、竖线基本看不见）。
+   菜单自己的底已经画了，这一层只是重复上色，清掉。 */
+[role='menu'] > *, [role='listbox'] > * {
+  background-color: transparent !important;
+}
+/* E2 · 菜单条目：行高 22（XP 就那么高）、字 12.5px、左边躲开菜单带、右边留出子菜单箭头的位置。 */
+[role='menu'] [role='menuitem'], [role='menu'] [role='menuitemcheckbox'], [role='menu'] [role='menuitemradio'] {
+  position: relative !important;
+  min-height: 22px !important;
+  padding: 3px 22px 3px 29px !important;
+  border-radius: 0 !important;
+  background-image: none !important;
+  background-color: transparent !important;
+  color: #000000 !important;
+  font-size: 12.5px !important;
+}
+/* 悬停 / 选中：XP 那块 #316AC5 + 白字。蓝色**从菜单带右边起** —— 行内的底是子元素画的，
+   会盖住父级菜单带，所以这里用渐变把它让出来。 */
+[role='menu'] [role='menuitem']:hover, [role='menu'] [role='menuitem'][data-highlighted], [role='menu'] [role='menuitem'][aria-selected='true'], [role='menu'] [role='menuitemcheckbox']:hover, [role='menu'] [role='menuitemradio']:hover {
+  background-image: linear-gradient(90deg, transparent 0 22px, #316AC5 22px) !important;
+  color: #FFFFFF !important;
+}
+/* 悬停时内层的字与图标也要变白 —— 壳给内层 span 写了自己的 token，不会继承。 */
+[role='menu'] [role='menuitem']:hover *, [role='menu'] [role='menuitem'][data-highlighted] *, [role='menu'] [role='menuitem'][aria-selected='true'] * {
+  color: #FFFFFF !important;
+}
+/* 禁用条目：XP 是灰字，不是降透明度。 */
+[role='menu'] [role='menuitem'][aria-disabled='true'], [role='menu'] [role='menuitem'][data-disabled], [role='menu'] [role='menuitem']:disabled {
+  color: #8c8c8c !important;
+}
+/* 子菜单箭头：一个 3px 小三角，跟着条目文字色走（悬停变白）。 */
+[role='menu'] [role='menuitem'][aria-haspopup]::after {
+  content: '';
+  position: absolute;
+  right: 7px;
+  top: 50%;
+  margin-top: -3px;
+  border: 3px solid transparent;
+  border-left-color: currentColor;
+}
+/* 分隔线：从菜单带右边起，两侧各留 3px。 */
+[role='separator'] {
+  height: 1px !important;
+  margin: 3px 3px 3px 25px !important;
+  background-color: #aca899d9 !important;
+  border: 0 !important;
+}
+/* E3 · 列表框（输入卡的「+」那个弹层是 listbox）：XP 的**列表框** —— 白底 + 1px 灰蓝描边 + 直角。
+   行照旧用壳自己的排布（图标 / 主标题 / 键名 / 说明），只把圆角与悬停改成 XP 的。
+   悬停那块蓝上，内层的灰字（键名、说明）与深色图标也要转白，否则蓝色上的灰字只有 1:1。 */
+[role='listbox'] {
   background-color: #FFFFFF !important;
   border: 1px solid #7F9DB9 !important;
-  border-radius: 2px !important;
-  box-shadow: 2px 3px 8px #00000047, inset 0 1px 0 #ffffffb3 !important;
+  border-radius: 0 !important;
+  box-shadow: 2px 3px 8px #00000047 !important;
 }
 [role='menuitem'], [role='option'] {
   border-radius: 0 !important;
 }
-[role='menuitem']:hover, [role='option']:hover, [role='menuitem'][data-highlighted], [role='option'][data-highlighted], [role='menuitem'][aria-selected='true'], [role='option'][aria-selected='true'] {
+[role='option']:hover, [role='option'][data-highlighted], [role='option'][aria-selected='true'] {
   background-color: #316AC5 !important;
+  color: #FFFFFF !important;
+}
+[role='option']:hover *, [role='option'][data-highlighted] *, [role='option'][aria-selected='true'] * {
   color: #FFFFFF !important;
 }
 /* XP 的提示条是那条极标志性的淡黄底 + 1px 黑边 + 直角。两个主题都保留。 */
@@ -1852,18 +1944,22 @@ body[data-ds-dark-theme] [data-composer-card] button[aria-haspopup][aria-expande
   color: #E8E8E8 !important;
 }
 /* B4 · 发送键 = XP 的蓝色默认按钮。卡里「没有 aria-haspopup」的按钮只有它和权限那颗，
-   所以紧接着用「插槽 + 后代按钮」把权限那颗还原成 chip（同特异性，后写即赢）。 */
-body[data-ds-dark-theme] [data-composer-card] button:not([aria-haspopup]) {
+   所以紧接着用「插槽 + 后代按钮」把权限那颗还原成 chip（同特异性，后写即赢）。
+   **必须把菜单角色也排掉**：输入卡那个「+」弹出的菜单/列表是挂在卡片**里面**的（同一个 DOM 树），
+   于是这条「没有 aria-haspopup 就刷成蓝底白字」的规则把菜单里的每一行也刷成了白字 ——
+   白底白字，实测「文件 / 目标 / 计划…」这些行标题整行看不见（菜单只看得见灰色副标题）。
+   排掉 [role='option'/'menuitem…'] 之后，菜单行回到壳自己写的 label-primary。 */
+body[data-ds-dark-theme] [data-composer-card] button:not([aria-haspopup]):not([role='option']):not([role='menuitem']):not([role='menuitemcheckbox']):not([role='menuitemradio']) {
   border-radius: 3px !important;
   border: 1px solid #16345E !important;
   background-image: linear-gradient(180deg, #83abe4 0%, #4883d7 46%, #2A6FD0 52%, #2259a6 100%) !important;
   box-shadow: inset 0 1px 0 #ffffff99, 0 1px 2px #0000004d !important;
   color: #FFFFFF !important;
 }
-body[data-ds-dark-theme] [data-composer-card] button:not([aria-haspopup]):hover {
+body[data-ds-dark-theme] [data-composer-card] button:not([aria-haspopup]):not([role='option']):not([role='menuitem']):not([role='menuitemcheckbox']):not([role='menuitemradio']):hover {
   background-image: linear-gradient(180deg, #c3d7f2 0%, #72a0e0 46%, #4883d7 52%, #2768c4 100%) !important;
 }
-body[data-ds-dark-theme] [data-composer-card] button:not([aria-haspopup]):disabled {
+body[data-ds-dark-theme] [data-composer-card] button:not([aria-haspopup]):not([role='option']):not([role='menuitem']):not([role='menuitemcheckbox']):not([role='menuitemradio']):disabled {
   background-image: linear-gradient(180deg, #404040 0%, #232323 100%) !important;
   border-color: #3F3F3F !important;
   color: #808080cc !important;
@@ -2104,17 +2200,105 @@ body[data-ds-dark-theme] [data-approval-key] button:hover, body[data-ds-dark-the
 
 /* ── E. 弹出菜单 / 列表 / 提示条 ───────────────────────────────────────── */
 
-body[data-ds-dark-theme] [role='menu'], body[data-ds-dark-theme] [role='listbox'] {
+/* E1 · 菜单 = XP 的下拉菜单。XP 菜单最有辨识度的不是边框，而是**左边那条「菜单带」**
+   （图标与勾位那一列）与它右边那条 1px 竖线，再加一圈银灰硬边 + 直角 + 投影。
+   菜单带用一条 90deg 渐变画：先 24px 窗口面，再 1px 灰线，之后透明（透出白底）。
+   注意**子菜单也是同一个 [role='menu']**：壳把它 portal 到 body 上，和一级菜单是兄弟，
+   所以一条规则同时管两级 —— 这正是我们要的（XP 里二级菜单长得和一级一模一样）。 */
+body[data-ds-dark-theme] [role='menu'] {
+  background-color: #1C1C1C !important;
+  position: relative !important;
+  overflow: visible !important;   /* 子菜单要能探出去 */
+  border: 1px solid #3F3F3F !important;
+  border-radius: 0 !important;
+  padding: 3px !important;
+  box-shadow: 2px 3px 8px #0000008c !important;
+}
+/* E1a · 菜单带本身用 ::before 画，不用渐变 —— 渐变那条路子试过两种写法都不稳：
+   写成 background-size: 100% 100% 时 24px/25px 两个断点会被当作「整张图」的坐标拉满整卡
+   （整块菜单都变成菜单带色、竖线被拉到 24/25 卡宽处）；改成 25px 100% 又受 background-origin
+   影响、起算点跑到内边距盒上。一条绝对定位的 1px 竖线加一块面，量出来是什么就是什么。 */
+body[data-ds-dark-theme] [role='menu']::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 24px;
+  background-color: #383838;
+  border-right: 1px solid #3F3F3F;
+  pointer-events: none;
+  z-index: 0;
+}
+/* 条目要压在菜单带上面 */
+body[data-ds-dark-theme] [role='menu'] [role='menuitem'], body[data-ds-dark-theme] [role='menu'] [role='menuitemcheckbox'], body[data-ds-dark-theme] [role='menu'] [role='menuitemradio'] {
+  z-index: 1 !important;
+}
+/* E1b · 壳在弹层里还铺了一层「玻璃纱」—— 一级子元素上是 rgba(248,249,250,0.58)，
+   正好把菜单带和那条 1px 竖线洗掉三分之一（实测菜单带被洗成 #F6F6EF、竖线基本看不见）。
+   菜单自己的底已经画了，这一层只是重复上色，清掉。 */
+body[data-ds-dark-theme] [role='menu'] > *, body[data-ds-dark-theme] [role='listbox'] > * {
+  background-color: transparent !important;
+}
+/* E2 · 菜单条目：行高 22（XP 就那么高）、字 12.5px、左边躲开菜单带、右边留出子菜单箭头的位置。 */
+body[data-ds-dark-theme] [role='menu'] [role='menuitem'], body[data-ds-dark-theme] [role='menu'] [role='menuitemcheckbox'], body[data-ds-dark-theme] [role='menu'] [role='menuitemradio'] {
+  position: relative !important;
+  min-height: 22px !important;
+  padding: 3px 22px 3px 29px !important;
+  border-radius: 0 !important;
+  background-image: none !important;
+  background-color: transparent !important;
+  color: #E8E8E8 !important;
+  font-size: 12.5px !important;
+}
+/* 悬停 / 选中：XP 那块 #316AC5 + 白字。蓝色**从菜单带右边起** —— 行内的底是子元素画的，
+   会盖住父级菜单带，所以这里用渐变把它让出来。 */
+body[data-ds-dark-theme] [role='menu'] [role='menuitem']:hover, body[data-ds-dark-theme] [role='menu'] [role='menuitem'][data-highlighted], body[data-ds-dark-theme] [role='menu'] [role='menuitem'][aria-selected='true'], body[data-ds-dark-theme] [role='menu'] [role='menuitemcheckbox']:hover, body[data-ds-dark-theme] [role='menu'] [role='menuitemradio']:hover {
+  background-image: linear-gradient(90deg, transparent 0 22px, #2A5C9E 22px) !important;
+  color: #FFFFFF !important;
+}
+/* 悬停时内层的字与图标也要变白 —— 壳给内层 span 写了自己的 token，不会继承。 */
+body[data-ds-dark-theme] [role='menu'] [role='menuitem']:hover *, body[data-ds-dark-theme] [role='menu'] [role='menuitem'][data-highlighted] *, body[data-ds-dark-theme] [role='menu'] [role='menuitem'][aria-selected='true'] * {
+  color: #FFFFFF !important;
+}
+/* 禁用条目：XP 是灰字，不是降透明度。 */
+body[data-ds-dark-theme] [role='menu'] [role='menuitem'][aria-disabled='true'], body[data-ds-dark-theme] [role='menu'] [role='menuitem'][data-disabled], body[data-ds-dark-theme] [role='menu'] [role='menuitem']:disabled {
+  color: #787878 !important;
+}
+/* 子菜单箭头：一个 3px 小三角，跟着条目文字色走（悬停变白）。 */
+body[data-ds-dark-theme] [role='menu'] [role='menuitem'][aria-haspopup]::after {
+  content: '';
+  position: absolute;
+  right: 7px;
+  top: 50%;
+  margin-top: -3px;
+  border: 3px solid transparent;
+  border-left-color: currentColor;
+}
+/* 分隔线：从菜单带右边起，两侧各留 3px。 */
+body[data-ds-dark-theme] [role='separator'] {
+  height: 1px !important;
+  margin: 3px 3px 3px 25px !important;
+  background-color: #3f3f3fd9 !important;
+  border: 0 !important;
+}
+/* E3 · 列表框（输入卡的「+」那个弹层是 listbox）：XP 的**列表框** —— 白底 + 1px 灰蓝描边 + 直角。
+   行照旧用壳自己的排布（图标 / 主标题 / 键名 / 说明），只把圆角与悬停改成 XP 的。
+   悬停那块蓝上，内层的灰字（键名、说明）与深色图标也要转白，否则蓝色上的灰字只有 1:1。 */
+body[data-ds-dark-theme] [role='listbox'] {
   background-color: #1C1C1C !important;
   border: 1px solid #5C5C5C !important;
-  border-radius: 2px !important;
-  box-shadow: 2px 3px 8px #0000008c, inset 0 1px 0 #4e4e4eb3 !important;
+  border-radius: 0 !important;
+  box-shadow: 2px 3px 8px #0000008c !important;
 }
 body[data-ds-dark-theme] [role='menuitem'], body[data-ds-dark-theme] [role='option'] {
   border-radius: 0 !important;
 }
-body[data-ds-dark-theme] [role='menuitem']:hover, body[data-ds-dark-theme] [role='option']:hover, body[data-ds-dark-theme] [role='menuitem'][data-highlighted], body[data-ds-dark-theme] [role='option'][data-highlighted], body[data-ds-dark-theme] [role='menuitem'][aria-selected='true'], body[data-ds-dark-theme] [role='option'][aria-selected='true'] {
+body[data-ds-dark-theme] [role='option']:hover, body[data-ds-dark-theme] [role='option'][data-highlighted], body[data-ds-dark-theme] [role='option'][aria-selected='true'] {
   background-color: #2A5C9E !important;
+  color: #FFFFFF !important;
+}
+body[data-ds-dark-theme] [role='option']:hover *, body[data-ds-dark-theme] [role='option'][data-highlighted] *, body[data-ds-dark-theme] [role='option'][aria-selected='true'] * {
   color: #FFFFFF !important;
 }
 /* XP 的提示条是那条极标志性的淡黄底 + 1px 黑边 + 直角。两个主题都保留。 */
