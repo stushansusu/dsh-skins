@@ -117,6 +117,14 @@ figure is a plugin's own hard-coded orange, not this skin's.
   `titleBarOverlay`**, not skin art: the skin can only make the overlay transparent and
   its symbols white so they sit on the blue bar. In the browser the caption strip is
   absent (`content: none`, height 0), so neither the menu nor those keys exist there.
+- The three plates behind those keys are placed at Windows' 46 px caption-cell pitch at
+  100% scaling; on a display whose cells are a different width (DPI scaling, a larger
+  system font size) they drift away from the glyphs.
+- In fullscreen Windows hides its caption glyphs and the plates stay, leaving three empty
+  squares. The skin cannot detect that state: the shell publishes it as
+  `html[data-fullscreen]`, and a skin stylesheet is force-scoped under
+  `html[data-dsh-skin=…]`, where an `html[data-…]` head can never match — it would read as
+  a *descendant* of `<html>`.
 
 ## Install
 
