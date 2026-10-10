@@ -262,7 +262,22 @@ body[data-ds-dark-theme] * {
    「标题栏结束、下面两台窗口的横带开始」的那条分界。 */
 [data-dsh-frame]::before {
   background-color: #0050EE !important;
-  background-image: linear-gradient(180deg, #0997FF 0%, #0053EE 7%, #0050EE 40%, #0066FF 86%, #0066FF 92%, #003DD7 95%, #0055FB 97.5%, #0831D9 100%) !important;
+  /* 顶栏从右往左：三个 XP 小方块 + 那条蓝渐变。方块是**给自己画的**，
+     系统那三颗按钮（最小化 / 还原 / 关闭）画在它上面 —— 覆盖层现在是透明的，
+     我们的方块正好从底下透出来，白字落在方块中央（4.7:1 以上）。
+     位置按实测的 Windows 格子来：**每格 46px、右对齐**（真机量到三颗字形的中心在
+     x 2444.5 / 2490.5 / 2536.5，间距正好 46，最后一格贴窗口右缘），
+     所以三层同一张 46x40 的图分别钉在 right 0 / 46 / 92。
+     中间那颗是「最大化还是还原」由系统决定，我们不画字形，永远是对的。
+     换分辨率或系统字号（格子宽度变了）时方块会与字形错位 —— 这条写进已知限制。 */
+  background-image:
+    url(assets/xp-caption-plate.svg),
+    url(assets/xp-caption-plate.svg),
+    url(assets/xp-caption-plate.svg),
+    linear-gradient(180deg, #0997FF 0%, #0053EE 7%, #0050EE 40%, #0066FF 86%, #0066FF 92%, #003DD7 95%, #0055FB 97.5%, #0831D9 100%) !important;
+  background-size: 46px 40px, 46px 40px, 46px 40px, 100% 100% !important;
+  background-position: right 0 center, right 46px center, right 92px center, left top !important;
+  background-repeat: no-repeat, no-repeat, no-repeat, no-repeat !important;
   box-shadow: inset 0 -1px 0 #0000004d;
 }
 /* V0b · 顶栏上那两个字「应用 / 编辑」：桌面端 preload 注入的一颗 div[data-windows-menu]，
@@ -786,7 +801,10 @@ a:hover {
    品牌蓝的 chip 只有 2.3:1。给一层「桌面图标底下那种打光」——柔光，不是面板，
    画还是画。暗色那张的夜空本来就够暗，不加。 */
 [data-content-phase='hero'] {
-  background-image: radial-gradient(58% 24% at 50% 40%, #ffffffb3 0%, #ffffff57 46%, transparent 78%);
+  background-image: radial-gradient(62% 26% at 50% 41%, #ffffffb3 0%, #ffffff57 46%, transparent 80%);
+  /* R6c：顶栏那 40px 让中栏整块下移，首屏那几颗建议 chip 因此落在壁纸的另一段上
+     （暗色实测从 ≥4.5 掉到 4.13:1）。柔光跟着放大一档、暗色中段压到 0.45 —— 还是柔光，
+     不是面板；再往上加会把画压死。 */
   background-repeat: no-repeat !important;
 }
 
@@ -1372,7 +1390,22 @@ body[data-ds-dark-theme] [data-dsh-frame] {
    「标题栏结束、下面两台窗口的横带开始」的那条分界。 */
 body[data-ds-dark-theme] [data-dsh-frame]::before {
   background-color: #232E3B !important;
-  background-image: linear-gradient(180deg, #6B7C92 0%, #2C3948 7%, #232E3B 40%, #3B4B5F 86%, #3B4B5F 92%, #141C25 95%, #2F3E50 97.5%, #101821 100%) !important;
+  /* 顶栏从右往左：三个 XP 小方块 + 那条蓝渐变。方块是**给自己画的**，
+     系统那三颗按钮（最小化 / 还原 / 关闭）画在它上面 —— 覆盖层现在是透明的，
+     我们的方块正好从底下透出来，白字落在方块中央（4.7:1 以上）。
+     位置按实测的 Windows 格子来：**每格 46px、右对齐**（真机量到三颗字形的中心在
+     x 2444.5 / 2490.5 / 2536.5，间距正好 46，最后一格贴窗口右缘），
+     所以三层同一张 46x40 的图分别钉在 right 0 / 46 / 92。
+     中间那颗是「最大化还是还原」由系统决定，我们不画字形，永远是对的。
+     换分辨率或系统字号（格子宽度变了）时方块会与字形错位 —— 这条写进已知限制。 */
+  background-image:
+    url(assets/xp-caption-plate-dark.svg),
+    url(assets/xp-caption-plate-dark.svg),
+    url(assets/xp-caption-plate-dark.svg),
+    linear-gradient(180deg, #6B7C92 0%, #2C3948 7%, #232E3B 40%, #3B4B5F 86%, #3B4B5F 92%, #141C25 95%, #2F3E50 97.5%, #101821 100%) !important;
+  background-size: 46px 40px, 46px 40px, 46px 40px, 100% 100% !important;
+  background-position: right 0 center, right 46px center, right 92px center, left top !important;
+  background-repeat: no-repeat, no-repeat, no-repeat, no-repeat !important;
   box-shadow: inset 0 -1px 0 #00000073;
 }
 /* V0b · 顶栏上那两个字「应用 / 编辑」：桌面端 preload 注入的一颗 div[data-windows-menu]，
@@ -1896,7 +1929,10 @@ body[data-ds-dark-theme] [data-phase='hero'] {
    品牌蓝的 chip 只有 2.3:1。给一层「桌面图标底下那种打光」——柔光，不是面板，
    画还是画。暗色那张的夜空本来就够暗，不加。 */
 body[data-ds-dark-theme] [data-content-phase='hero'] {
-  background-image: radial-gradient(58% 26% at 50% 40%, #0000008c 0%, #00000042 46%, transparent 78%);
+  background-image: radial-gradient(62% 30% at 50% 41%, #0000009e 0%, #00000073 40%, #00000033 62%, transparent 82%);
+  /* R6c：顶栏那 40px 让中栏整块下移，首屏那几颗建议 chip 因此落在壁纸的另一段上
+     （暗色实测从 ≥4.5 掉到 4.13:1）。柔光跟着放大一档、暗色中段压到 0.45 —— 还是柔光，
+     不是面板；再往上加会把画压死。 */
   background-repeat: no-repeat !important;
 }
 
