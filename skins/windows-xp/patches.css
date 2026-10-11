@@ -987,7 +987,13 @@ a:hover {
    所以一条规则同时管两级 —— 这正是我们要的（XP 里二级菜单长得和一级一模一样）。 */
 [role='menu'] {
   background-color: #FFFFFF !important;
-  position: relative !important;
+  /* R10 删掉了这里原本的 position: relative !important —— 那一条是 R9 留下的 bug，
+     症状就是用户报的「点输入卡的胶囊（工作区 / 标准模式 / 模型）像没点，菜单根本看不见」。
+     机制：壳的弹层有两类 —— .list 是 absolute，portal 面是 fixed 且用**内联 top/left 当视口坐标**；
+     强制 relative 之后内联坐标从视口坐标变成「相对静态位置」的偏移，而 portal 面挂在 body 末尾、
+     静态位置在整页最下面，于是菜单被推到视口外（实测 1680x1000：rect.y = 1000 + 474 = 1474，
+     中心命中 null）。菜单本体在壳里本来就是定位元素（absolute / fixed），
+     菜单带那条绝对定位的 ::before 拿它当包含块，所以去掉这条声明之后带子照旧。别再写回来。 */
   overflow: visible !important;   /* 子菜单要能探出去 */
   border: 1px solid #ACA899 !important;
   border-radius: 0 !important;
@@ -2207,7 +2213,13 @@ body[data-ds-dark-theme] [data-approval-key] button:hover, body[data-ds-dark-the
    所以一条规则同时管两级 —— 这正是我们要的（XP 里二级菜单长得和一级一模一样）。 */
 body[data-ds-dark-theme] [role='menu'] {
   background-color: #1C1C1C !important;
-  position: relative !important;
+  /* R10 删掉了这里原本的 position: relative !important —— 那一条是 R9 留下的 bug，
+     症状就是用户报的「点输入卡的胶囊（工作区 / 标准模式 / 模型）像没点，菜单根本看不见」。
+     机制：壳的弹层有两类 —— .list 是 absolute，portal 面是 fixed 且用**内联 top/left 当视口坐标**；
+     强制 relative 之后内联坐标从视口坐标变成「相对静态位置」的偏移，而 portal 面挂在 body 末尾、
+     静态位置在整页最下面，于是菜单被推到视口外（实测 1680x1000：rect.y = 1000 + 474 = 1474，
+     中心命中 null）。菜单本体在壳里本来就是定位元素（absolute / fixed），
+     菜单带那条绝对定位的 ::before 拿它当包含块，所以去掉这条声明之后带子照旧。别再写回来。 */
   overflow: visible !important;   /* 子菜单要能探出去 */
   border: 1px solid #3F3F3F !important;
   border-radius: 0 !important;
