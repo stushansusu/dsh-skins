@@ -753,9 +753,11 @@ body[data-ds-dark-theme] [role="dialog"] {
   background: none !important;
 }
 
-[class*="crumb"] {
-  display: none !important;
-}
+/* 原来这里有一条 [class*="crumb"] 的通配，把宿主所有 *crumb* 类名一并隐藏。
+   和上面 Mask 那条是同一个毛病：宿主里 crumb 类名清一色都是导航控件 ——
+   插件详情页的「返回插件列表」入口、会话头的子代理返回路径、选目录弹窗的
+   路径栏、@ 触发菜单的来源行，没有一个是皮肤想收的东西。
+   整条删掉：面包屑归外壳自己画。 */
 
 /* ─────────── 7. 设置面板 ─────────── */
 
