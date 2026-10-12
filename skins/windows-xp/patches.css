@@ -862,11 +862,13 @@ a:hover {
   pointer-events: none;
 }
 
-/* C3 · 会话正文：一台压在桌面上的窗口客户区。半透明，让壁纸透上来 ——
-   0.80 时壁纸几乎看不见（用户点名「背景皮肤没有」），收到 0.62/0.72 之后
-   正文仍有 6 以上对比度（见交接里的表）。 */
+/* C3 · 会话正文：一台压在桌面上的窗口客户区。
+   **是不透明的**（R11 改）。以前这里是 0.70 / 0.78 的纱，让壁纸从正文里透上来；
+   但 XP 的窗口面本来就不透明，README 那句「every panel is an opaque XP window」
+   和它自相矛盾（上游评审 PR #64 就是这么被指出的）。现在客户区回成纯白 / 近黑：
+   桌面只剩首屏那一整幅，进了会话就是一台铺满的 XP 窗口，跟真实 XP 一样。 */
 [data-conversation-content]:not([data-content-phase='hero']) {
-  background-color: #ffffffb3 !important;
+  background-color: #FFFFFF !important;
   box-shadow: inset 1px 0 0 #aca89980, inset -1px 0 0 #aca89980 !important;
 }
 
@@ -2088,11 +2090,13 @@ body[data-ds-dark-theme] [data-conversation-tabs] [role='tab'][aria-selected='tr
   pointer-events: none;
 }
 
-/* C3 · 会话正文：一台压在桌面上的窗口客户区。半透明，让壁纸透上来 ——
-   0.80 时壁纸几乎看不见（用户点名「背景皮肤没有」），收到 0.62/0.72 之后
-   正文仍有 6 以上对比度（见交接里的表）。 */
+/* C3 · 会话正文：一台压在桌面上的窗口客户区。
+   **是不透明的**（R11 改）。以前这里是 0.70 / 0.78 的纱，让壁纸从正文里透上来；
+   但 XP 的窗口面本来就不透明，README 那句「every panel is an opaque XP window」
+   和它自相矛盾（上游评审 PR #64 就是这么被指出的）。现在客户区回成纯白 / 近黑：
+   桌面只剩首屏那一整幅，进了会话就是一台铺满的 XP 窗口，跟真实 XP 一样。 */
 body[data-ds-dark-theme] [data-conversation-content]:not([data-content-phase='hero']) {
-  background-color: #1c1c1cc7 !important;
+  background-color: #1C1C1C !important;
   box-shadow: inset 1px 0 0 #3f3f3f80, inset -1px 0 0 #3f3f3f80 !important;
 }
 

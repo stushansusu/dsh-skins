@@ -10,7 +10,8 @@ the composer is a small XP window with an inset edit box and a toolbar, and the 
 24 px of the viewport is drawn as the taskbar.
 
 The two themes are **not** a light/dark twin of one palette. They are the two real
-Windows XP visual styles, and each is anchored to one of the author's own photographs:
+Windows XP visual styles, and each is anchored to one of the skin's own wallpapers (both
+drawn for this skin — see [Licence and provenance](#licence-and-provenance)):
 
 | | light · Luna Blue | dark · Royale Noir |
 | --- | --- | --- |
@@ -26,16 +27,17 @@ There are no constants shared between the two groups.
 ## What it is
 
 - **Pure assets**: `skin.json` (v2 manifest) + `skin.css` (full `--dsw-alias-*` token
-  remap) + `patches.css` (L3 free selectors) + 17 hand-authored SVGs and the two
+  remap) + `patches.css` (L3 free selectors) + 19 hand-authored SVGs and the two
   wallpapers. No package.json, no build step, **no hooks** — nothing in this skin
   executes.
-- **A photographic background** (`backgroundMedia.type = "image"`, one WebP per theme)
+- **A painted background** (`backgroundMedia.type = "image"`, one WebP per theme)
   with a `scrim` that only darkens the two ends, so the middle of the picture — the
   hill the composition is about — is left alone.
 - **Both themes are first-class**: light and dark each get their own palette, their own
   wallpaper and their own chrome gradient.
 - The ground is fully transparent (`glassBase: 0`): the wallpaper **is** the desktop, and
-  every panel is an opaque XP window on top of it.
+  every panel is an opaque XP window on top of it — the conversation client area included,
+  which is flat `#FFFFFF` / `#1C1C1C` rather than a translucent scrim.
 
 ## What it recreates
 
@@ -136,13 +138,14 @@ center. Both themes are declared, so the system theme switch works without a rel
 ## Licence and provenance
 
 The engineering of this skin (`skin.css`, `patches.css` and their entire token and
-geometry system) and the 17 SVGs are the author's own work, released under
-**CC BY-NC-SA 4.0**.
+geometry system), the 19 SVGs and the two wallpapers are the author's own work, released
+under **CC BY-NC-SA 4.0**.
 
-The two wallpapers are **the author's own photographs** — the day frame, and the night
-frame shot from the same position after dark. They are the author's own artwork, they
-carry no third-party material, and they are **not** covered by the CC BY-NC-SA 4.0 grant
-above; they are included here with the author's permission for this skin only.
+The two wallpapers are **the author's own drawings**: a day frame, and the same
+composition after dark, rendered procedurally by a script the author wrote for this skin.
+They contain no photograph, no scanned or downloaded texture and no third-party material,
+and **no figure, character or living being of any kind appears in either frame** — the
+whole picture is sky, clouds and hills.
 
 This skin is an unofficial, non-commercial homage. It is not affiliated with, endorsed
 by, or licensed by Microsoft; "Windows XP" and the Luna and Royale visual styles are
