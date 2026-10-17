@@ -59,7 +59,7 @@ interactive edges are sky/jade.** Ice blue over any of these veils measures only
 | `--bk-veil-sidebar` | 0.56 | 44 % | sidebar / masthead panel / workspace list |
 | `--bk-veil-head` | 0.56 | 44 % | conversation header |
 | `--bk-veil-card` | 0.52 | 48 % | composer / new session (carries `blur(12px)`) |
-| `--bk-veil-sheet` | 0.46 | 54 % | conversation sheet (the blur sits on its `::before`) |
+| `--bk-veil-sheet` | 0.38 | 62 % | conversation sheet (the blur sits on its `::before`) |
 | `--bk-veil-menu` | 0.80 | 20 % | overlays |
 
 Each value was **reverse-solved** against real pixels, and the sampling method
@@ -69,8 +69,10 @@ every face one tier too thick. The values above come from **per-cell paper
 sampling** instead — 14x48 px cells, the p75-luminance pixel of each cell taken as
 the paper, then solved back through `under = (P - a*VEIL) / (1 - a)` so any
 candidate alpha can be re-composited and checked per sample. Worst 5 % of cells:
-sidebar body text **9.14:1**, header **8.18:1**, sheet **8.16:1**, composer
-**10.67:1**, every secondary and state tier at 5.6:1 or better. No text colour was
+sidebar body text **9.14:1**, header **8.18:1**, sheet **7.8:1**, composer
+**10.67:1**, every secondary and state tier at 5.2:1 or better. The sheet is the thinnest
+face on purpose - 62 % of the picture comes straight through, her dark blue hair sitting
+right under the text; 0.34 is where body text starts touching the 7:1 edge. No text colour was
 changed for this. (The absolute floor, before margins, is: fold every real-shell box back onto the source
 image, measure the darkest 1 % under it, then solve for the smallest alpha that keeps
 the secondary text at 4.5:1. The compositing space is **sRGB (gamma-encoded)**, not
