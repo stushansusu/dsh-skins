@@ -259,11 +259,11 @@ body {
   --bk-edge-soft: #1b5d9a57;
   --bk-jade-soft: #1866544d;
   --bk-jade-faint: #4fb79a2e;
-  --bk-veil-sidebar: #faf9f5d1;
-  --bk-veil-head: #faf9f5c7;
-  --bk-veil-card: #faf9f5a8;
-  --bk-veil-sheet: #faf9f594;
-  --bk-veil-menu: #faf9f5f2;
+  --bk-veil-sidebar: #faf9f58f;
+  --bk-veil-head: #faf9f58f;
+  --bk-veil-card: #faf9f585;
+  --bk-veil-sheet: #faf9f575;
+  --bk-veil-menu: #faf9f5cc;
   --bk-glow: 0 1px 0 #faf9f5eb, 0 0 8px #faf9f5e0, 0 0 18px #faf9f59e;
   /* 收笔线：所有横线都走它，不用 border */
   --bk-stroke: linear-gradient(90deg, transparent 0%, #b0c8d8d9 22%, #b0c8d8d9 78%, transparent 100%);

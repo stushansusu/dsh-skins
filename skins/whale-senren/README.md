@@ -54,15 +54,24 @@ interactive edges are sky/jade.** Ice blue over any of these veils measures only
 
 ## The five veil knobs
 
-| token | value | where |
-| --- | --- | --- |
-| `--bk-veil-sidebar` | 0.82 | sidebar / masthead panel / workspace list |
-| `--bk-veil-head` | 0.78 | conversation header |
-| `--bk-veil-card` | 0.66 | composer / new session (carries `blur(12px)`) |
-| `--bk-veil-sheet` | 0.58 | conversation sheet (the blur sits on its `::before`) |
-| `--bk-veil-menu` | 0.95 | overlays |
+| token | value | picture retained | where |
+| --- | --- | --- | --- |
+| `--bk-veil-sidebar` | 0.56 | 44 % | sidebar / masthead panel / workspace list |
+| `--bk-veil-head` | 0.56 | 44 % | conversation header |
+| `--bk-veil-card` | 0.52 | 48 % | composer / new session (carries `blur(12px)`) |
+| `--bk-veil-sheet` | 0.46 | 54 % | conversation sheet (the blur sits on its `::before`) |
+| `--bk-veil-menu` | 0.80 | 20 % | overlays |
 
-Each value was **reverse-solved**: fold every real-shell box back onto the source
+Each value was **reverse-solved** against real pixels, and the sampling method
+matters: taking "the darkest 1 % of the box" as the paper reads **the text itself**
+(or the dark mass of her hair) rather than the paper under the glyphs, which forced
+every face one tier too thick. The values above come from **per-cell paper
+sampling** instead — 14x48 px cells, the p75-luminance pixel of each cell taken as
+the paper, then solved back through `under = (P - a*VEIL) / (1 - a)` so any
+candidate alpha can be re-composited and checked per sample. Worst 5 % of cells:
+sidebar body text **9.14:1**, header **8.18:1**, sheet **8.16:1**, composer
+**10.67:1**, every secondary and state tier at 5.6:1 or better. No text colour was
+changed for this. (The absolute floor, before margins, is: fold every real-shell box back onto the source
 image, measure the darkest 1 % under it, then solve for the smallest alpha that keeps
 the secondary text at 4.5:1. The compositing space is **sRGB (gamma-encoded)**, not
 linear light — measured: `rgba(250,249,245,0.678)` over `rgb(38,60,100)` lands on
