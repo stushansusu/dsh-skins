@@ -1,4 +1,4 @@
-# Whale Girl · A Thousand Loves, Ten Thousand Flowers (鲸鱼娘 · 千恋万花)
+# Whale Girl · Clear Watercolour (鲸鱼娘 · 清透水彩)
 
 English | [中文](README.zh.md)
 
@@ -13,9 +13,9 @@ by eye.
 
 | | |
 | --- | --- |
-| id | whale-senren (order 54, accent `#1B5D9A`) |
+| id | whale-watercolour (order 54, accent `#1B5D9A`) |
 | theme | **light-only** — the dark half renders the same palette, enforced (see below) |
-| background | `assets/bk-bg.webp` — 2560x1437, WebP q80, 343,426 B, **scaled only, not graded** (PSNR 37.27 dB) |
+| background | `assets/bk-bg.webp` — 2560x1437, WebP q80, 343,426 B, **AI-generated** (ComfyUI on a local open-source image model, from the author's own prompts and reference images) — **scaled only, not graded** (PSNR 37.27 dB) |
 | fonts | Noto Serif SC for headings (variable weight), Noto Sans SC / DengXian for text |
 | hooks | none — pure CSS assets, nothing executes |
 
@@ -98,6 +98,11 @@ set of values under `body[data-ds-dark-theme]`:
 | two dark rules that are not tokens (the tool-icon tile's fill, the right-pane guide glyph's colour) | 2 | pinned in the shard by semantic hook plus structure |
 | `color-scheme: dark` — which makes every author-unstyled native control paint white text | 1 | `body:not(:root)[data-ds-dark-theme] { color-scheme: light }` |
 
+Because the skin is light-only, a store's dark tier shows two preview images that
+are **the same bytes** — `preview/light.jpg` and `preview/dark.jpg` share a sha256
+(`32758B56…3429C4`) — and a dark-mode user who switches to it gets the same light
+interface. That is the intent, not a missing file.
+
 ## Verification
 
 Everything above was measured on the running shell (:19387) and on the official
@@ -115,9 +120,17 @@ market try-on page, not estimated:
 
 - **Skin engineering** (skin.css, patches.css, the palette, the geometry and the
   watercolour decoration language): original work by the author, stushansusu.
-- **Background illustration:** the author's own material, supplied with the
-  submission. Not a repost; no third-party material is claimed. Rights remain with
-  the author.
+- **Background illustration (`assets/bk-bg.webp`): AI-generated material.** The
+  author produced it locally with ComfyUI on an open-source image model, from
+  prompts and reference images written and supplied by the author. It is not a
+  repost and contains no third-party material; the shipped file is that material
+  scaled and re-encoded, with no grading. Rights remain with the author, who
+  carries the copyright and compliance responsibility for it.
+- **Character and work:** the blue-haired girl is the author's own "whale girl"
+  character line (the same character as `whale-fantasy`, `rainy-night` and
+  `shuimo-danqing`). No character, mark or trademark from an existing work is
+  depicted, and the name **bears no relation to the visual novel
+  《千恋＊万花》 (Senren * Banka)** or to any other published work.
 - Licensed under CC BY-NC-SA 4.0 (see [LICENSE](LICENSE)).
 - **Personal, non-commercial use only. Unofficial work, not affiliated with this
   repository.**

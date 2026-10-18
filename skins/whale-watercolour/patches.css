@@ -1,8 +1,8 @@
 /**
- * 鲸鱼娘 · 千恋万花 (Whale Girl · A Thousand Loves, Ten Thousand Flowers) — L3 atmosphere layer.
+ * 鲸鱼娘 · 清透水彩 (Whale Girl · Clear Watercolour) — L3 atmosphere layer.
  *
  * Pure CSS, no hooks. The loader force-scopes every selector under
- * html[data-dsh-skin="whale-senren"], so rules here are written unscoped on purpose.
+ * html[data-dsh-skin="whale-watercolour"], so rules here are written unscoped on purpose.
  *
  * Every hook below is one the shell actually emits, verified against the
  * installed shell and the loader's own surface registry — not guessed:
@@ -231,7 +231,7 @@ body[data-ds-dark-theme] * {
    palette through the same alpha()/mix() helpers instead of hard-coding hexes.
    verify() scans the result for the fragility patterns (hashed class names,
    :global, nested :has, backticks, unresolved interpolation). */
-/* ══ 鲸鱼娘 · 千恋万花 · 机壳 ═══════════════════════════════════════════ */
+/* ══ 鲸鱼娘 · 清透水彩 · 机壳 ═══════════════════════════════════════════ */
 
 /* ── 0 · 接口：自定义属性（分片只许引用这些名字）──────────────────────────── */
 body {
@@ -478,9 +478,9 @@ body:not(:root) [data-sidebar-right-guide] > span:first-of-type {
    body[data-ds-dark-theme] 给同一批东西写第二套值（build-skin.mjs 无条件生成，
    而本皮浅色专用、两组色板同值，所以那条分支在这台机器上**是真会命中的**）。
    实测（:19387 已部署那张 patches.css，159 条规则；body 上带着 data-ds-dark-theme）：
-     html[data-dsh-skin="whale-senren"] body                  { --sk-wall: #E7EEF4 }
-     html[data-dsh-skin="whale-senren"] body[data-ds-dark-theme] { --sk-wall: #E7EEF4 }   ← 不透明，会盖住壁纸
-     html[data-dsh-skin="whale-senren"] body:not(:root)       { --sk-wall: transparent }
+     html[data-dsh-skin="whale-watercolour"] body                  { --sk-wall: #E7EEF4 }
+     html[data-dsh-skin="whale-watercolour"] body[data-ds-dark-theme] { --sk-wall: #E7EEF4 }   ← 不透明，会盖住壁纸
+     html[data-dsh-skin="whale-watercolour"] body:not(:root)       { --sk-wall: transparent }
    权重 0,2,2 压过那条分支的 0,2,1，最终 computed 就是 transparent。
    :not(:root) 的判据恒真（body 永远不是根元素），所以它只是「body + 一点权重」，
    不改变任何匹配范围。 */
@@ -1003,7 +1003,7 @@ div[data-slot='sidebar.brand.name'] span:not(:only-child):first-child {
 }
 
 div[data-slot='sidebar.brand.name'] span:not(:only-child):first-child::after {
-  content: '鲸鱼娘 · 千恋万花';
+  content: '鲸鱼娘 · 清透水彩';
   position: absolute;
   left: 0;
   top: 0;
