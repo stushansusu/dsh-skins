@@ -43,7 +43,7 @@ Body text on the panel is **15.22:1** in both halves of the manifest.
 | surfaces | translucent cream veil with `backdrop-filter`; paper edges are a `0 1px 0` highlight, not a `border` |
 | rules | **tapered**: every horizontal line is a `linear-gradient` that fades out at both ends, never a full-width hairline |
 | state | jade only: focus ring, the 2 px bar on the current row, `[aria-selected]`, link hover |
-| solid fills | exactly two in the whole shell: new session and send |
+| solid fills | exactly one in the chrome: send. New session is a veil under a sky hairline ring, and send drops to that same outline while disabled |
 | type | headings in Noto Serif SC, text in Noto Sans SC / DengXian |
 | glow | small text inside cards and body text each carry a one-directional white `text-shadow` — the paper looking thicker under the ink |
 | radii | five steps: 4 / 8 / 12 / 18 / 24 px, plus 999 px pills |
