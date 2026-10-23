@@ -1,0 +1,23 @@
+像素鲸海 / Pixel Whale Sea — NOTICE
+==================================
+
+角色与立绘
+----------
+本皮肤出现的角色为「鲸鱼娘 / Whale-chan」的同人形象，角色名 jyn。
+立绘由皮肤提交者（GitHub: stushansusu）提供，并声明其持有该形象与素材的
+使用权；皮肤内只分发由该立绘降采样、限色、描边得到的 40×30 像素精灵，
+不再分发原始立绘文件。
+
+生成的图形
+----------
+海面、雨幕（rain-a.gif / rain-b.gif）、设置页背景（sea-plain.gif）、
+工作区像素件（dither-grid / wave-edge / whale-mark / corner-* / bubbles）
+全部由本皮肤的构建脚本程序化生成（GIF 调色板量化 + SVG 字符画），
+不包含第三方素材。
+
+许可
+----
+皮肤目录内的 CSS、SVG、GIF 与文档以 CC BY-NC-SA 4.0 分发：
+https://creativecommons.org/licenses/by-nc-sa/4.0/
+
+DeepSeek Harness 与本皮肤无隶属关系，本皮肤为非官方同人作品。

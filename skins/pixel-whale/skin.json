@@ -1,0 +1,45 @@
+{
+  "$schema": "https://schemas.linxin666.org/dsh-skin/v2.json",
+  "skinManifestVersion": 2,
+  "id": "pixel-whale",
+  "name": "像素鲸海",
+  "nameEn": "Pixel Whale Sea",
+  "version": "2.1.0",
+  "author": "stushansusu",
+  "tagline": "俯视像素海 · 仰泳的鲸鱼娘 · 侧栏在下雨",
+  "description": "俯视的像素海面：深蓝到青绿的十二阶海水、断续的破峰亮线与碎浪。鲸鱼娘是立绘压成的四十像素长、十色、带深色描边的像素形象，横躺在水面上仰泳，沿 S 形路线来回游，身体随划水一波波起伏，身后拖泡沫尾迹、脚边溅水、身下荡开涟漪。侧边栏在下雨：两张 160×220 的透明 GIF 雨幕错位叠铺，雨滴落到自己的落点时开一圈水花环再散掉。工作区换成一套像素件：8 像素抖动颗粒、底边水线、角上一枚像素鲸标，输入卡直角加四角括号，滚动条收细，图标关掉抗锯齿。设置模态里铺同一片海的无人物版本。",
+  "tags": [
+    "pixel",
+    "ocean",
+    "whale",
+    "animated",
+    "loop",
+    "dark",
+    "8bit",
+    "rain"
+  ],
+  "accent": "#3FB3A9",
+  "order": 62,
+  "license": "CC BY-NC-SA 4.0",
+  "attribution": "角色“鲸鱼娘 / Whale-chan”（同人形象）与立绘由提交者提供并持有；海面、雨幕与工作区图形由 skin 自带的生成脚本产出。详见 NOTICE。",
+  "preview": {
+    "light": "preview/light.jpg",
+    "dark": "preview/dark.jpg"
+  },
+  "contributes": {
+    "stylesheet": "skin.css",
+    "patches": "patches.css",
+    "backgroundMedia": {
+      "light": {
+        "type": "image",
+        "src": "assets/sea.gif",
+        "scrim": "linear-gradient(180deg, rgba(5,12,21,0.55) 0%, rgba(5,12,21,0.12) 28%, rgba(5,12,21,0.18) 68%, rgba(5,12,21,0.62) 100%)"
+      },
+      "dark": {
+        "type": "image",
+        "src": "assets/sea.gif",
+        "scrim": "linear-gradient(180deg, rgba(5,12,21,0.55) 0%, rgba(5,12,21,0.12) 28%, rgba(5,12,21,0.18) 68%, rgba(5,12,21,0.62) 100%)"
+      }
+    }
+  }
+}
