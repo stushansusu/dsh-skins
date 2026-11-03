@@ -71,7 +71,7 @@
 皮肤中心不写委托插件的任何属性，委托插件不写 `data-dsh-skin`，双方都无法把
 对方卡死。委托皮肤的选择会照常持久化、开机采纳与试穿还原；让路暂停的是
 视觉，不是插件的设置页与偏好。
-## part 组（98 行，含各 owner 行）
+## part 组（99 行，含各 owner 行）
 
 shell 区域（owner: shell）：
 
@@ -112,6 +112,7 @@ family / 插件区域：
 | `host-table` / `host-row` | ssh | 主机表/行；`[data-dsh-ssh-view]` 内 table/tr |
 | `terminal` | ssh | xterm 终端；面板内 termContainer（.xterm 辅锚） |
 | `banner` | ssh | 状态横幅；`[data-kind]` 横幅 |
+| `diagram` | diagrams | mermaid 图示容器；`[data-dsh-part="diagram"]`，外观由 mermaid SVG 自带 |
 | `sprite` | pet | 精灵；`[data-dsh-pet-root]` 子树 float 容器 |
 | `bubble` | pet | 气泡容器 |
 | `announcement` | pet | 插件公告气泡（dsh-usage 联动）；`[data-dsh-pet-announcement]`，值来源插件标签 |
@@ -195,7 +196,7 @@ shell 的 `[class*="panelGlyph"]` 内）。shell 目前不把 entry id 透传到
 不进 `data-dsh-plugin`：plugin 属性标记插件面板根，皮肤里已有
 `[data-dsh-plugin="ssh"] [class*="panel"]` 一类把根当作面板子树起点的规则，把字形也算进去会误伤。
 
-## plugin 组（16 个）
+## plugin 组（17 个）
 
 | data-dsh-plugin | owner | 锚定方式 |
 | --- | --- | --- |
@@ -206,6 +207,7 @@ shell 的 `[class*="panelGlyph"]` 内）。shell 目前不把 entry id 透传到
 | `update` | dsh-update | footer action slot entry id `update`；`[data-dsh-plugin="update"]`（面板根 + 入口触发器） |
 | `web-ui-settings` | dsh-web-settings | 一级 settings.section id `web-ui-plugins`；`[data-dsh-plugin="web-ui-settings"][data-dsh-part="extensions"]` 父级根 |
 | `skill-explorer` | dsh-skill-explorer | `[data-dsh-skill-explorer-view]` / 面板行字形 `[data-dsh-panel-entry="skill-explorer"]` |
+| `diagrams` | dsh-diagrams | 渲染出的图示容器 `[data-dsh-plugin="diagrams"][data-dsh-part="diagram"]`（原始代码块仅隐藏，不在皮肤面内） |
 | `dsh-web-ui-market` | dsh-market | 创意工坊商店页 `[data-dsh-plugin="dsh-web-ui-market"]`（Web 扩展 keyed id `dsh-workshop`，独立安装时为一级 settings.section id `dsh-workshop`），商店卡与目录条目容器 |
 | `skin-center` | skins/skin-center | 设置卡 `[data-dsh-plugin="skin-center"]`（Web 扩展 keyed id `skin-center`，独立安装时为一级 settings.section id `skin-center`，列已安装皮肤，属内置源时显式标记） |
 | `session-id` | dsh-session-id | footer action slot entry id `session-id`；`[data-dsh-plugin="session-id"]`（面板 overlay 根 + 入口触发器） |
