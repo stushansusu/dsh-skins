@@ -2002,12 +2002,21 @@ body[data-ds-dark-theme] [data-slot="conversation.chat.node"] > [class*="_userRo
 }
 
 /* 上下文环：宿主把它画在 dock 容器里（slot 包装之外），这里并进同一条纸面——
-   一道金线分隔，右对齐，与两张读数同一张纸。环的轨道与填充是 SVG stroke。 */
+   一道金线分隔，右对齐，与两张读数同一张纸。环的轨道与填充是 SVG stroke。
+   宿主给环按钮留着一枚自己的药丸底色与圆角（外壳主题那层规则赢过按钮自己的
+   transparent），不抹掉的话它会像一枚贴片压在纸面右端，所以整棵子树先归零。 */
+[data-composer-dock] > *:not([data-slot]),
+[data-composer-dock] > *:not([data-slot]) * {
+  background: none !important;
+  box-shadow: none !important;
+}
+
 [data-composer-dock] > *:not([data-slot]) {
   position: relative;
   z-index: 2;
   flex: 0 0 auto;
   align-self: center;
+  border-radius: 0 !important;
 }
 
 [data-composer-dock] > *:not([data-slot]) button[aria-haspopup="dialog"] {
