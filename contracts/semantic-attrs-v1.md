@@ -71,7 +71,7 @@
 皮肤中心不写委托插件的任何属性，委托插件不写 `data-dsh-skin`，双方都无法把
 对方卡死。委托皮肤的选择会照常持久化、开机采纳与试穿还原；让路暂停的是
 视觉，不是插件的设置页与偏好。
-## part 组（103 行，含各 owner 行）
+## part 组（98 行，含各 owner 行）
 
 shell 区域（owner: shell）：
 
@@ -112,11 +112,6 @@ family / 插件区域：
 | `host-table` / `host-row` | ssh | 主机表/行；`[data-dsh-ssh-view]` 内 table/tr |
 | `terminal` | ssh | xterm 终端；面板内 termContainer（.xterm 辅锚） |
 | `banner` | ssh | 状态横幅；`[data-kind]` 横幅 |
-| `chip` | git-graph | 分支 chip；`[data-gitgraph-chip-anchor]` |
-| `dialog` | git-graph | 图对话框；`[data-gitgraph-dialog]` |
-| `graph-row` | git-graph | 提交行；dialog 内行容器 |
-| `ref` | git-graph | 分支徽标；`[data-gitgraph-ref]` |
-| `worktree-create` / `worktree-manage` | git-graph | worktree 创建/管理入口按钮；分支弹层 footer 内裸值按钮 |
 | `sprite` | pet | 精灵；`[data-dsh-pet-root]` 子树 float 容器 |
 | `bubble` | pet | 气泡容器 |
 | `announcement` | pet | 插件公告气泡（dsh-usage 联动）；`[data-dsh-pet-announcement]`，值来源插件标签 |
@@ -200,13 +195,12 @@ shell 的 `[class*="panelGlyph"]` 内）。shell 目前不把 entry id 透传到
 不进 `data-dsh-plugin`：plugin 属性标记插件面板根，皮肤里已有
 `[data-dsh-plugin="ssh"] [class*="panel"]` 一类把根当作面板子树起点的规则，把字形也算进去会误伤。
 
-## plugin 组（17 个）
+## plugin 组（16 个）
 
 | data-dsh-plugin | owner | 锚定方式 |
 | --- | --- | --- |
 | `task-board` | dsh-task-board | `[data-dsh-taskboard-view]` / 面板行字形 `[data-dsh-panel-entry="task-board"]` / `sidebar.panellist` entry id |
 | `ssh` | dsh-ssh | `[data-dsh-ssh-view]` / 面板行字形 `[data-dsh-panel-entry="ssh"]` |
-| `git-graph` | dsh-git-graph | slot entry id `git-graph`；`[data-gitgraph-chip-anchor]` / `[data-gitgraph-dialog]` |
 | `pet` | dsh-pet | `[data-dsh-pet-root]`；设置页 `[data-dsh-plugin="pet"]`（Web 扩展 keyed id `pet`，独立安装时为一级 settings.section id `pet`，只列内置与已安装宠物） |
 | `remote-web-ui` | dsh-remote-web-ui | slot entry id `remote-web-ui` |
 | `update` | dsh-update | footer action slot entry id `update`；`[data-dsh-plugin="update"]`（面板根 + 入口触发器） |
