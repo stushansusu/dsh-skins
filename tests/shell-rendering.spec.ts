@@ -289,7 +289,7 @@ describe('shell rendering dark-theme badge correction', () => {
  * across skins). Both corrections take the skin's own colour at full alpha.
  */
 describe('shell rendering opaque overlay surfaces', () => {
-  const FULLSCREEN = '[data-sidebar-right-panel="fullscreen"]'
+  const FULLSCREEN = '[data-sidebar-right-panel="fullscreen"][data-sidebar-right-open]'
   const SETTINGS = '[data-shortcut-modal="settings"]'
 
   it('scopes the fullscreen panel correction under every active visual head', () => {
@@ -312,6 +312,15 @@ describe('shell rendering opaque overlay surfaces', () => {
     expect(css).toContain('background-color: var(--dsw-alias-bg-base, #05070d) !important')
     expect(css).toContain('background-color: rgb(from var(--dsw-alias-bg-layer-2, #ffffff) r g b / 1) !important')
     expect(css).toContain('background-color: var(--dsw-alias-bg-layer-2, #ffffff) !important')
+  })
+
+  it('never paints a collapsed panel', () => {
+    // The panel stays mounted and keeps its fullscreen attribute while
+    // collapsed; an unqualified rule would plate the viewport behind the
+    // conversation (black bands in the gaps).
+    const css = shellRenderingCss()
+    expect(css).not.toContain('[data-sidebar-right-panel="fullscreen"] {')
+    expect(css).toContain('[data-sidebar-right-panel="fullscreen"][data-sidebar-right-open]')
   })
 
   it('never touches the docked push mode', () => {
