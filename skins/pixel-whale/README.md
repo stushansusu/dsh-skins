@@ -38,6 +38,22 @@ The loop is arithmetically seamless: wave phases, the swim path and the stroke b
 all integer multiples of the 500-frame cycle, so frame 501 is frame 1. Each raindrop
 completes a whole number of falls in its 4 s loop, splash included.
 
+## Size
+
+The two main GIFs are the whole weight of the skin:
+
+| File | Bytes | MiB | What it is |
+| --- | --- | --- | --- |
+| `assets/sea.gif` | 5,711,209 | 5.45 | 256×144, 500 frames, 30 s — the sea and the swimmer |
+| `assets/sea-plain.gif` | 3,250,096 | 3.10 | 192×108, the same sea without the swimmer |
+| `assets/rain-a.gif` | 18,582 | 0.02 | 160×220 transparent, 4 s |
+| `assets/rain-b.gif` | 18,295 | 0.02 | 160×220 transparent, 4 s |
+| `assets/*.svg` | 11,344 | 0.01 | eight workspace parts |
+
+The directory is 9,750,392 bytes (9.30 MiB) over 20 files. Rebaking the sea at the
+settings sheet's 192×108 would land near 2.6 MiB; this version keeps 256×144 so the
+crest lines and the swimmer stay legible.
+
 ## Palette
 
 | Role | Value |
@@ -78,13 +94,22 @@ Measured with WCAG on the composited background: menu 1.59:1 → 14.17:1, group 
 ## Evidence
 
 `preview/{light,dark}.jpg` and the two files under `evidence/` are **the same capture**,
-not a frame of the background animation: a 1680×1000 DSH shell with this skin applied
-through the skin center, one short conversation in it, the preview-notice dialog
-dismissed, once with `data-ds-dark-theme` absent and once with it set, and the frame
-sampled out of the live `<img>` to confirm the GIF was playing when the shot was taken.
-Both themes land on the same night sea because that is what the skin is.
+not a frame of the background animation: a DSH shell with this skin applied through the
+skin center, one short conversation in it, the preview-notice dialog dismissed, once with
+`data-ds-dark-theme` absent and once with it set, and the frame sampled out of the live
+`<img>` to confirm the GIF was playing when the shot was taken. The committed file is
+2048×1152 pixels, saved exactly as captured — no downscale and no resampling — and both
+themes land on the same night sea because that is what the skin is.
 
 ## Notice
 
-The character "Whale-chan" (jyn) is a fan design; the illustration was supplied by the
-contributor and only the downsampled 40×30 pixel sprite ships here. See [NOTICE](NOTICE).
+The character "Whale-chan" is a line the contributor owns — the same character as
+whale-fantasy, rainy-night, shuimo-danqing and whale-watercolour — and not a character
+from any published work. The illustration is AI-generated: produced by the contributor on
+a local ComfyUI with an open image model, from self-written prompts and self-supplied
+references, not reposted, no third-party material. Only the downsampled 40×30 pixel
+sprite ships here; the artwork itself is outside the CC BY-NC-SA 4.0 grant, and this skin
+is for personal, non-commercial use only. It is unofficial and unrelated to DeepSeek
+Harness or this repository. Copyright and compliance responsibility for this contribution
+rests with the contributor (stushansusu), who declares the provenance above and answers
+for it. See [NOTICE](NOTICE).
