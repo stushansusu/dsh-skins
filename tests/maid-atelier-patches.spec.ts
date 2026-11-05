@@ -154,11 +154,12 @@ describe('maid-atelier plugin manager top-trim yield (#1742)', () => {
     const base = block('[data-skin-chrome="top-trim"]')
     expect(base).toContain('position: absolute')
     expect(base).toContain('height: 76px')
-    // The offset carries the same 280px fallback as every other sidebar-width
-    // consumer in the file: without it an undefined custom property makes the
-    // whole translate declaration invalid at computed-value time, and the band
-    // would snap to the window edge instead of tracking the sidebar.
-    expect(base).toContain('translate: var(--maid-sidebar-width, 280px) 0')
+    // The band no longer shifts itself sideways: it spans the sidebar edge to
+    // the window's right edge, so its own box cannot pass the viewport. The live
+    // sidebar width still carries the same 280px fallback as every other
+    // sidebar-width consumer in the file.
+    expect(base).toContain('left: var(--maid-sidebar-width, 280px)')
+    expect(base).toContain('right: 0')
     expect(base).not.toContain('display: none')
   })
 
@@ -172,6 +173,53 @@ describe('maid-atelier plugin manager top-trim yield (#1742)', () => {
     expect(selectorList).toContain('[data-plugin-panel]')
     expect(selectorList).toContain('[data-plugin-detail]')
     expect(selectorList).not.toContain('[class*=')
+  })
+})
+
+// The band's own box, not the decoration, was the page's horizontal scroll: a
+// real host measured x=52 / width=390 / right=442 at a 390 viewport with the
+// 52px rail, and right=1720 at 1440 with the 280px sidebar, each exactly one
+// sidebar width past the window. Hiding the node dropped scrollWidth back to the
+// viewport. It now spans the sidebar edge to the window's right edge, so no
+// sidebar width can push it out, and nothing is clipped or hidden away.
+describe('maid-atelier top-trim page overflow', () => {
+  it('sizes the band from the sidebar edge to the window instead of shifting it past', () => {
+    const base = block('[data-skin-chrome="top-trim"]')
+    // Given the live sidebar width the shell publishes (0px once collapsed)
+    expect(base).toContain('left: var(--maid-sidebar-width, 280px)')
+    // When the box is pinned to the window's right edge
+    expect(base).toContain('right: 0')
+    expect(base).toContain('width: auto')
+    // Then nothing translates the box sideways any more and no window-wide
+    // width is reintroduced
+    expect(base).not.toContain('translate:')
+    expect(base).not.toContain('100vw')
+    // And the decoration still paints: this fix is geometry, not a clip
+    expect(base).not.toContain('display: none')
+    expect(base).not.toContain('clip-path')
+  })
+
+  it('keeps the band inside the viewport at rail and wide sidebar widths', () => {
+    // Given left = the sidebar width and right = 0, the width resolves to the
+    // content area, so the box's right edge is the window's right edge
+    for (const viewport of [390, 1440]) {
+      for (const sidebar of [52, 280]) {
+        const width = Math.max(0, viewport - sidebar)
+        // Then the box ends at the viewport, never past it
+        expect(sidebar + width, sidebar + 'px sidebar at ' + viewport + 'px viewport').toBeLessThanOrEqual(viewport)
+        // The geometry this replaced added exactly one sidebar width of scroll,
+        // which is the 442 and 1720 the host measured
+        expect(sidebar + viewport, 'old band ' + sidebar + '/' + viewport).toBeGreaterThan(viewport)
+      }
+    }
+  })
+
+  it('keeps the crest bow centered in the narrower band', () => {
+    // The band is already the content width, so subtracting the sidebar width
+    // again would pull the bow left by half of it
+    const bow = block('[data-skin-trim-layer="landing"]:after')
+    expect(bow).toContain('left: calc((100% - 8px) / 2)')
+    expect(bow).not.toContain('var(--maid-sidebar-width)')
   })
 })
 

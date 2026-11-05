@@ -181,14 +181,26 @@ body[data-maid-low-power] [data-maid-character] {
   transition: opacity .18s;
 }
 
+/* The band used to span the whole window and then shift right by the sidebar
+   width with translate, so its own box ended exactly one sidebar width past the
+   viewport: 442px at a 390 viewport with the 52px rail, 1720px at 1440 with the
+   280px sidebar, both of which are page-level horizontal scroll. Sizing it
+   between the sidebar edge and the window's right edge paints the same band
+   (the layers below repeat-x inside it) while the box itself cannot pass the
+   viewport at any sidebar width, including the 0px collapsed case. Written as
+   longhands so the geometry is readable and testable; the later titlebar rule
+   still overrides only top. */
 [data-skin-chrome="top-trim"] {
-  translate: var(--maid-sidebar-width, 280px) 0;
   z-index: 1;
   pointer-events: none;
   contain: paint;
   height: 76px;
   position: absolute;
-  inset: 0 0 auto;
+  top: 0;
+  right: 0;
+  bottom: auto;
+  left: var(--maid-sidebar-width, 280px);
+  width: auto;
   overflow: hidden;
 }
 
@@ -245,7 +257,11 @@ body:has([data-slot="main"] [data-plugin-detail]) [data-skin-chrome="top-trim"] 
 
 [data-skin-trim-layer="landing"]:after {
   content: "";
-  left: calc((100% - var(--maid-sidebar-width) - 8px) / 2);
+  /* The bow is centered in the band, and the band is now already the width of
+     the content area, so only the 8px optical inset remains. Subtracting the
+     sidebar width here would double-count it and pull the bow left by half the
+     sidebar: at 1440 that is 140px. */
+  left: calc((100% - 8px) / 2);
   background: var(--maid-bow-art) center / contain no-repeat;
   filter: drop-shadow(0 3px 6px #040b2352);
   width: 80px;
@@ -771,9 +787,9 @@ body[data-maid-sidebar-size="rail"] [data-cordis-badge] {
   min-width: min(300px, calc(100vw - var(--maid-sidebar-width) - 24px));
   --dsw-alias-bg-base: #e6edfaf5;
   --dsw-alias-label-primary: #17284f;
-  --dsw-alias-label-secondary: #304875;
-  --dsw-alias-label-tertiary: #526789;
-  --dsw-alias-label-caption: #6a7895;
+  --dsw-alias-label-secondary: #2d3a55;
+  --dsw-alias-label-tertiary: #404d67;
+  --dsw-alias-label-caption: #53607c;
   --dsw-alias-border-l1: #be9952b8;
   --dsw-alias-border-l2: #53699e57;
   --dsw-alias-interactive-bg-hover: #5670ae29;
@@ -847,9 +863,9 @@ body[data-ds-dark-theme] [data-cordis-panel] :is([data-cordis-approve], [data-co
   --dsw-alias-bg-overlay: #f8fafffa;
   --dsw-alias-label-primary: #172347;
   --dsw-alias-label-primary-bluish: #243866;
-  --dsw-alias-label-secondary: #4d5d7f;
-  --dsw-alias-label-tertiary: #6f7c99;
-  --dsw-alias-label-caption: #8a94aa;
+  --dsw-alias-label-secondary: #2d3a55;
+  --dsw-alias-label-tertiary: #404d67;
+  --dsw-alias-label-caption: #53607c;
   --dsw-alias-border-l1: #475b912e;
   --dsw-alias-border-l2-darkmode-thin: #475b9140;
   --dsw-alias-border-l2: #475b914d;
@@ -884,7 +900,7 @@ body[data-ds-dark-theme] [data-dsh-better-sidebar] {
   --dsw-alias-label-primary-bluish: #d5dff3;
   --dsw-alias-label-secondary: #bdc9e3;
   --dsw-alias-label-tertiary: #96a6c9;
-  --dsw-alias-label-caption: #7f90b4;
+  --dsw-alias-label-caption: #899cc2;
   --dsw-alias-border-l1: #97a9d833;
   --dsw-alias-border-l2-darkmode-thin: #97a9d84d;
   --dsw-alias-border-l2: #97a9d857;
@@ -1411,6 +1427,77 @@ body[data-ds-dark-theme] [class*="headline"] [class*="fish"] {
   filter: drop-shadow(0 2px 4px #ffffff6b);
 }
 
+/* Phones: the desktop content floor (560px) is wider than a 390px viewport, and
+   the preview badge hangs off the title's right edge, so both left the content
+   box at 390px. Drop the floor to the viewport, shrink the crest, and let the
+   badge take a centered row of its own instead of hanging past the title. */
+@media (max-width: 480px) {
+  [data-phase="hero"] {
+    --dsh-chat-content-width: 100%;
+    --dsh-composer-card-max-width: 100%;
+  }
+
+  [data-phase="hero"] :is([class*="headline"], [class*="Headline"]):has([class*="fish"]) {
+    box-sizing: border-box;
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+    gap: 22px;
+    font-size: clamp(20px, 5.4vw, 27px);
+    transform: translateY(-2px);
+  }
+
+  [data-phase="hero"] :is([class*="headline"], [class*="Headline"]) :is([class*="fishHitbox"], [class*="fish"]) {
+    width: 56px;
+    height: 56px;
+  }
+
+  /* The centered hairline rides the crest, which is 56px at this width. */
+  [data-phase="hero"] :is([class*="headline"], [class*="Headline"]):has([class*="fish"]):before {
+    top: 28px;
+  }
+
+  [data-phase="hero"] :is([class*="headlineText"], [class*="titleGroup"]) {
+    flex-wrap: wrap;
+    box-sizing: border-box;
+    max-width: 100%;
+  }
+
+  [data-phase="hero"] [class*="previewBadge"] {
+    position: static !important;
+    left: auto !important;
+    top: auto !important;
+    transform: none !important;
+    white-space: normal !important;
+    box-sizing: border-box;
+    max-width: 100%;
+    justify-self: center;
+    align-self: center;
+  }
+
+  /* The two column-resize handles place themselves from the content width:
+     left: calc(50% + var(--dsh-chat-content-width) / 2 + 24px). The desktop
+     axis floors that token at 680px, so on a 390px screen the strip lands past
+     the right edge, and its own width math min(10px, (100% - width) / 2 - 48px)
+     goes negative — which is invalid, so the strip falls back to its content
+     instead of the zero width the host intends for narrow columns. The document
+     then scrolls sideways. They are pointer drag affordances with no meaning on
+     touch, so the phone layout removes them rather than leaving a mispositioned
+     hit area outside the viewport. */
+  body [data-width-handle] {
+    display: none;
+  }
+
+  /* The dock band is a centered flex line whose chips are nowrap and do not
+     shrink, so a wide strip pushed the page sideways instead of wrapping. Wrap
+     only engages when the line does not fit, and nothing is hidden or clipped —
+     the collapsing dock keeps every chip and its own state. */
+  body [data-composer-dock] {
+    flex-wrap: wrap;
+    row-gap: 4px;
+  }
+}
+
 button[class*="workspace"][aria-expanded], button[class*="workspace"]:hover, button[class*="seat"][aria-expanded], button[class*="seat"]:hover {
   background: #fffdf88a;
 }
@@ -1860,8 +1947,8 @@ header[class*="header"] {
 [data-terminal] {
   --dsw-alias-markdown-code-block: #f9fafdf7;
   --dsw-alias-label-primary: #172347;
-  --dsw-alias-label-secondary: #4d5d7f;
-  --dsw-alias-label-tertiary: #6f7c99;
+  --dsw-alias-label-secondary: #2d3a55;
+  --dsw-alias-label-tertiary: #404d67;
   color: #172347;
   text-shadow: none;
 }
@@ -1903,8 +1990,8 @@ body[data-ds-dark-theme] [data-chat-flow-kind="assistant-step"] > * > * > * > di
 }
 
 body:not([data-ds-dark-theme]) :is([data-variant], [data-chat-flow-kind="context"]) {
-  --dsw-alias-label-secondary: #2f4778;
-  --dsw-alias-label-tertiary: #405273;
+  --dsw-alias-label-secondary: #2d3a55;
+  --dsw-alias-label-tertiary: #404d67;
 }
 
 body[data-ds-dark-theme] :is([data-variant], [data-chat-flow-kind="context"]) {
@@ -2031,8 +2118,8 @@ body[data-ds-dark-theme] [data-variant="think"] > [data-open="true"] > [data-dis
 
 body:not([data-ds-dark-theme]) [data-slot="conversation.session.header.actions"] [role="tree"] {
   --dsw-alias-label-primary: #233763;
-  --dsw-alias-label-secondary: #40557f;
-  --dsw-alias-label-tertiary: #596b8e;
+  --dsw-alias-label-secondary: #2d3a55;
+  --dsw-alias-label-tertiary: #404d67;
   --dsw-alias-label-dimmed: #8995ad;
   --dsw-alias-border-l2: #5f75a966;
   --dsw-alias-interactive-bg-hover: #677eb724;
@@ -2082,9 +2169,9 @@ body[data-ds-dark-theme] [data-slot="conversation.session.header.actions"] [role
 [data-question-key] {
   --dsw-alias-label-primary: #142044;
   --dsw-alias-label-primary-bluish: #233663;
-  --dsw-alias-label-secondary: #344a75;
-  --dsw-alias-label-tertiary: #50638c;
-  --dsw-alias-label-caption: #6d7994;
+  --dsw-alias-label-secondary: #2d3a55;
+  --dsw-alias-label-tertiary: #404d67;
+  --dsw-alias-label-caption: #53607c;
   --dsw-alias-label-dimmed: #a1a8b8;
   --dsw-alias-label-primary-foreground: #fffaf0;
   --dsw-alias-border-l1: #745b2f38;
@@ -2221,9 +2308,9 @@ body[data-ds-dark-theme] [data-question-key] footer > :last-child button:first-c
 
 [data-testid="todo-panel"] {
   --dsw-alias-label-primary: #172347;
-  --dsw-alias-label-secondary: #344b78;
-  --dsw-alias-label-tertiary: #52658c;
-  --dsw-alias-label-caption: #74809a;
+  --dsw-alias-label-secondary: #2d3a55;
+  --dsw-alias-label-tertiary: #404d67;
+  --dsw-alias-label-caption: #53607c;
   color: #172347;
   backdrop-filter: blur(14px) saturate(.9);
   background: #fcfaf5f0;
@@ -2266,9 +2353,9 @@ body[data-ds-dark-theme] [data-testid="todo-panel"] [class*="header"]:focus-visi
   color: var(--dsw-alias-label-primary, #172347);
   --dsw-alias-label-primary: #172347;
   --dsw-alias-label-primary-bluish: #243866;
-  --dsw-alias-label-secondary: #4d5d7f;
-  --dsw-alias-label-tertiary: #6f7c99;
-  --dsw-alias-label-caption: #8a94aa;
+  --dsw-alias-label-secondary: #2d3a55;
+  --dsw-alias-label-tertiary: #404d67;
+  --dsw-alias-label-caption: #53607c;
   --dsw-alias-border-l1: #475b912e;
   --dsw-alias-border-l2-darkmode-thin: #475b9140;
   --dsw-alias-border-l2: #475b914d;
@@ -2289,7 +2376,7 @@ body[data-ds-dark-theme] :is([role="dialog"], [role="menu"], [data-radix-popper-
   --dsw-alias-label-primary-bluish: #d5dff3;
   --dsw-alias-label-secondary: #bdc9e3;
   --dsw-alias-label-tertiary: #96a6c9;
-  --dsw-alias-label-caption: #7f90b4;
+  --dsw-alias-label-caption: #899cc2;
   --dsw-alias-border-l1: #97a9d833;
   --dsw-alias-border-l2-darkmode-thin: #97a9d84d;
   --dsw-alias-border-l2: #97a9d857;
@@ -2515,9 +2602,9 @@ body[data-ds-dark-theme] [class*="titlebar"] {
   --dsw-alias-bg-overlay: rgba(248, 250, 255, 0.98);
   --dsw-alias-label-primary: #172347;
   --dsw-alias-label-primary-bluish: #243866;
-  --dsw-alias-label-secondary: #4d5d7f;
-  --dsw-alias-label-tertiary: #6f7c99;
-  --dsw-alias-label-caption: #8a94aa;
+  --dsw-alias-label-secondary: #2d3a55;
+  --dsw-alias-label-tertiary: #404d67;
+  --dsw-alias-label-caption: #53607c;
   --dsw-alias-border-l1: rgba(71, 91, 145, 0.18);
   --dsw-alias-border-l2-darkmode-thin: rgba(71, 91, 145, 0.25);
   --dsw-alias-border-l2: rgba(71, 91, 145, 0.3);
@@ -2552,7 +2639,7 @@ body[data-ds-dark-theme] [data-dsh-better-sidebar] {
   --dsw-alias-label-primary-bluish: #d5dff3;
   --dsw-alias-label-secondary: #bdc9e3;
   --dsw-alias-label-tertiary: #96a6c9;
-  --dsw-alias-label-caption: #7f90b4;
+  --dsw-alias-label-caption: #899cc2;
   --dsw-alias-border-l1: rgba(151, 169, 216, 0.2);
   --dsw-alias-border-l2-darkmode-thin: rgba(151, 169, 216, 0.3);
   --dsw-alias-border-l2: rgba(151, 169, 216, 0.34);

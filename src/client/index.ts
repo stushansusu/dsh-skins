@@ -54,6 +54,7 @@ import { SKIN_CUSTOM_THEME_NS, type CustomThemeConfig } from '../core/custom-the
 import { settingsSection } from './settings-section.ts'
 import { boundConfigForm } from './settings-entry-id.ts'
 import { reportDailyHeartbeat } from './telemetry.ts'
+import { installSkinCenterSeat } from './extension-seat.ts'
 
 export type { SkinCenterComponentProps, SkinCenterInjected } from './SkinCenter.tsx'
 export { bootSkinRuntime } from './runtime/boot.ts'
@@ -442,22 +443,12 @@ export function apply(ctx: ClientContext): void {
     ),
   })
 
-  // First-level settings section: the Skin Center card as its own top-level
-  // settings page. Browsing and installing new skins happens in the DSH
-  // Market store; this section manages the installed ones (try-on, apply,
-  // wallpaper, custom theme).
-  ctx.slots.inject('settings.section', () => {
-    try {
-      return ctx.slots.register({
-        name: 'settings.section',
-        id: 'skin-center',
-        order: 120,
-        label: () => ctx.locale.bind('skinCenter')('title'),
-        locale: 'skinCenter',
-        inject: injected,
-      }, SkinCenterSection)
-    } catch {
-      return () => {}
-    }
-  })
+  // The consolidated family shell mounts this page as the skin TAB inside Web
+  // Extensions; an older shell keeps the original first-level section. One
+  // reconciler owns the move so neither deployment ever renders both entries.
+  ctx.effect(() => installSkinCenterSeat(ctx, {
+    inject: injected,
+    label: () => ctx.locale.bind('skinCenter')('title'),
+    component: SkinCenterSection,
+  }), 'ui-skin-center: settings seat')
 }

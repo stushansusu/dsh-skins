@@ -8,11 +8,13 @@
  * installed, because an installed-and-enabled plugin that the card hid until
  * the user went to the store is a plugin nobody finds.
  *
- * It is a full-width bar ABOVE the skin grid, not a tile among them: it has no
- * preview image (the plugin paints, and this package holds no screenshot of
- * it), so a tile sized for a 16:9 thumbnail would be mostly empty. The bar
- * carries the same head / tagline / actions shape as the custom-theme card
- * below the grid, so the two non-asset looks read as the same kind of row.
+ * It sits in the plugin-looks group at the head of the page, beside the
+ * Wallpaper Engine card, not among the skin tiles: it has no preview image
+ * (the plugin paints, and this package holds no screenshot of it), so a tile
+ * sized for a 16:9 thumbnail would be mostly empty. It carries the same
+ * head / description / actions shape as the card beside it, and the catalog
+ * tagline stays off the card because the localized description already says
+ * what applying it gives you.
  *
  * The body is the LOOK, not the row's state: a short description of what
  * applying it gives you. State belongs to the badge (this row is active) and
@@ -95,6 +97,11 @@ export interface DelegatedSkinCardProps {
    * the handoff working, not a plugin that failed to load.
    */
   yieldedToSkin: boolean
+  /**
+   * False while the skin center is switched off: the row still installs and
+   * links to its plugin, but offers no try-on or apply. Omitted means true.
+   */
+  selectable?: boolean
   busy: boolean
   disabled: boolean
   onTryOn: () => void
@@ -140,9 +147,9 @@ export function DelegatedSkinCard(props: DelegatedSkinCardProps): ReactNode {
   // (live and able to yield back), or it will the moment nothing else paints
   // (yielded to the skin this card has selected). A plugin that is installed
   // but neither live nor yielding is not on this page at all.
-  const applicable = payload.installed && theme.live
+  const applicable = props.selectable !== false && (payload.installed && theme.live
     ? theme.canYield
-    : payload.installed && yieldedToSkin
+    : payload.installed && yieldedToSkin)
   const claimable = payload.installed && theme.live && !theme.canYield
 
   const onInstall = (): void => {
@@ -169,25 +176,28 @@ export function DelegatedSkinCard(props: DelegatedSkinCardProps): ReactNode {
   // One line, and only where the row withholds the selection buttons: the
   // reason it withholds them. Everything else about the state is already on
   // screen (the badge says active, the buttons say pickable).
-  const blocker = claimable
+  const blocker = props.selectable === false
+    ? null
+    : claimable
     ? t('delegatedSkinNoHandoff')
     : payload.installed && !applicable && !yieldedToSkin
       ? t('delegatedSkinNotRunning')
       : null
 
   return (
-    <div className={`${css.card} ${css.delegatedCard}`} data-delegated-skin={manifest.id}>
+    <div className={`${css.card} ${css.delegatedCard} ${css.pluginLookCard}`} data-delegated-skin={manifest.id}>
       <div className={css.cardHead}>
         <span className={css.swatch} style={{ background: accent }} aria-hidden="true" />
         <span className={css.cardName} title={manifest.nameEn}>{manifest.nameEn}</span>
-        <span className={css.delegatedBadge}>{t('delegatedSkinBadge')}</span>
-        {(isActive || isTrying) && (
-          <span className={`${css.badge} ${isActive && !isTrying ? css.badgeActive : css.badgeTrying}`}>
-            {isActive && !isTrying ? t('active') : t('tryingOn')}
-          </span>
-        )}
+        <span className={css.headPills}>
+          <span className={css.delegatedBadge}>{t('delegatedSkinBadge')}</span>
+          {(isActive || isTrying) && (
+            <span className={`${css.badge} ${isActive && !isTrying ? css.badgeActive : css.badgeTrying}`}>
+              {isActive && !isTrying ? t('active') : t('tryingOn')}
+            </span>
+          )}
+        </span>
       </div>
-      <div className={css.cardTagline} title={manifest.tagline ?? ''}>{manifest.tagline ?? ''}</div>
       <p className={css.delegatedDescription}>{description}</p>
       {blocker !== null && <p className={css.delegatedStatus} role="status">{blocker}</p>}
       {error !== null && (

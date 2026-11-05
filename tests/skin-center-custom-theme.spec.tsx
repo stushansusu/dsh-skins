@@ -132,10 +132,18 @@ async function renderSkinCenter(options: {
   })
 }
 
-function inputByLabel(label: string): HTMLInputElement {
-  const input = host.querySelector(`input[aria-label="${label}"]`)
-  if (!(input instanceof HTMLInputElement)) throw new Error(`missing input ${label}`)
-  return input
+function stepperByLabel(label: string): HTMLElement {
+  const stepper = host.querySelector(`[role="group"][aria-label="${label}"]`)
+  if (!(stepper instanceof HTMLElement)) throw new Error(`missing stepper ${label}`)
+  return stepper
+}
+
+function step(label: string, direction: 'up' | 'down', times: number): void {
+  const stepper = stepperByLabel(label)
+  const buttons = stepper.querySelectorAll('button')
+  const button = direction === 'up' ? buttons[0] : buttons[1]
+  if (!(button instanceof HTMLButtonElement)) throw new Error(`missing ${direction} button for ${label}`)
+  for (let index = 0; index < times; index++) button.click()
 }
 
 function cardNamed(name: string): HTMLElement {
@@ -189,34 +197,26 @@ describe('SkinCenter custom theme placement', () => {
 })
 
 describe('SkinCenter background controls', () => {
-  it('renders and persists the bubble opacity slider', async () => {
+  it('renders and persists the bubble opacity stepper', async () => {
     const setBubbleOpacity = vi.fn()
     await renderSkinCenter({ setBubbleOpacity })
 
-    const input = inputByLabel(t('bubbleOpacity'))
-    expect(input.id).toBe('skin-center-bubble-opacity')
-    expect(input.value).toBe('50')
-    await act(async () => {
-      input.value = '65'
-      input.dispatchEvent(new Event('input', { bubbles: true }))
-      input.dispatchEvent(new Event('change', { bubbles: true }))
-    })
-    expect(setBubbleOpacity).toHaveBeenCalledWith(65)
+    const stepper = stepperByLabel(t('bubbleOpacity'))
+    expect(stepper.id).toBe('skin-center-bubble-opacity')
+    expect(stepper.querySelector('output')?.textContent).toBe('50')
+    await act(async () => { step(t('bubbleOpacity'), 'up', 1) })
+    expect(setBubbleOpacity).toHaveBeenCalledWith(55)
   })
 
-  it('renders and persists the bubble blur slider', async () => {
+  it('renders and persists the bubble blur stepper', async () => {
     const setBubbleBlur = vi.fn()
     await renderSkinCenter({ setBubbleBlur })
 
-    const input = inputByLabel(t('bubbleBlur'))
-    expect(input.id).toBe('skin-center-bubble-blur')
-    expect(input.value).toBe('10')
-    await act(async () => {
-      input.value = '18'
-      input.dispatchEvent(new Event('input', { bubbles: true }))
-      input.dispatchEvent(new Event('change', { bubbles: true }))
-    })
-    expect(setBubbleBlur).toHaveBeenCalledWith(18)
+    const stepper = stepperByLabel(t('bubbleBlur'))
+    expect(stepper.id).toBe('skin-center-bubble-blur')
+    expect(stepper.querySelector('output')?.textContent).toBe('10')
+    await act(async () => { step(t('bubbleBlur'), 'up', 1) })
+    expect(setBubbleBlur).toHaveBeenCalledWith(11)
   })
 })
 

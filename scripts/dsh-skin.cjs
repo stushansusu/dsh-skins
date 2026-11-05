@@ -31,6 +31,13 @@ const path = require('node:path')
 const { pathToFileURL } = require('node:url')
 
 const LIB_PATH = path.join(__dirname, '..', 'lib', 'index.js')
+/**
+ * The CSS safety transform lives in its own bundle (issue #98): the package
+ * root must stay free of lightningcss so the DSH host never maps the native
+ * addon. Older packages carry the transform at the root instead, hence the
+ * fallback in loadLib().
+ */
+const CSS_SAFETY_LIB_PATH = path.join(__dirname, '..', 'lib', 'css-safety.js')
 
 /** One skin id: a plain directory name, never a path (mirrors the skin-center contract). */
 const SKIN_ID = /^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$/
@@ -38,7 +45,10 @@ const SKIN_ID = /^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$/
 /** Load the skin-center contract surface (ESM lib from this CJS CLI). */
 async function loadLib() {
   try {
-    return await import(pathToFileURL(LIB_PATH).href)
+    const lib = await import(pathToFileURL(LIB_PATH).href)
+    const cssSafetyPath = fs.existsSync(CSS_SAFETY_LIB_PATH) ? CSS_SAFETY_LIB_PATH : LIB_PATH
+    const cssSafety = await import(pathToFileURL(cssSafetyPath).href)
+    return { ...lib, transformSkinCss: cssSafety.transformSkinCss }
   } catch (error) {
     console.error('dsh-skin: cannot load the skin-center lib — run "pnpm --filter @linxin666/dsh-client-ui-skin-center build" first.')
     console.error(String(error && error.message ? error.message : error))

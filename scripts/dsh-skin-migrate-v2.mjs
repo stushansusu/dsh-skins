@@ -313,8 +313,6 @@ const SEMANTIC_EXACT = new Map(Object.entries({
   'data-side': ['data-dsh-part', 'resize-handle'],
   'data-dsh-taskboard-view': ['data-dsh-plugin', 'task-board'],
   'data-dsh-ssh-view': ['data-dsh-plugin', 'ssh'],
-  'data-gitgraph-chip-anchor': ['data-dsh-part', 'chip'],
-  'data-gitgraph-dialog': ['data-dsh-part', 'dialog'],
   'data-dsh-pet-root': ['data-dsh-plugin', 'pet'],
 }))
 

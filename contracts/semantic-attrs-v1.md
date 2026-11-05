@@ -71,7 +71,7 @@
 皮肤中心不写委托插件的任何属性，委托插件不写 `data-dsh-skin`，双方都无法把
 对方卡死。委托皮肤的选择会照常持久化、开机采纳与试穿还原；让路暂停的是
 视觉，不是插件的设置页与偏好。
-## part 组（78 行，含各 owner 行）
+## part 组（99 行，含各 owner 行）
 
 shell 区域（owner: shell）：
 
@@ -112,11 +112,7 @@ family / 插件区域：
 | `host-table` / `host-row` | ssh | 主机表/行；`[data-dsh-ssh-view]` 内 table/tr |
 | `terminal` | ssh | xterm 终端；面板内 termContainer（.xterm 辅锚） |
 | `banner` | ssh | 状态横幅；`[data-kind]` 横幅 |
-| `chip` | git-graph | 分支 chip；`[data-gitgraph-chip-anchor]` |
-| `dialog` | git-graph | 图对话框；`[data-gitgraph-dialog]` |
-| `graph-row` | git-graph | 提交行；dialog 内行容器 |
-| `ref` | git-graph | 分支徽标；`[data-gitgraph-ref]` |
-| `worktree-create` / `worktree-manage` | git-graph | worktree 创建/管理入口按钮；分支弹层 footer 内裸值按钮 |
+| `diagram` | diagrams | mermaid 图示容器；`[data-dsh-part="diagram"]`，外观由 mermaid SVG 自带 |
 | `sprite` | pet | 精灵；`[data-dsh-pet-root]` 子树 float 容器 |
 | `bubble` | pet | 气泡容器 |
 | `announcement` | pet | 插件公告气泡（dsh-usage 联动）；`[data-dsh-pet-announcement]`，值来源插件标签 |
@@ -124,9 +120,14 @@ family / 插件区域：
 | `summon-button` | pet | 召唤钮；`[data-testid="pet-summon"]` |
 | `preset-panel` | preset-center | 创意工坊「预设」标签页面板根；`[data-dsh-plugin="preset-center"] [data-dsh-part="preset-panel"]` |
 | `plugin-item` | web-ui-settings | 家族插件设置卡；`[data-slot="web-ui.plugin.item"]` 内 entry |
+| `extensions` | web-ui-settings | 「Web 扩展」父级根；一级 `settings.section` id `web-ui-plugins` 的内容容器 |
+| `tabs` / `tab` / `panel` | web-ui-settings | 「Web 扩展」二级 TAB 导航、TAB 按钮与当前页面容器；`[role="tablist"]` / `[role="tab"]` / `[role="tabpanel"]` |
+| `panel` | skin-center | 皮肤设置卡根；`[data-dsh-plugin="skin-center"][data-dsh-part="panel"]` |
 | `tab-bar` / `tab` | skill-explorer | 技能中心页签条/页签（中间列面板，同 ssh）；`[data-dsh-plugin="skill-explorer"] [data-dsh-part="tab-bar"]` / `[data-dsh-plugin="skill-explorer"] [data-dsh-part="tab"]` |
 | `skill-row` | skill-explorer | 技能卡行；`[data-dsh-plugin="skill-explorer"] [data-dsh-part="skill-row"]` |
 | `filter-bar` | skill-explorer | 技能列表筛选条（搜索框 + 工作区选择 + 刷新）；`[data-dsh-plugin="skill-explorer"] [data-dsh-part="filter-bar"]` |
+| `entry` | message-edit | 回合末尾的「编辑并重发」触发按钮；`[data-dsh-plugin="message-edit"] [data-dsh-part="entry"]` |
+| `editor` | message-edit | 回合末尾的内联编辑器根，包含文本框、分支副作用提示与提交操作；`[data-dsh-plugin="message-edit"] [data-dsh-part="editor"]` |
 | `entry` | session-id | 侧栏 footer 触发器；`button[data-dsh-part="entry"]`（`[data-dsh-plugin="session-id"]` 容器内） |
 | `panel` | session-id | 会话 ID 模态面板；`[role="dialog"]` 根（`[data-dsh-part="panel"]`） |
 | `row` | session-id | 会话列表行；面板内行容器（`[data-dsh-part="row"]`） |
@@ -159,6 +160,26 @@ family / 插件区域：
 | `lever-arm` | liangshen | 拨杆臂（拉杆 + 球头，随状态转动）；lever 内 `[data-dsh-part="lever-arm"]` |
 | `lever-burst` | liangshen | 拨下命中后的中奖特效浮层（闪光 / 冲击环 / 火花 / 横幅）；`[data-dsh-part="lever-burst"]`，`prefers-reduced-motion` 下退化为淡出 |
 | `lever-banner` | liangshen | 特效中的梁神横幅（模式名 + 文言文/二进制/摩斯三行）；burst 内 `[data-dsh-part="lever-banner"]` |
+| `panel` | browser-view | 右侧栏标签页主体根（工具栏 + 帧 + 动作行）；`[data-dsh-plugin="browser-view"][data-dsh-part="panel"]` |
+| `toggle` | browser-view | 会话头「浏览器」快捷按钮（打开或聚焦该标签页）；`[data-dsh-part="toggle"]` |
+| `toolbar` | browser-view | 顶部工具条（地址显示 + 连接状态 + 刷新），38px 高与官方浏览器标签页同构；panel 内 `[data-dsh-part="toolbar"]` |
+| `address` | browser-view | 被控页面地址的只读显示（截断、可复制）；toolbar 内 `[data-dsh-part="address"]` |
+| `status` | browser-view | 连接状态标记（连接中 / 加载中 / 实时），文案随状态变化；toolbar 内 `[data-dsh-part="status"]` |
+| `tabs` | browser-view | 被控浏览器的标签页 chips（仅在多于一张时绘制）；panel 内 `[data-dsh-part="tabs"]` |
+| `frame` | browser-view | 实时帧图像（`<img>`，`object-fit: contain`）；panel 内 `[data-dsh-part="frame"]` |
+| `trace` | browser-view | 底部动作行（最近一次工具动作的可读摘要）；panel 内 `[data-dsh-part="trace"]` |
+| `empty` | browser-view | 尚未收到画面时的空态占位；panel 内 `[data-dsh-part="empty"]` |
+| `error` | browser-view | 宿主上报错误时的错误态占位；panel 内 `[data-dsh-part="error"]` |
+| `tab-title` | browser-view | 右栏 chip 内本插件自有部分（图标 + 标题），chip 行盒归 shell；`[data-dsh-plugin="browser-view"] [data-dsh-part="tab-title"]` |
+| `update-toolbar` | dsh-plugin-manager | 官方「插件」页「已安装插件」组标题行内的检查更新工具条（页面不声明该席位，容器插进 `[data-plugin-group="bundles"]` 的首个子元素并随页面重绘复位）；`[data-dsh-plugin-manager-toolbar]` |
+| `builtin-group` | dsh-plugin-manager | 官方「插件」页列表底部追加的内置插件分组根（页面不声明该席位，作为已安装面板的后续兄弟挂载）；`data-builtin-state` 为 `loading` / `unavailable` / `failed` / `ready`，`data-builtin-bundles` 为 `confirmed` / `unconfirmed` |
+| `builtin-row` | dsh-plugin-manager | 内置插件分组内的一行：标题、模块名、锁定原因与启停开关；`data-entry-id` 为 loader 行 id，`data-write` 为 `writable` / `management-required` / `unaddressable` / `unknown` |
+| `builtin-notice` | dsh-plugin-manager | 内置插件分组标题下的操作反馈行；失败为 `role="alert"`，其余为 `role="status"` |
+| `preset-group` | dsh-plugin-manager | 内置插件分组下方的只读 Agent 预设区块根（预设行由组合决定，不提供开关） |
+| `preset` | dsh-plugin-manager | 一个 Agent 预设卡；`data-preset-id` 为预设 id，`data-default` 为 `yes` / `no` |
+| `preset-row` | dsh-plugin-manager | 预设组合中的一行（模块名 + 状态）；`data-preset-state` 为 `on` / `off` / `conditional`，条件行同时给出表达式 |
+| `builtin-scope` | dsh-plugin-manager | 内置插件分组标题右侧的展开/收起控件，切换「只列无所属组合包的行」与「追加全部 Loader 行」两态；`aria-expanded` 表示当前是否展开，`aria-controls` 指向它切换的列表元素，`[data-dsh-part="builtin-scope"]` |
+| `builtin-owner` | dsh-plugin-manager | 展开态中已归属行内的次要文本，写明这一行同时属于哪个已安装组合包（文案形如「来自 <包名>」）；行内 `[data-dsh-part="builtin-owner"]` |
 
 ### 面板行身份锚点 `data-dsh-panel-entry`（owner: 各注册面板的插件）
 
@@ -175,24 +196,27 @@ shell 的 `[class*="panelGlyph"]` 内）。shell 目前不把 entry id 透传到
 不进 `data-dsh-plugin`：plugin 属性标记插件面板根，皮肤里已有
 `[data-dsh-plugin="ssh"] [class*="panel"]` 一类把根当作面板子树起点的规则，把字形也算进去会误伤。
 
-## plugin 组（14 个）
+## plugin 组（17 个）
 
 | data-dsh-plugin | owner | 锚定方式 |
 | --- | --- | --- |
 | `task-board` | dsh-task-board | `[data-dsh-taskboard-view]` / 面板行字形 `[data-dsh-panel-entry="task-board"]` / `sidebar.panellist` entry id |
 | `ssh` | dsh-ssh | `[data-dsh-ssh-view]` / 面板行字形 `[data-dsh-panel-entry="ssh"]` |
-| `git-graph` | dsh-git-graph | slot entry id `git-graph`；`[data-gitgraph-chip-anchor]` / `[data-gitgraph-dialog]` |
-| `pet` | dsh-pet | `[data-dsh-pet-root]`；一级设置分区 settings.section id `pet`（只列内置与已安装宠物） |
+| `pet` | dsh-pet | `[data-dsh-pet-root]`；设置页 `[data-dsh-plugin="pet"]`（Web 扩展 keyed id `pet`，独立安装时为一级 settings.section id `pet`，只列内置与已安装宠物） |
 | `remote-web-ui` | dsh-remote-web-ui | slot entry id `remote-web-ui` |
 | `update` | dsh-update | footer action slot entry id `update`；`[data-dsh-plugin="update"]`（面板根 + 入口触发器） |
-| `web-ui-settings` | dsh-web-settings | settings.section id `web-ui-plugins` |
+| `web-ui-settings` | dsh-web-settings | 一级 settings.section id `web-ui-plugins`；`[data-dsh-plugin="web-ui-settings"][data-dsh-part="extensions"]` 父级根 |
 | `skill-explorer` | dsh-skill-explorer | `[data-dsh-skill-explorer-view]` / 面板行字形 `[data-dsh-panel-entry="skill-explorer"]` |
-| `dsh-web-ui-market` | dsh-market | 创意工坊商店一级页（settings.section id `dsh-web-ui-market`），商店卡与目录条目容器 |
-| `skin-center` | skins/skin-center | 一级设置分区 settings.section id `skin-center`（列已安装皮肤，属内置源时显式标记） |
+| `diagrams` | dsh-diagrams | 渲染出的图示容器 `[data-dsh-plugin="diagrams"][data-dsh-part="diagram"]`（原始代码块仅隐藏，不在皮肤面内） |
+| `dsh-web-ui-market` | dsh-market | 创意工坊商店页 `[data-dsh-plugin="dsh-web-ui-market"]`（Web 扩展 keyed id `dsh-workshop`，独立安装时为一级 settings.section id `dsh-workshop`），商店卡与目录条目容器 |
+| `skin-center` | skins/skin-center | 设置卡 `[data-dsh-plugin="skin-center"]`（Web 扩展 keyed id `skin-center`，独立安装时为一级 settings.section id `skin-center`，列已安装皮肤，属内置源时显式标记） |
 | `session-id` | dsh-session-id | footer action slot entry id `session-id`；`[data-dsh-plugin="session-id"]`（面板 overlay 根 + 入口触发器） |
-| `usage` | dsh-usage | 一级设置分区 settings.section id `dsh-usage`（创意工坊下方）；`[data-dsh-plugin="usage"]`；侧栏底部速览卡容器 `[data-dsh-usage-foot-card]` |
+| `message-edit` | dsh-message-edit | `conversation.chat.turnTail` slot entry id `message-edit`；`[data-dsh-plugin="message-edit"]`（触发按钮 + 内联编辑器根） |
+| `usage` | dsh-usage | 设置页 `[data-dsh-plugin="usage"]`（Web 扩展 keyed id `dsh-usage`，独立安装时为一级 settings.section id `dsh-usage`）；侧栏底部速览卡容器 `[data-dsh-usage-foot-card]` |
 | `preset-center` | dsh-preset-center | 创意工坊卡片的「预设」标签页面板（`dsh-workshop.panel` keyed 槽 key `preset`）；`[data-dsh-plugin="preset-center"]` |
 | `liangshen` | dsh-liangshen | 首页输入框内的梁神模式拨杆；`[data-dsh-plugin="liangshen"][data-dsh-part="lever"]`，slot entry id `liangshen-lever` |
+| `browser-view` | dsh-browser-view | 右栏标签页类型 id `@linxin666/dsh-client-ui-browser-view`（`sidebar.right.pane.tab` 与 `.title` 的 key）；`[data-dsh-plugin="browser-view"]`（面板根 + 会话头触发器）；chip 内自有部分 `[data-dsh-part="tab-title"]` |
+| `plugin-manager` | dsh-plugin-manager | 官方「插件」页上本插件的两处注入：检查更新工具条根与内置插件分组根；`[data-dsh-plugin="plugin-manager"]` |
 
 ## 已知脆弱点（上游主题缝 PR 诉求）
 

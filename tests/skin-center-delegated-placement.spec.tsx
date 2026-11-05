@@ -2,10 +2,10 @@
 /**
  * The delegated row's place in the card.
  *
- * It is a full-width bar ABOVE the skin grid, not a tile in it: the plugin
- * paints this look, so there is no preview image to fill a 16:9 thumbnail
- * with, and a tile would be mostly empty space. The grid is for the asset
- * directories this package loads, each with an image to show.
+ * It is a card at the head of the page, beside the Wallpaper Engine card, not a
+ * tile in the skin grid: the plugin paints this look, so there is no preview
+ * image to fill a 16:9 thumbnail with. The grid is for the asset directories
+ * this package loads, each with an image to show.
  */
 import { act } from 'react'
 import { createRoot, type Root } from 'react-dom/client'
@@ -137,7 +137,7 @@ beforeEach(() => {
 afterEach(() => { act(() => { root.unmount() }) })
 
 describe('the delegated row placement', () => {
-  it('renders as a bar above the skin grid, not as a tile in it', async () => {
+  it('renders as a card above the skin grid, not as a tile in it', async () => {
     // Given a catalog holding one asset skin and the delegated row
     await render()
 
@@ -160,16 +160,20 @@ describe('the delegated row placement', () => {
     expect(row!.parentElement).not.toBe(grid)
   })
 
-  it('is the first thing in the list, ahead of the stock-look tile', async () => {
+  it('leads the page in the plugin-looks group, ahead of the skin settings', async () => {
     // Given the same catalog
     await render()
 
     // When the card renders
-    const list = host.querySelector('[class*="list"]')
-    const first = list?.firstElementChild
+    const group = host.querySelector('section[aria-labelledby="skin-center-plugin-looks"]')
+    const enableSwitch = host.querySelector('[role="switch"]')
 
-    // Then the delegated row opens the list, above the official tile
-    expect(first?.getAttribute('data-delegated-skin')).toBe('claude-style')
+    // Then the delegated card sits in the titled group, and the group comes
+    // before the skin center's own switch and settings
+    expect(group?.querySelector('h3')?.textContent).toBe(zh.pluginLooksTitle)
+    expect(group?.querySelector('[data-delegated-skin="claude-style"]')).not.toBeNull()
+    // eslint-disable-next-line no-bitwise
+    expect(group!.compareDocumentPosition(enableSwitch!) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
   })
 
   it('reads its state from the injected delegated handle, not from the catalog', async () => {

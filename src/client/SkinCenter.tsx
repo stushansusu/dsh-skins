@@ -28,7 +28,8 @@ import { ExternalWallpaperNotice } from './ExternalWallpaperNotice.tsx'
 import { DelegatedSkinCard } from './DelegatedSkinCard.tsx'
 import { createDelegatedSkinHandle, type DelegatedSkinHandle } from './delegated-skin-handle.ts'
 import { CustomThemeCard } from './CustomThemePanel.tsx'
-import { SliderControl } from './SliderControl.tsx'
+import { SegmentGroup } from './SegmentGroup.tsx'
+import { StepperControl } from './StepperControl.tsx'
 import css from './skin-center.module.css'
 
 /** Business face the skin-center apply() injects into the card. */
@@ -66,18 +67,6 @@ const INERT_DELEGATED = createDelegatedSkinHandle(
 )
 
 /**
- * Live-label helper: the shown value follows the in-drag thumb immediately,
- * and falls back to the store value once the store settles (issue #725).
- */
-function useLiveValue(value: number): [number, (v: number | null) => void] {
-  const [live, setLive] = useState<number | null>(null)
-  useEffect(() => {
-    setLive(null)
-  }, [value])
-  return [live ?? value, setLive]
-}
-
-/**
  * Render the skin-center card: a static header naming the plugin, with the
  * always-visible skin list (official default + every installed skin; try-on /
  * theme preview / one-click apply) rendered below it.
@@ -93,15 +82,9 @@ export function SkinCenter({ t, runtime, theme, background, externalWallpaper, d
   const inputCardBlur = useSyncExternalStore(background.subscribe, background.inputCardBlur)
   const bubbleOpacity = useSyncExternalStore(background.subscribe, background.bubbleOpacity)
   const bubbleBlur = useSyncExternalStore(background.subscribe, background.bubbleBlur)
-  const [shownOpacity, setShownOpacity] = useLiveValue(opacity)
-  const [shownBlurEmpty, setShownBlurEmpty] = useLiveValue(blurEmpty)
-  const [shownBlurContent, setShownBlurContent] = useLiveValue(blurContent)
-  const [shownInputCardBlur, setShownInputCardBlur] = useLiveValue(inputCardBlur)
-  const [shownBubbleOpacity, setShownBubbleOpacity] = useLiveValue(bubbleOpacity)
-  const [shownBubbleBlur, setShownBubbleBlur] = useLiveValue(bubbleBlur)
   const catalog = useSyncExternalStore(runtime.subscribe, runtime.catalog)
-  // Delegated rows render as bars above the grid; the grid holds only the
-  // asset skins this package loads, each with a preview image to show.
+  // Delegated rows render as cards at the head of the page; the grid holds only
+  // the asset skins this package loads, each with a preview image to show.
   const delegatedEntries = (catalog ?? []).filter(isDelegatedCatalogSkin)
   const isAssetSkin = (entry: CatalogSkin): boolean => !isDelegatedCatalogSkin(entry)
   const state = useSyncExternalStore(runtime.subscribe, runtime.controller.getState)
@@ -553,7 +536,7 @@ export function SkinCenter({ t, runtime, theme, background, externalWallpaper, d
   }
 
   return (
-    <li className={css.pluginCard}>
+    <li className={css.pluginCard} data-dsh-plugin="skin-center" data-dsh-part="panel">
       <div className={css.cardHeaderStatic}>
         <span className={css.headText}>
           <span className={css.pluginName}>
@@ -565,7 +548,37 @@ export function SkinCenter({ t, runtime, theme, background, externalWallpaper, d
       </div>
 
       <div className={css.cardBody}>
-            <ExternalWallpaperNotice t={t} />
+            {/* The looks other plugins paint lead the page as cards of their
+                own: they are installed and managed apart from the asset skins
+                below, so they read as neighbours of this page, not entries in
+                its grid. Selection waits for the skin center to be on. */}
+            <section className={css.pluginLooks} aria-labelledby="skin-center-plugin-looks">
+              <h3 className={css.groupHeading} id="skin-center-plugin-looks">{t('pluginLooksTitle')}</h3>
+              <div className={css.pluginLookGrid}>
+                <ExternalWallpaperNotice t={t} />
+                {delegatedEntries.map(entry => {
+                  const id = entry.manifest.id
+                  return (
+                    <DelegatedSkinCard
+                      key={id}
+                      t={t}
+                      skin={entry}
+                      theme={delegatedStates[id] ?? { live: false, canYield: false }}
+                      isActive={id === activeId && !previewing}
+                      isTrying={previewing && id === tryingId}
+                      yieldedToSkin={paintsOverDelegated(entry, delegatedStates[id])}
+                      selectable={enabled}
+                      busy={busyId === id}
+                      disabled={busyId !== null || uninstallingId !== null}
+                      onTryOn={() => { tryOn(entry) }}
+                      onExitTryOn={exitTryOn}
+                      onApply={() => { applySkin(id) }}
+                      onInstalled={() => { void runtime.refreshCatalog() }}
+                    />
+                  )
+                })}
+              </div>
+            </section>
             {state.stoodDown && (
               <div className={css.externalWallpaperNotice} role="status">
                 <div className={css.externalWallpaperTitle}>{t('stoodDownTitle')}</div>
@@ -590,24 +603,16 @@ export function SkinCenter({ t, runtime, theme, background, externalWallpaper, d
               ? (
                 <>
                   <div className={css.head}>
-                    <div className={css.intro} title={t('intro')}>{t('intro')}</div>
                     <div className={css.toolbar}>
                       <div className={css.themeRow}>
                         <span className={css.themeLabel}>{t('theme')}</span>
-                        <button
-                          type="button"
-                          className={`${css.themeButton} ${dark ? '' : css.themeButtonActive}`}
-                          onClick={() => { theme.setTheme('light') }}
-                        >
-                          {t('themeLight')}
-                        </button>
-                        <button
-                          type="button"
-                          className={`${css.themeButton} ${dark ? css.themeButtonActive : ''}`}
-                          onClick={() => { theme.setTheme('dark') }}
-                        >
-                          {t('themeDark')}
-                        </button>
+                        <SegmentGroup
+                          label={t('theme')}
+                          options={[
+                            { key: 'light', label: t('themeLight'), active: !dark, onSelect: () => { theme.setTheme('light') } },
+                            { key: 'dark', label: t('themeDark'), active: dark, onSelect: () => { theme.setTheme('dark') } },
+                          ]}
+                        />
                       </div>
                       <div className={css.actionRow}>
                       <button
@@ -665,20 +670,17 @@ export function SkinCenter({ t, runtime, theme, background, externalWallpaper, d
                   <div className={css.backgroundRow}>
                     <div className={css.backgroundHead}>
                       <span className={css.backgroundLabel}>{t('backgroundOpacity')}</span>
-                      <span className={css.backgroundValue} aria-hidden="true">{shownOpacity}%</span>
+                      <StepperControl
+                        id="skin-center-background-opacity"
+                        min={0}
+                        max={100}
+                        step={5}
+                        unit="%"
+                        value={opacity}
+                        ariaLabel={t('backgroundOpacity')}
+                        onChange={(value) => { background.set(value) }}
+                      />
                     </div>
-                                        <SliderControl
-                      id="skin-center-background-opacity"
-                      className={css.backgroundRange}
-                      min={0}
-                      max={100}
-                      step={5}
-                      value={opacity}
-                      ariaValuetext={shownOpacity + '%'}
-                      ariaLabel={t('backgroundOpacity')}
-                      onChanging={setShownOpacity}
-                      onChange={(value) => { background.set(value) }}
-                    />
                     <p className={backdropActive ? css.backgroundHint : css.backgroundHintMuted}>
                       {backdropActive ? t('backgroundHint') : t('backgroundHintInert')}
                     </p>
@@ -686,99 +688,83 @@ export function SkinCenter({ t, runtime, theme, background, externalWallpaper, d
                   <div className={css.backgroundRow}>
                     <div className={css.backgroundHead}>
                       <span className={css.backgroundLabel}>{t('backgroundBlurEmpty')}</span>
-                      <span className={css.backgroundValue} aria-hidden="true">{shownBlurEmpty}px</span>
+                      <StepperControl
+                        id="skin-center-background-blur-empty"
+                        min={0}
+                        max={20}
+                        step={1}
+                        unit="px"
+                        value={blurEmpty}
+                        ariaLabel={t('backgroundBlurEmpty')}
+                        onChange={(value) => { background.setBlurEmpty(value) }}
+                      />
                     </div>
-                                        <SliderControl
-                      id="skin-center-background-blur-empty"
-                      className={css.backgroundRange}
-                      min={0}
-                      max={20}
-                      step={1}
-                      value={blurEmpty}
-                      ariaValuetext={shownBlurEmpty + 'px'}
-                      ariaLabel={t('backgroundBlurEmpty')}
-                      onChanging={setShownBlurEmpty}
-                      onChange={(value) => { background.setBlurEmpty(value) }}
-                    />
                     <div className={css.backgroundHead}>
                       <span className={css.backgroundLabel}>{t('backgroundBlurContent')}</span>
-                      <span className={css.backgroundValue} aria-hidden="true">{shownBlurContent}px</span>
+                      <StepperControl
+                        id="skin-center-background-blur-content"
+                        min={0}
+                        max={20}
+                        step={1}
+                        unit="px"
+                        value={blurContent}
+                        ariaLabel={t('backgroundBlurContent')}
+                        onChange={(value) => { background.setBlurContent(value) }}
+                      />
                     </div>
-                                        <SliderControl
-                      id="skin-center-background-blur-content"
-                      className={css.backgroundRange}
-                      min={0}
-                      max={20}
-                      step={1}
-                      value={blurContent}
-                      ariaValuetext={shownBlurContent + 'px'}
-                      ariaLabel={t('backgroundBlurContent')}
-                      onChanging={setShownBlurContent}
-                      onChange={(value) => { background.setBlurContent(value) }}
-                    />
                     <p className={backdropActive ? css.backgroundHint : css.backgroundHintMuted}>
                       {backdropActive ? t('backgroundBlurHint') : t('backgroundBlurInert')}
                     </p>
                   </div>
 
-
                   <div className={css.backgroundRow}>
                     <div className={css.backgroundHead}>
                       <span className={css.backgroundLabel}>{t('inputCardBlur')}</span>
-                      <span className={css.backgroundValue} aria-hidden="true">{shownInputCardBlur}px</span>
+                      <StepperControl
+                        id="skin-center-input-card-blur"
+                        min={0}
+                        max={20}
+                        step={1}
+                        unit="px"
+                        value={inputCardBlur}
+                        ariaLabel={t('inputCardBlur')}
+                        onChange={(value) => { background.setInputCardBlur(value) }}
+                      />
                     </div>
-                                        <SliderControl
-                      id="skin-center-input-card-blur"
-                      className={css.backgroundRange}
-                      min={0}
-                      max={20}
-                      step={1}
-                      value={inputCardBlur}
-                      ariaValuetext={shownInputCardBlur + 'px'}
-                      ariaLabel={t('inputCardBlur')}
-                      onChanging={setShownInputCardBlur}
-                      onChange={(value) => { background.setInputCardBlur(value) }}
-                    />
                     <p className={css.backgroundHint}>{t('inputCardBlurHint')}</p>
                   </div>
 
                   <div className={css.backgroundRow}>
                     <div className={css.backgroundHead}>
                       <span className={css.backgroundLabel}>{t('bubbleOpacity')}</span>
-                      <span className={css.backgroundValue} aria-hidden="true">{shownBubbleOpacity}%</span>
+                      <StepperControl
+                        id="skin-center-bubble-opacity"
+                        min={0}
+                        max={100}
+                        step={5}
+                        unit="%"
+                        value={bubbleOpacity}
+                        ariaLabel={t('bubbleOpacity')}
+                        onChange={(value) => { background.setBubbleOpacity(value) }}
+                      />
                     </div>
-                                        <SliderControl
-                      id="skin-center-bubble-opacity"
-                      className={css.backgroundRange}
-                      min={0}
-                      max={100}
-                      step={5}
-                      value={bubbleOpacity}
-                      ariaValuetext={shownBubbleOpacity + '%'}
-                      ariaLabel={t('bubbleOpacity')}
-                      onChanging={setShownBubbleOpacity}
-                      onChange={(value) => { background.setBubbleOpacity(value) }}
-                    />
                     <p className={css.backgroundHint}>{t('bubbleOpacityHint')}</p>
                   </div>
 
                   <div className={css.backgroundRow}>
                     <div className={css.backgroundHead}>
                       <span className={css.backgroundLabel}>{t('bubbleBlur')}</span>
-                      <span className={css.backgroundValue} aria-hidden="true">{shownBubbleBlur}px</span>
+                      <StepperControl
+                        id="skin-center-bubble-blur"
+                        min={0}
+                        max={20}
+                        step={1}
+                        unit="px"
+                        value={bubbleBlur}
+                        ariaLabel={t('bubbleBlur')}
+                        onChange={(value) => { background.setBubbleBlur(value) }}
+                      />
                     </div>
-                    <SliderControl
-                      id="skin-center-bubble-blur"
-                      className={css.backgroundRange}
-                      min={0}
-                      max={20}
-                      step={1}
-                      value={bubbleBlur}
-                      ariaValuetext={shownBubbleBlur + 'px'}
-                      ariaLabel={t('bubbleBlur')}
-                      onChanging={setShownBubbleBlur}
-                      onChange={(value) => { background.setBubbleBlur(value) }}
-                    />
                     <p className={css.backgroundHint}>{t('bubbleBlurHint')}</p>
                   </div>
 
@@ -786,34 +772,6 @@ export function SkinCenter({ t, runtime, theme, background, externalWallpaper, d
                   {error !== null && <div className={css.error}>{error}</div>}
 
                   <div className={css.list}>
-                    {delegatedEntries.map(entry => {
-                      const id = entry.manifest.id
-                      // A delegated skin is selected through the same switch
-                      // engine as any other, and paints through its own
-                      // plugin; the row renders that plugin's state instead of
-                      // a preview image and an uninstall this card has no
-                      // route for. It sits ABOVE the grid, beside the
-                      // custom-theme row below it: the two looks this package
-                      // does not paint are the two it lists as bars, and the
-                      // grid is for the asset directories it does load.
-                      return (
-                        <DelegatedSkinCard
-                          key={id}
-                          t={t}
-                          skin={entry}
-                          theme={delegatedStates[id] ?? { live: false, canYield: false }}
-                          isActive={id === activeId && !previewing}
-                          isTrying={previewing && id === tryingId}
-                          yieldedToSkin={paintsOverDelegated(entry, delegatedStates[id])}
-                          busy={busyId === id}
-                          disabled={busyId !== null || uninstallingId !== null}
-                          onTryOn={() => { tryOn(entry) }}
-                          onExitTryOn={exitTryOn}
-                          onApply={() => { applySkin(id) }}
-                          onInstalled={() => { void runtime.refreshCatalog() }}
-                        />
-                      )
-                    })}
                     <div className={css.skinGrid}>
                     {(() => {
                       const isActive = activeId === null && !previewing && !customThemeState.applied
@@ -959,7 +917,7 @@ export function SkinCenter({ t, runtime, theme, background, externalWallpaper, d
 
 /** Props the settings section binds for the skin-center card page. */
 export type SkinCenterSectionProps =
-  PropsRuntime<'settings.section'>
+  (PropsRuntime<'settings.section'> | PropsRuntime<'web-ui.extension'>)
   & PropsLocale<'skinCenter'>
   & SkinCenterInjected
 

@@ -22,6 +22,7 @@ import { SKIN_BACKGROUND_DEFAULTS, type SkinBackgroundConfig } from './core/back
 import { findSkin, loadSkinCatalog } from './skin-repo.ts'
 import { mountOnce } from './mount-once.ts'
 import { persistedExternalWallpaperActive } from './external-wallpaper.ts'
+import { SkinCssScheduler } from './core/css-safety/host-transform.ts'
 import {
   CUSTOM_THEME_DEFAULTS,
   CUSTOM_THEME_VERSION,
@@ -34,7 +35,13 @@ export { makeSkinCenterV2Routes, SKIN_CENTER_V2_PREFIX } from './routes-v2.ts'
 // and installs skin directories through these; never duplicate the logic).
 export { validateSkinManifestV2 } from './core/manifest-v2/validate.ts'
 export type { SkinManifestV2, SkinManifestValidation } from './core/manifest-v2/types.ts'
-export { transformSkinCss, SkinCssSafetyError } from './core/css-safety/transform.ts'
+// The CSS safety pipeline runs in a short-lived worker process (issue #98):
+// the host half must never import lightningcss, so the package root carries
+// the scheduler rather than the transform itself. The sync algorithm stays
+// available to CLI and market consumers through the ./css-safety export.
+export { SkinCssSafetyError, SkinCssOverloadedError, SkinCssTransformFailureError, SkinCssTransformTimeoutError, SkinCssWorkerDisposedError } from './core/css-safety/errors.ts'
+export { SkinCssScheduler, SKIN_CSS_MAX_OUTSTANDING, SKIN_CSS_REQUEST_TIMEOUT_MS } from './core/css-safety/host-transform.ts'
+export type { SkinCssTransformOptions, SkinCssTransformResult } from './core/css-safety/types.ts'
 export { auditTokenContract } from './core/css-safety/token-audit.ts'
 export type { TokenAuditStylesheet, TokenAuditResult } from './core/css-safety/token-audit.ts'
 export { loadSkinCatalog, findSkin, resolveInsideSkin, userSkinsDir, builtinSkinsDir, canServeSkinHooks } from './skin-repo.ts'
@@ -225,7 +232,15 @@ function applyImpl(ctx: Context, config?: SkinCenterConfig): void {
     console.error('[ui-skin-center] background migration failed:', error)
   }
 
-  const routes = [...makeSkinCenterV2Routes()]
+  // The CSS safety pipeline belongs to THIS mount (issue #98): the mount
+  // creates the scheduler, injects its transform into the routes and disposes
+  // it with the mount. The loader may mount a new instance while the old one
+  // is still tearing down, so a shared scheduler would let the old mount's
+  // disposal disable the new mount.
+  const cssScheduler = new SkinCssScheduler()
+  const routes = [...makeSkinCenterV2Routes({
+    transformCss: (css, options) => cssScheduler.transform(css, options),
+  })]
   try {
     ctx.effect(() => {
       const disposers: Array<() => void> = []
@@ -253,10 +268,16 @@ function applyImpl(ctx: Context, config?: SkinCenterConfig): void {
         for (const dispose of disposers) dispose()
         throw error
       }
-      return () => { for (const dispose of disposers) dispose() }
+      // The disposer is async: cordis awaits it, so no CSS safety worker
+      // outlives the mount (the running worker is terminated and awaited).
+      return async () => {
+        for (const dispose of disposers) dispose()
+        await cssScheduler.dispose()
+      }
     }, 'ui-skin-center: routes')
   } catch (error) {
     console.error('[ui-skin-center] route registration failed:', error)
+    void cssScheduler.dispose()
   }
 
   // Default-skin seed (market on-demand plan): only blue-fantasy ships in

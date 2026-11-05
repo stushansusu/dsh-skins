@@ -76,7 +76,6 @@ export const CUSTOM_THEME_ALLOWED_TOKENS = [
   '--dsw-specific-sidebar-fill',
   '--dsw-specific-sidebar-nav-item-active',
   '--dsw-specific-sidebar-nav-item-active-accent',
-  '--dsw-specific-sidebar-nav-item-hover',
 ] as const
 
 type UnknownRecord = Record<string, unknown>
@@ -179,7 +178,6 @@ function declarations(profile: CustomThemeProfile): Array<[typeof CUSTOM_THEME_A
     ['--dsw-specific-sidebar-fill', mix(background, 100 - depth1, foreground)],
     ['--dsw-specific-sidebar-nav-item-active', mix(background, 86, accent)],
     ['--dsw-specific-sidebar-nav-item-active-accent', accent],
-    ['--dsw-specific-sidebar-nav-item-hover', mix(background, 100 - depth2, foreground)],
   ]
 }
 

@@ -9,22 +9,17 @@
 
 /* The section wrapper: one list that stacks the skin-center card rows. */
 body[data-dsh-skin-center] .sectionList {
+  container-type: inline-size;
   list-style: none;
   margin: 0;
   padding: 0;
 }
 
-/* The plugin card itself: one disclosure card in the Web UI plugin group. */
+/* The plugin page itself: no outer frame. The settings page is one flat
+   column of groups divided by hairlines (the sparse reference layout), not a
+   card inside the settings panel. */
 body[data-dsh-skin-center] .pluginCard {
   list-style: none;
-  border: 1px solid var(--dsw-alias-border-l2);
-  border-radius: 12px;
-  background: var(--dsw-alias-bg-layer-3);
-  transition: border-color 0.16s, background 0.16s;
-}
-
-body[data-dsh-skin-center] .pluginCard:hover {
-  border-color: var(--dsw-alias-label-dimmed);
 }
 
 body[data-dsh-skin-center] .cardHeaderStatic {
@@ -32,13 +27,13 @@ body[data-dsh-skin-center] .cardHeaderStatic {
   align-items: center;
   gap: 12px;
   width: 100%;
-  padding: 14px 16px;
+  padding: 0 0 4px;
 }
 
 body[data-dsh-skin-center] .headText {
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 6px;
   flex: 1;
   min-width: 0;
 }
@@ -54,27 +49,101 @@ body[data-dsh-skin-center] .pluginName {
 }
 
 body[data-dsh-skin-center] .cardDescription {
-  font-size: 13px;
-  line-height: 1.5;
-  color: var(--dsw-alias-label-tertiary);
+  font-size: 12px;
+  line-height: 18px;
+  color: var(--dsw-alias-label-secondary);
 }
 
 body[data-dsh-skin-center] .cardBody {
   display: flex;
   flex-direction: column;
-  gap: 12px;
-  padding: 12px 0 8px;
-  margin: 0 16px;
-  border-top: 1px solid var(--dsw-alias-border-l2);
+  gap: 0;
+  align-items: stretch;
+  padding: 0;
+  margin: 0;
 }
 
-/* Delegated skin row: a skin whose visual is another plugin's. It is a
-   full-width bar above the skin grid, not a tile in it, because it has no
-   preview image to fill a thumbnail with — the plugin paints it. So it borrows
-   the plain card shell and adds only what is its own: the kind pill beside the
-   name, the status line saying whether that plugin can paint the page yet, and
-   the docs link. The status line uses the label tokens, not the warning ones:
-   "not installed" is a state of the row, not a problem with the skin list. */
+body[data-dsh-skin-center] .cardBody > * {
+  min-width: 0;
+}
+
+/* Looks other plugins paint (Wallpaper Engine, the delegated skins): a titled
+   group at the head of the page, one card per plugin side by side, a single
+   column when the page is narrow. They are not tiles in the skin grid: they
+   have no preview image to fill a thumbnail with, because the plugin paints. */
+body[data-dsh-skin-center] .pluginLooks {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 4px 0 16px;
+}
+
+body[data-dsh-skin-center] .groupHeading {
+  margin: 0;
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 18px;
+  color: var(--dsw-alias-label-secondary);
+}
+
+body[data-dsh-skin-center] .pluginLookGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(260px, 100%), 1fr));
+  gap: 12px;
+}
+
+/* Every plugin card keeps its actions and link on the bottom edge, so two
+   cards of different copy lengths still line their buttons up. */
+body[data-dsh-skin-center] .pluginLookCard {
+  gap: 8px;
+  padding: 14px;
+  border-radius: 10px;
+}
+
+body[data-dsh-skin-center] .pluginLookCard > .actions {
+  margin-top: auto;
+}
+
+/* The head row gives its width to the name. The kind pill and the status pill
+   travel as one group that never breaks its own text, so when the row runs out
+   of room the group moves under the name instead of shaving it into an
+   ellipsis. */
+body[data-dsh-skin-center] .pluginLookCard .cardHead {
+  flex-wrap: wrap;
+  row-gap: 6px;
+}
+
+body[data-dsh-skin-center] .pluginLookCard .cardHead .cardName {
+  flex: 1 1 auto;
+  /* The name keeps its own width while the row can still wrap, so the pills
+     move under it instead of shaving it; once the card is narrower than the
+     name itself, the ellipsis on .cardName takes over. */
+  min-width: min(100%, max-content);
+}
+
+body[data-dsh-skin-center] .headPills {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 6px;
+  flex-wrap: wrap;
+  margin-left: auto;
+}
+
+body[data-dsh-skin-center] .headPills :is(.delegatedBadge, .badge) {
+  flex: none;
+  margin-left: 0;
+  white-space: nowrap;
+}
+
+body[data-dsh-skin-center] .pluginLookMark {
+  background: var(--dsw-alias-brand-primary, #2b7cd9);
+}
+
+/* Delegated skin card: the plain card shell plus what is its own: the kind
+   pill beside the name, the status line saying whether that plugin can paint
+   the page yet, and the docs link. The status line uses the label tokens, not
+   the warning ones: "not installed" is a state of the card, not a problem. */
 body[data-dsh-skin-center] .delegatedCard {
   overflow: hidden;
 }
@@ -84,7 +153,9 @@ body[data-dsh-skin-center] .delegatedBadge {
   border-radius: 999px;
   font-size: 11px;
   font-weight: 500;
-  color: var(--dsw-alias-brand-primary, #1e63b8);
+  /* Body ink, not brand blue: the pill states what a row is, and a skin that
+     remaps the label tokens has to keep its own readable ink on this fill. */
+  color: var(--dsw-alias-label-primary);
   background: var(--dsw-alias-bg-layer-3);
   border: 1px solid var(--dsw-alias-border-l2);
 }
@@ -113,59 +184,31 @@ body[data-dsh-skin-center] .delegatedLink {
   color: var(--dsw-alias-brand-primary, #1e63b8);
 }
 
-/* Delegated wallpaper plugin pointer (issue #39): a state notice that carries
-   the recommended plugin's one-click install. It rides the warning state tokens
-   rather than the brand accent, so it reads as a callout next to the skin list;
-   the primary button uses the sanctioned primary-button triple (the brand token
-   doubles as a foreground in the official themes and would paint dark on dark). */
+/* The stand-down notice: a state band that rides the warning tokens, so it
+   reads as a callout next to the skin list rather than as one more card. */
 body[data-dsh-skin-center] .externalWallpaperNotice {
   display: flex;
   flex-direction: column;
-  gap: 6px;
-  padding: 10px 12px;
-  border-radius: 8px;
-  background: var(--dsw-alias-bg-layer-2);
-  border: 1px solid var(--dsw-alias-state-warning-tertiary, #feebd3);
+  gap: 8px;
+  /* A notice band, not a box: one warning-colored rule on the left carries the
+     state, and the page keeps its flat hairline rhythm around it. */
+  padding: 8px 0 8px 14px;
+  border-left: 2px solid var(--dsw-alias-state-warning-primary, #b06000);
 }
 
 body[data-dsh-skin-center] .externalWallpaperTitle {
-  font-size: 13px;
-  font-weight: 600;
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 22px;
   color: var(--dsw-alias-state-warning-primary, #b06000);
 }
 
-/* The recommended marker: a quiet pill beside the title. */
-body[data-dsh-skin-center] .externalWallpaperBadge {
-  align-self: flex-start;
-  padding: 1px 8px;
-  border-radius: 999px;
-  font-size: 11px;
-  font-weight: 500;
-  color: var(--dsw-alias-brand-primary, #1e63b8);
-  background: var(--dsw-alias-bg-layer-3);
-  border: 1px solid var(--dsw-alias-border-l2);
-}
-
 body[data-dsh-skin-center] .externalWallpaperBody {
+  max-width: 62ch;
   margin: 0;
   font-size: 12px;
-  line-height: 1.5;
+  line-height: 18px;
   color: var(--dsw-alias-label-secondary, #6b7280);
-}
-
-/* The action row wraps, so a narrow card stacks the command above its buttons. */
-body[data-dsh-skin-center] .externalWallpaperActions {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 8px;
-}
-
-body[data-dsh-skin-center] .externalWallpaperError {
-  margin: 0;
-  font-size: 12px;
-  line-height: 1.5;
-  color: var(--dsw-alias-state-danger, #c53030);
 }
 
 /* The install command: a copyable one-liner, so it reads as data, not prose. */
@@ -183,32 +226,17 @@ body[data-dsh-skin-center] .externalWallpaperCommand {
   border: 1px solid var(--dsw-alias-border-l2);
 }
 
-body[data-dsh-skin-center] .externalWallpaperLink {
-  align-self: flex-start;
-  font-size: 12px;
-  color: var(--dsw-alias-brand-primary, #1e63b8);
-}
-
-body[data-dsh-skin-center] .externalWallpaperLink:hover {
-  text-decoration: underline;
-}
-
 body[data-dsh-skin-center] .head {
   display: flex;
   flex-direction: column;
   gap: 6px;
+  padding: 6px 0 0;
 }
 
 body[data-dsh-skin-center] .titleBadge {
   font-size: 11px;
   font-weight: 500;
   color: var(--dsw-alias-label-secondary, #6b7280);
-}
-
-body[data-dsh-skin-center] .intro {
-  font-size: 13px;
-  line-height: 1.5;
-  color: var(--dsw-alias-label-secondary);
 }
 
 body[data-dsh-skin-center] .themeRow {
@@ -259,10 +287,99 @@ body[data-dsh-skin-center] .themeButtonActive {
   color: var(--dsw-alias-brand-primary, #1e63b8);
 }
 
+/* Theme mode and custom-theme scheme: every choice stays visible in a quiet
+   inset track, and the pressed one is marked by the sliding pill below.
+   Maintenance buttons keep the outlined `.themeButton` chrome. */
+body[data-dsh-skin-center] .segmentGroup {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 2px;
+  padding: 2px;
+  border: 1px solid var(--dsw-alias-border-l2);
+  border-radius: 9px;
+  background: var(--dsw-alias-bg-layer-2);
+}
+
+/* The sliding highlight (SegmentGroup.tsx writes its box): one box travels to
+   the pressed option instead of each option fading its own background in and
+   out. The 240ms glide is the reference control's own timing — the movement is
+   what makes the switch read, so it keeps playing under reduced motion. */
+body[data-dsh-skin-center] .segmentGroup .segmentPill {
+  position: absolute;
+  left: 0;
+  top: 0;
+  border-radius: 6px;
+  background: color-mix(in srgb, var(--dsw-alias-label-primary) 9%, var(--dsw-alias-bg-layer-2));
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--dsw-alias-label-primary) 9%, transparent),
+    0 1px 2px rgb(0 0 0 / 10%);
+  pointer-events: none;
+  transition: transform 240ms cubic-bezier(0.22, 0.61, 0.36, 1),
+    width 240ms cubic-bezier(0.22, 0.61, 0.36, 1),
+    height 240ms cubic-bezier(0.22, 0.61, 0.36, 1);
+}
+
+/* The options paint above the pill, which is the control's first painted box. */
+body[data-dsh-skin-center] .segmentGroup .segmentButton {
+  position: relative;
+  z-index: 1;
+}
+
+body[data-dsh-skin-center] .segmentButton {
+  appearance: none;
+  margin: 0;
+  padding: 4px 13px;
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--dsw-alias-label-secondary);
+  font: inherit;
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 18px;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: background-color 120ms ease, color 120ms ease, box-shadow 120ms ease;
+}
+
+body[data-dsh-skin-center] .segmentButton:hover:not(:disabled):not(.segmentButtonActive) {
+  color: var(--dsw-alias-label-primary);
+  background: color-mix(in srgb, var(--dsw-alias-label-primary) 5%, transparent);
+}
+
+body[data-dsh-skin-center] .segmentButtonActive {
+  color: var(--dsw-alias-label-primary);
+  background: color-mix(in srgb, var(--dsw-alias-label-primary) 9%, var(--dsw-alias-bg-layer-2));
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--dsw-alias-label-primary) 9%, transparent),
+    0 1px 2px rgb(0 0 0 / 10%);
+}
+
+/* While the pill stands in for it, the pressed option gives up that fill: the
+   pill IS the fill, and a second one would paint the same box twice. The rule
+   above stays as the fallback for the frame before the box is measured. */
+body[data-dsh-skin-center] .segmentGroup:has(.segmentPill) .segmentButtonActive {
+  background: transparent;
+  box-shadow: none;
+}
+
+body[data-dsh-skin-center] .segmentButton:focus-visible {
+  outline: 2px solid var(--dsw-alias-brand-primary, #2b7cd9);
+  outline-offset: 1px;
+}
+
+body[data-dsh-skin-center] .segmentButton:disabled {
+  color: var(--dsw-alias-label-tertiary, #9aa4b5);
+  cursor: default;
+  opacity: 0.65;
+}
+
 body[data-dsh-skin-center] .list {
   display: flex;
   flex-direction: column;
   gap: 10px;
+  padding-top: 16px;
+  border-top: 1px solid var(--dsw-alias-border-l2);
 }
 
 body[data-dsh-skin-center] .card {
@@ -285,7 +402,7 @@ body[data-dsh-skin-center] .card:hover {
    card bottom so rows stay aligned. */
 body[data-dsh-skin-center] .skinGrid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(min(200px, 100%), 1fr));
   gap: 20px 16px;
 }
 
@@ -391,14 +508,27 @@ body[data-dsh-skin-center] .badge {
   border-radius: 999px;
 }
 
+/* A state pill keeps its semantic colour in the fill and the outline and takes
+   its text from the label token. Brand blue and the state colours are
+   affordance colours: as text they do not follow a skin's label remap, so they
+   lose the contrast that skin guarantees for ordinary primary text. */
 body[data-dsh-skin-center] .badgeActive {
-  color: var(--dsw-alias-state-success-primary, #0f6b3a);
-  background: var(--dsw-alias-state-success-tertiary, #dcf3e5);
+  color: var(--dsw-alias-label-primary);
+  background: var(--dsw-alias-state-success-tertiary);
+  border: 1px solid var(--dsw-alias-state-success-primary);
 }
 
 body[data-dsh-skin-center] .badgeTrying {
-  color: var(--dsw-alias-brand-primary, #1e63b8);
-  background: var(--dsw-alias-button-primary-dimmed, #e2edfc);
+  color: var(--dsw-alias-label-primary);
+  background: var(--dsw-alias-button-primary-dimmed);
+  border: 1px solid var(--dsw-alias-brand-primary);
+}
+
+/* The dimmed button fill is a mid-blue in dark themes, where the light label
+   ink falls below AA. Keep the semantic blue but use its darker business
+   tertiary plate instead; the light-theme pill keeps the dimmed fill. */
+body[data-ds-dark-theme][data-dsh-skin-center] .badgeTrying {
+  background: var(--dsw-alias-state-business-tertiary);
 }
 
 body[data-dsh-skin-center] .actions {
@@ -490,10 +620,7 @@ body[data-dsh-skin-center] .actionRow {
 body[data-dsh-skin-center] .verifySummary {
   font-size: 12px;
   line-height: 1.4;
-  padding: 6px 12px;
-  border-radius: 6px;
-  background: var(--dsw-alias-bg-layer-2);
-  border: 1px solid var(--dsw-alias-border-l2);
+  padding: 6px 0;
 }
 
 body[data-dsh-skin-center] .verifySummarySuccess {
@@ -544,25 +671,35 @@ body[data-dsh-skin-center] .error {
 }
 
 body[data-dsh-skin-center] .enableRow {
-  display: flex;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
   align-items: center;
-  flex-wrap: wrap;
-  gap: 8px;
-  padding: 8px 0;
+  gap: 4px 16px;
+  padding: 16px 0;
+  border-bottom: 1px solid var(--dsw-alias-border-l2);
+}
+
+body[data-dsh-skin-center] .enableRow .switch {
+  grid-column: 2;
+  grid-row: 1;
 }
 
 body[data-dsh-skin-center] .enableLabel {
-  font-size: 13px;
-  font-weight: 500;
+  grid-column: 1;
+  grid-row: 1;
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 22px;
   color: var(--dsw-alias-label-primary);
 }
 
 body[data-dsh-skin-center] .enableHint {
-  flex: 1;
-  min-width: 100%;
+  grid-column: 1;
+  grid-row: 2;
+  min-width: 0;
   margin: 0;
   font-size: 12px;
-  line-height: 1.5;
+  line-height: 18px;
   color: var(--dsw-alias-label-secondary, #6b7280);
 }
 
@@ -613,11 +750,19 @@ body[data-dsh-skin-center] .offNote {
   color: var(--dsw-alias-label-secondary, #6b7280);
 }
 
+/* One settings group: label + control on one line, hint underneath, and a
+   hairline to the next group. No box around it: the page is divided by lines,
+   not by cards. */
 body[data-dsh-skin-center] .backgroundRow {
   display: flex;
   flex-direction: column;
   gap: 6px;
-  padding: 8px 0;
+  padding: 16px 0;
+}
+
+body[data-dsh-skin-center] .head + .backgroundRow,
+body[data-dsh-skin-center] .backgroundRow + .backgroundRow {
+  border-top: 1px solid var(--dsw-alias-border-l2);
 }
 
 body[data-dsh-skin-center] .backgroundHead {
@@ -627,8 +772,9 @@ body[data-dsh-skin-center] .backgroundHead {
 }
 
 body[data-dsh-skin-center] .backgroundLabel {
-  font-size: 13px;
-  font-weight: 500;
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 22px;
   color: var(--dsw-alias-label-primary);
 }
 
@@ -636,8 +782,201 @@ body[data-dsh-skin-center] .backgroundValue {
   flex: none;
   margin-left: auto;
   font-size: 12px;
+  line-height: 18px;
   font-variant-numeric: tabular-nums;
   color: var(--dsw-alias-brand-primary, #2b7cd9);
+}
+
+/* Numeric stepper: same geometry and chrome as the harness's font-size
+   setting — a 36px grey plate, current value, stacked arrows and unit. */
+body[data-dsh-skin-center] .stepperControl {
+  display: flex;
+  flex: none;
+  align-items: center;
+  gap: 8px;
+  margin-left: auto;
+}
+
+body[data-dsh-skin-center] .stepper {
+  display: flex;
+  align-items: center;
+  min-width: 72px;
+  height: 36px;
+  border-radius: 12px;
+  background: color-mix(in srgb, var(--dsw-alias-label-primary, #131416) 4.5%, transparent);
+  color: var(--dsw-alias-label-primary, #131416);
+}
+
+body[data-dsh-skin-center] .stepperValue {
+  min-width: 18px;
+  padding-left: 18px;
+  font-size: 14px;
+  line-height: 22px;
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+}
+
+body[data-dsh-skin-center] .stepperArrows {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  margin-left: 2px;
+  height: 26px;
+}
+
+body[data-dsh-skin-center] .stepperArrow {
+  appearance: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 17px;
+  height: 12px;
+  padding: 0;
+  border: 0;
+  border-radius: 4px;
+  background: color-mix(in srgb, var(--dsw-alias-label-primary, #131416) 3%, transparent);
+  color: var(--dsw-alias-label-primary, #131416);
+  cursor: pointer;
+}
+
+body[data-dsh-skin-center] .stepperArrow:hover:not(:disabled) {
+  background: color-mix(in srgb, var(--dsw-alias-label-primary, #131416) 9%, transparent);
+}
+
+body[data-dsh-skin-center] .stepperArrow:focus-visible {
+  outline: 2px solid var(--dsw-alias-brand-primary, #2b7cd9);
+  outline-offset: 1px;
+}
+
+body[data-dsh-skin-center] .stepperArrow:disabled {
+  opacity: 0.35;
+  cursor: default;
+}
+
+body[data-dsh-skin-center] .stepperUnit {
+  color: var(--dsw-alias-label-secondary, #656869);
+  font-size: 14px;
+  line-height: 22px;
+}
+
+/* Coarse adjustment (RangeBubble.tsx): a popover with one slider over the
+   stepper's whole range. Hidden through visibility, so a closed bubble takes no
+   pointer and no tab stop; the delay on visibility lets the fade finish. */
+body[data-dsh-skin-center] .rangeAnchor {
+  position: relative;
+  display: inline-flex;
+}
+
+body[data-dsh-skin-center] .rangeBubble {
+  position: absolute;
+  right: 0;
+  z-index: 40;
+  box-sizing: border-box;
+  width: 220px;
+  padding: 10px 12px 6px;
+  border: 1px solid var(--dsw-alias-border-l2);
+  border-radius: 10px;
+  background: var(--dsw-alias-bg-layer-3);
+  box-shadow: 0 8px 24px var(--dsw-alias-bg-mask-2, rgb(0 0 0 / 18%));
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.12s ease, transform 0.12s ease, visibility 0s linear 0.12s;
+}
+
+body[data-dsh-skin-center] .rangeBubble[data-side="above"] {
+  bottom: calc(100% + 6px);
+  transform: translateY(4px);
+}
+
+body[data-dsh-skin-center] .rangeBubble[data-side="below"] {
+  top: calc(100% + 6px);
+  transform: translateY(-4px);
+}
+
+body[data-dsh-skin-center] .rangeBubble[data-open] {
+  opacity: 1;
+  visibility: visible;
+  transform: none;
+  transition: opacity 0.12s ease, transform 0.12s ease, visibility 0s;
+}
+
+/* The slider: a thin groove filled up to the thumb in the brand color, and a
+   round thumb that grows a little while it is held. */
+body[data-dsh-skin-center] .rangeSlider {
+  appearance: none;
+  display: block;
+  width: 100%;
+  height: 18px;
+  margin: 0;
+  background: transparent;
+  cursor: pointer;
+}
+
+body[data-dsh-skin-center] .rangeSlider::-webkit-slider-runnable-track {
+  height: 4px;
+  border-radius: 999px;
+  background: linear-gradient(to right,
+    var(--dsw-alias-brand-primary, #2b7cd9) var(--range-fill, 0%),
+    color-mix(in srgb, var(--dsw-alias-label-primary, #131416) 12%, transparent) var(--range-fill, 0%));
+}
+
+body[data-dsh-skin-center] .rangeSlider::-moz-range-track {
+  height: 4px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--dsw-alias-label-primary, #131416) 12%, transparent);
+}
+
+body[data-dsh-skin-center] .rangeSlider::-moz-range-progress {
+  height: 4px;
+  border-radius: 999px;
+  background: var(--dsw-alias-brand-primary, #2b7cd9);
+}
+
+body[data-dsh-skin-center] .rangeSlider::-webkit-slider-thumb {
+  appearance: none;
+  width: 14px;
+  height: 14px;
+  margin-top: -5px;
+  border: 0;
+  border-radius: 50%;
+  background: #ffffff;
+  box-shadow: 0 0 0 1px rgb(0 0 0 / 12%), 0 1px 3px rgb(0 0 0 / 25%);
+  transition: transform 0.12s ease;
+}
+
+body[data-dsh-skin-center] .rangeSlider::-moz-range-thumb {
+  width: 14px;
+  height: 14px;
+  border: 0;
+  border-radius: 50%;
+  background: #ffffff;
+  box-shadow: 0 0 0 1px rgb(0 0 0 / 12%), 0 1px 3px rgb(0 0 0 / 25%);
+}
+
+body[data-dsh-skin-center] .rangeSlider:active::-webkit-slider-thumb {
+  transform: scale(1.15);
+}
+
+body[data-dsh-skin-center] .rangeSlider:focus-visible {
+  outline: none;
+}
+
+body[data-dsh-skin-center] .rangeSlider:focus-visible::-webkit-slider-thumb {
+  box-shadow: 0 0 0 2px var(--dsw-alias-brand-primary, #2b7cd9);
+}
+
+body[data-dsh-skin-center] .rangeSlider:disabled {
+  cursor: not-allowed;
+}
+
+body[data-dsh-skin-center] .rangeEnds {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 2px;
+  color: var(--dsw-alias-label-secondary, #656869);
+  font-size: 11px;
+  line-height: 16px;
+  font-variant-numeric: tabular-nums;
 }
 
 body[data-dsh-skin-center] .backgroundRange {
@@ -703,14 +1042,16 @@ body[data-dsh-skin-center] .backgroundRange:focus-visible {
 }
 
 body[data-dsh-skin-center] .backgroundHint {
+  margin: 0;
   font-size: 12px;
-  line-height: 1.5;
+  line-height: 18px;
   color: var(--dsw-alias-label-secondary, #6b7280);
 }
 
 body[data-dsh-skin-center] .backgroundHintMuted {
+  margin: 0;
   font-size: 12px;
-  line-height: 1.5;
+  line-height: 18px;
   color: var(--dsw-alias-label-tertiary, #9aa4b5);
 }
 
@@ -721,7 +1062,8 @@ body[data-dsh-skin-center] .backgroundHintMuted {
   body[data-dsh-skin-center] .themeButton,
   body[data-dsh-skin-center] .button,
   body[data-dsh-skin-center] .switch,
-  body[data-dsh-skin-center] .switchThumb {
+  body[data-dsh-skin-center] .switchThumb,
+  body[data-dsh-skin-center] .rangeBubble {
     transition: none;
   }
 }
@@ -757,7 +1099,7 @@ body[data-dsh-skin-center] .wallpaperControls {
 
 body[data-dsh-skin-center] .wallpaperGrid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(min(180px, 100%), 1fr));
   gap: 10px;
 }
 
@@ -833,15 +1175,15 @@ body[data-dsh-skin-center] .customThemeCard {
   overflow: hidden;
 }
 
+/* The custom-theme editor opens below the row as a flat block: a hairline and
+   whitespace instead of a second box inside the card. */
 body[data-dsh-skin-center] .customThemeEditor {
   display: flex;
   flex-direction: column;
   gap: 14px;
-  margin: 2px -2px -2px;
-  padding: 14px;
-  border: 1px solid var(--dsw-alias-border-l2);
-  border-radius: 9px;
-  background: var(--dsw-alias-bg-layer-1);
+  margin: 0;
+  padding: 14px 0 2px;
+  border-top: 1px solid var(--dsw-alias-border-l2);
 }
 
 body[data-dsh-skin-center] .customThemeScheme {

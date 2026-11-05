@@ -10,10 +10,17 @@
  */
 'use strict'
 
+const fs = require('node:fs')
 const path = require('node:path')
 const { pathToFileURL } = require('node:url')
 
 const LIB_PATH = path.join(__dirname, '..', 'lib', 'index.js')
+/**
+ * The CSS safety transform lives in its own bundle (issue #98): the package
+ * root must stay free of lightningcss so the DSH host never maps the native
+ * addon. Older packages carry the transform at the root instead.
+ */
+const CSS_SAFETY_LIB_PATH = path.join(__dirname, '..', 'lib', 'css-safety.js')
 const SKINS_DIR = path.join(__dirname, '..', 'skins')
 
 async function main() {
@@ -21,6 +28,7 @@ async function main() {
   const { execFileSync } = require('node:child_process')
   execFileSync(process.execPath, [path.join(__dirname, 'skin-hooks-registry.mjs'), '--check'], { stdio: 'inherit' })
   const lib = await import(pathToFileURL(LIB_PATH).href)
+  const cssSafety = await import(pathToFileURL(fs.existsSync(CSS_SAFETY_LIB_PATH) ? CSS_SAFETY_LIB_PATH : LIB_PATH).href)
   const catalog = lib.loadSkinCatalog({ builtinDir: SKINS_DIR, userDir: path.join(SKINS_DIR, '.nonexistent-user-root') })
   let failed = false
   if (catalog.skins.length === 0) {
@@ -34,7 +42,6 @@ async function main() {
   for (const skin of catalog.skins) {
     // Stylesheets pass through the safety pipeline at serve time; run it at
     // gate time too so a violating skin can never merge.
-    const fs = require('node:fs')
     const entries = [
       ['skin.css', skin.manifest.contributes.stylesheet],
       ['patches.css', skin.manifest.contributes.patches],
@@ -48,7 +55,7 @@ async function main() {
         continue
       }
       try {
-        lib.transformSkinCss(fs.readFileSync(abs, 'utf8'), { skinId: skin.manifest.id, filename: label })
+        cssSafety.transformSkinCss(fs.readFileSync(abs, 'utf8'), { skinId: skin.manifest.id, filename: label })
       } catch (error) {
         console.error(`skin-center:check: ${skin.manifest.id}: ${label}: ${error.message}`)
         failed = true

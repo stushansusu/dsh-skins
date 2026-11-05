@@ -1,9 +1,9 @@
 {
   "$schema": "https://schemas.linxin666.org/dsh-skin/official-tokens-v1.json",
   "contractVersion": 1,
-  "source": "official surfaces: @deepseek-ai/dsh-client-ui-theme@0.2.1-rc.2 lib + @deepseek-ai/dsh-web-frontend@0.2.1-rc.2 dist/assets",
+  "source": "official surfaces: @deepseek-ai/dsh-client-ui-theme@0.2.2-rc.1 lib + @deepseek-ai/dsh-web-frontend@0.2.2-rc.1 dist/assets",
   "excludedPrefix": "--dsw-static-",
-  "count": 329,
+  "count": 335,
   "tokens": [
     "--dsw-alias-bg-base",
     "--dsw-alias-bg-document-preview",
@@ -55,6 +55,12 @@
     "--dsw-alias-file-diff-deleted-bg",
     "--dsw-alias-file-diff-deleted-gutter",
     "--dsw-alias-file-diff-deleted-marker",
+    "--dsw-alias-illustration-background",
+    "--dsw-alias-illustration-backing",
+    "--dsw-alias-illustration-detail",
+    "--dsw-alias-illustration-inset",
+    "--dsw-alias-illustration-shadow",
+    "--dsw-alias-illustration-surface",
     "--dsw-alias-interactive-bg-active",
     "--dsw-alias-interactive-bg-hover",
     "--dsw-alias-interactive-bg-hover-accent",
@@ -97,6 +103,7 @@
     "--dsw-alias-settings-card-stroke",
     "--dsw-alias-state-business-primary",
     "--dsw-alias-state-business-tertiary",
+    "--dsw-alias-state-done-primary",
     "--dsw-alias-state-error-primary",
     "--dsw-alias-state-error-secondary",
     "--dsw-alias-state-idle-primary",
@@ -332,7 +339,6 @@
     "--dsw-specific-sidebar-fill",
     "--dsw-specific-sidebar-nav-item-active",
     "--dsw-specific-sidebar-nav-item-active-accent",
-    "--dsw-specific-sidebar-nav-item-hover",
     "--dsw-specific-tip"
   ]
 }

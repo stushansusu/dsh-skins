@@ -5,7 +5,7 @@
 <p align="center">
   <img src="https://img.shields.io/npm/v/@linxin666/dsh-client-ui-skin-center?style=flat-square" alt="Version">
   &nbsp;
-  <img src="https://img.shields.io/badge/DSH-%3E%3D0.2.1--rc.2-4c6ef5?style=flat-square&amp;labelColor=454a54" alt="DSH">
+  <img src="https://img.shields.io/badge/DSH-%3E%3D0.2.2--rc.1-4c6ef5?style=flat-square&amp;labelColor=454a54" alt="DSH">
   &nbsp;
   <img src="https://img.shields.io/badge/license-Apache--2.0-blue?style=flat-square" alt="License">
 </p>
@@ -15,13 +15,13 @@
   <em>主题换肤 · 毛玻璃高斯模糊 · 自定义深浅色配色 · 创意工坊即时试穿 · Wallpaper Engine 由专用插件提供</em>
 </p>
 
-`@linxin666/dsh-client-ui-skin-center`（cordis 插件 id `ui-skin-center`）是 dsh Web GUI 唯一的皮肤包：它把皮肤列表 / 试穿 / 应用做成一级设置分区「皮肤中心」（设置 → 皮肤中心，只列已安装皮肤），并且是所有皮肤的唯一加载器与渲染器。皮肤是纯资产目录——没有 package.json、不发 npm、不接 cordis 接线——只与皮肤中心契约（`contracts/`）耦合；皮肤中心把对官方 DSH 的全部耦合吸收在契约之后。卡片自带总开关（关闭即停用试穿、应用与背景控制）。
+`@linxin666/dsh-client-ui-skin-center`（cordis 插件 id `ui-skin-center`）是 dsh Web GUI 唯一的皮肤包：它把皮肤列表 / 试穿 / 应用放进「设置 → Web 扩展 → 皮肤」TAB（父级缺席时保留一级「皮肤中心」分区，只列已安装皮肤），并且是所有皮肤的唯一加载器与渲染器。皮肤是纯资产目录——没有 package.json、不发 npm、不接 cordis 接线——只与皮肤中心契约（`contracts/`）耦合；皮肤中心把对官方 DSH 的全部耦合吸收在契约之后。卡片自带总开关（关闭即停用试穿、应用与背景控制）。
 
 - 列表：展示「官方默认」加目录册里已安装的皮肤（名称、标语、强调色），当前应用目标带「使用中」标记。目录册合并两个来源：随本包内置的默认皮肤（`skins/blue-fantasy/`）与放进 `$DSH_HOME/skins/<id>/` 的用户皮肤（同 id 时用户皮肤遮蔽内置皮肤）。皮肤集中的其余皮肤都是市场条目：在 DSH 市场商店一键按需安装到 `$DSH_HOME/skins/<id>/`，即由同一目录册作为用户皮肤管理——无需重启，重开卡片或刷新页面即收录。`skin.json` 校验失败的皮肤按 fail-closed 排除，并作为目录诊断上报。
 - 自定义主题：列表末尾提供一张基于官方默认外观派生的用户级主题卡，与「官方默认」及目录册皮肤相互独立。浅色、深色分别编辑强调色、背景色、前景色和对比度（0–100），支持即时试穿、应用、恢复当前模式默认值和刷新持久化。生成的 CSS 只能覆盖经审计的官方 token 白名单，不接收选择器、任意 CSS 或资源 URL；不会修改任何第三方皮肤定义，目录册皮肤激活时自定义主题层自动停用。
 - 试穿 / 应用：两者走同一个原子切换引擎（`src/client/runtime/skin-controller.ts`）。一次切换 = 一个新的 activation identity：取回已限定作用域的样式表，安装样式、背景媒体与可选 hooks，翻转 `html[data-dsh-skin="<id>"]`，然后销毁上一个 activation（append-only 效果账本，幂等清理）。最新请求永远胜出；失败或被淘汰的切换完整保留旧皮肤。试穿是同一个切换但不落盘——「退出试穿」恢复已提交的皮肤。应用会持久化选择（`POST /api/skin-center/v2/active`）。不刷新页面、不改写 `cordis.patch.yml`、不重建启动图。
 - 首屏：host 半区注册一个 index.html 转换（`webServer.tapIndex`，单一适配模块 `src/tap-index-adapter.ts`），向每份送达的文档盖 `html[data-dsh-skin]` 属性并插入样式表链接，刷新后直接以当前皮肤启动，无官方原貌闪屏。tap 出任何问题都 fail-closed 回官方原貌。
-- 皮肤格式（v2）：`skin.json`（fail-closed 校验，v1 字段 `package`/`wiring`/`bodyAttr` 忽略并给迁移警告）、`skin.css`（L1 token 重映射 + L2 语义选择器）、可选 `patches.css`（L3 自由选择器，高敏感）、可选 `hooks.mjs`（受信逃逸舱，高敏感）、`assets/`、`preview/`。所有 CSS 经过安全管线（`src/core/css-safety/transform.ts`）：每个选择器强制限定在 `html[data-dsh-skin]` 下，`@import` / 远程或协议相对 URL / 越界路径直接报错。见 `contracts/README.md`。
+- 皮肤格式（v2）：`skin.json`（fail-closed 校验，v1 字段 `package`/`wiring`/`bodyAttr` 忽略并给迁移警告）、`skin.css`（L1 token 重映射 + L2 语义选择器）、可选 `patches.css`（L3 自由选择器，高敏感）、可选 `hooks.mjs`（受信逃逸舱，高敏感）、`assets/`、`preview/`。所有 CSS 经过安全管线：每个选择器强制限定在 `html[data-dsh-skin]` 下，`@import` / 远程或协议相对 URL / 越界路径直接报错。宿主半区自身从不加载 CSS 解析器——每次转换都在一个短生命周期 worker 进程（`src/core/css-safety/host-transform.ts` + `worker-entry.ts`）中执行：每个请求单独 fork 一个 worker，并在样式表响应写回之前确认 worker 已退出，因此宿主进程从不映射解析器的原生 addon。见 `contracts/README.md`。
 - 覆盖契约：L1 重映射官方 `--dsw-*` 设计 token；L2 样式语义属性（`data-dsh-surface` / `data-dsh-part` / `data-dsh-plugin`，枚举见 `contracts/semantic-attrs-v1.md`），由兼容适配器（`src/client/runtime/semantic-adapter.ts`）从稳定锚点（`data-slot` 出口、`data-chat-flow-kind` 等）为官方壳层 DOM 打标；L3 补丁任意选择器，脆弱性由皮肤作者自负。主动输出语义属性的插件获得完整 L2 覆盖；不输出的只享受 L1。目录皮肤或自定义主题激活期间还会启用公共壳层渲染适配器：它清除工作区列表末端 fade，将 composer 占位符固定为不透明的主题次级文本色，并为会话滚动口保留底部安全间距以保证吸底正文不被输入区覆盖（#978），各皮肤无需重复补丁。
 - 背景优先级：壁纸渲染期间皮肤及其背景媒体整体停画（见「Wallpaper Engine」），背景完全归壁纸；否则皮肤清单背景媒体即背景。
 - 背景控制：背景遮蔽滑杆（0–100%）为画背景的皮肤在面板后加纱，两个按状态的高斯模糊滑杆（0–20 px）分别控制空对话与有内容时的背景，输入卡模糊滑杆（0–20 px）只控制输入卡背后的磨砂区域，气泡不透明度滑杆（0–100%）控制支持气泡 alpha 的皮肤消息气泡。整张壁纸模糊仍是独立的壁纸设置。背景模糊通过外壳之后的固定 `backdrop-filter` 元素施加；0 完全关闭（无元素、无 GPU 开销）。输入卡磨砂由独立的 body 级固定跟随层（`data-dsh-composer-frost` 元素）承担并按输入卡尺寸跟随，**不**挂在卡片本体上：卡片一旦带 `backdrop-filter` 就会成为其中 shell fixed tooltip 的包含块，悬停时整页会话会被顶动。
@@ -69,7 +69,7 @@ dsh plugin --profile web add @linxin666/dsh-client-ui-skin-center
 
 Wallpaper Engine 支持**不再内置**在本包。它由独立插件 [dsh-wallpaper-engine](https://github.com/elysia395/dsh-wallpaper-engine)（`dsh-plugin-wallpaper-engine`）提供，壁纸库、视频 / 网页 / 场景三条渲染路径、壁纸设置面与壁纸之上的玻璃都归它管。它是壁纸方面的**推荐**工坊条目，皮肤中心卡片可直接帮你装上。
 
-**一键安装**：打开 设置 → 皮肤中心，在卡片的壁纸提示条上点「一键安装」。安装走宿主当前发布的插件管理面——存在官方进程内插件管理器时优先用它（与官方插件页同一个调用，也是打包版桌面客户端上唯一的写入者），否则退回家族插件管理器面；两者都没有时保留复制命令的兜底。
+**一键安装**：打开 设置 → Web 扩展 → 皮肤，在卡片的壁纸提示条上点「一键安装」。安装走宿主当前发布的插件管理面——存在官方进程内插件管理器时优先用它（与官方插件页同一个调用，也是打包版桌面客户端上唯一的写入者），否则退回家族插件管理器面；两者都没有时保留复制命令的兜底。
 
 手工等价命令：
 
@@ -101,9 +101,9 @@ dsh plugin --profile web add dsh-plugin-wallpaper-engine
 自行重绘外壳、侧栏、输入区与对话区。它是一个**独立包**：本仓库不捆绑、不接管版本，也不
 分发它的文件。
 
-这样的外观同样是**可以选用的皮肤**。它在皮肤列表**上方**独占一条通栏横条（与网格下方的
-「自定义主题」同一种行式），带 `插件皮肤` 标记，用起来与其他皮肤完全一致：试穿、应用，刷新后
-依然保留。它不占网格里的方块位：那一格是为了放预览图，而这套外观由别的插件绘制，本包里没有
+这样的外观同样是**可以选用的皮肤**。它在页面顶部「插件提供的外观」分组里独占一张卡片，与
+Wallpaper Engine 卡片并排，带 `插件皮肤` 标记；皮肤中心开启时，用起来与其他皮肤完全一致：试穿、
+应用，刷新后依然保留。它不占网格里的方块位：那一格是为了放预览图，而这套外观由别的插件绘制，本包里没有
 它的截图。区别只在于它不由本包绘制——由那个插件绘制，本包只保管这个选择。
 
 - **插件还没装时这一行就在。** 在该行点「一键安装插件」即可（与壁纸提示同一套一键路径：宿主
@@ -135,6 +135,10 @@ dsh plugin --profile web add dsh-plugin-wallpaper-engine
 
 - 所有 `/api/skin-center/*` 路由仅接受同源请求：写操作拒绝跨站请求（Sec-Fetch-Site / Origin 围栏），资产读取限定在各皮肤目录之内（路径逃逸 fail-closed）。
 - 皮肤 CSS 在服务前经白名单净化；`patches.css`（L3）按设计就是任意 CSS 并如实公示——它拥有完整页面样式能力，不构成安全边界。
+- CSS 安全管线运行在短生命周期 worker 进程中，每个请求一个 worker，并在样式表响应写回之前确认 worker 已退出。因此宿主进程既不加载 CSS 解析器，也不映射其原生 addon——这正是宿主运行期间包管理器仍能替换解析器包的原因（issue #98）。
+- 管线归属于单个插件挂载：挂载时创建、注入路由，并随挂载一起释放。因此重新挂载会得到自己的管线，旧挂载的清理不会让新挂载失效。
+- 管线同时最多持有 8 个请求，包含正在执行的那个与等待中的那些。超出上限的请求立即被拒绝，返回 `503 css-transform-overloaded`；白名单违规仍为 `422`，其他转换失败仍为 `500`。
+- 不会有请求悬挂：每个请求有 10 秒预算，该预算也覆盖「已应答但拒绝退出」的 worker；无法启动的 worker 会立即让请求失败，而不是等到预算耗尽。
 - 自定义主题编辑器只会从 `CUSTOM_THEME_ALLOWED_TOKENS` 生成固定声明，且每个 token 都对照官方 token 注册表校验。用户输入只作为规范化后的颜色/对比度数据，不会成为选择器、URL 或自由 CSS 载荷。
 - `hooks.mjs` 是与本仓库同审同发的受信代码，仅同源 serve，其 import/apply 错误永远不会拖垮静态皮肤。hooks 对内置皮肤及可按字节验证为官方市场已审查内容的用户目录皮肤放行：当前 Workshop 安装使用 `dsh-market.provenance.json`，而早于 provenance 的历史安装必须同时匹配生成的 `src/reviewed-hooks.generated.ts` 身份中的 id、声明入口、完整 `skin.json` 与 hooks 字节（由 `src/provenance.ts` 校验，issue #1073）。回退只读且离线；任何被修改、改名、手工投放或篡改的目录都会继续拒绝 hooks facet，声明式部分仍正常加载。
 
@@ -143,6 +147,8 @@ dsh plugin --profile web add dsh-plugin-wallpaper-engine
 - 插件运行时写入的内联样式只能经 L3 `!important` 补丁覆盖。
 - 不输出语义属性（且无稳定 DOM 锚点）的插件只享受 L1 token 覆盖。
 - 壁纸的「隐藏时暂停」、模糊、压暗与声音都在 `dsh-plugin-wallpaper-engine` 自己的设置里；皮肤中心没有任何壁纸控件，卡片只报告该插件的状态。
+- 一次样式表转换进行期间，worker 进程持有 CSS 解析器的原生 addon；正落在该窗口内的包安装在 Windows 上仍会看到已映射的 addon。该窗口只有一次转换的时长；宿主进程自身从不持有它。
+- 超过 8 个样式表请求的突发流量中，超出上限的请求会被拒绝并返回 `503`，需要客户端重试。
 
 ## 数据遥测
 
@@ -154,7 +160,7 @@ dsh plugin --profile web add dsh-plugin-wallpaper-engine
 skins/skin-center/
   contracts/                                # 面向皮肤的契约面（schema、hooks API、语义属性）
   src/core/manifest-v2/                     # manifest v2 类型 + fail-closed 校验器
-  src/core/css-safety/                      # lightningcss 作用域限定 + 白名单管线
+  src/core/css-safety/                      # worker 内运行的 lightningcss 作用域限定 + 白名单管线
   src/index.ts                              # host 入口：路由、tapIndex 适配器、旧版迁移桥
   src/skin-repo.ts                          # 双来源皮肤目录册（内置 + $DSH_HOME/skins）
   src/provenance.ts                         # 官方市场安装 provenance 校验（hooks 信任）
@@ -176,7 +182,7 @@ skins/skin-center/
 
 ## 验收清单
 
-- [x] 皮肤中心出现在 设置 → 皮肤中心，无控制台报错
+- [x] 皮肤中心出现在 设置 → Web 扩展 → 皮肤，无控制台报错
 - [x] 列表展示官方默认加目录册全部皮肤；当前使用者有标记；非法皮肤以诊断形式呈现
 - [x] 试穿即时生效，退出完整恢复已提交皮肤；页面上永远只有一套皮肤
 - [x] 一键应用原子切换、无需刷新；后续页面加载直接以该皮肤启动（无 FOUC）

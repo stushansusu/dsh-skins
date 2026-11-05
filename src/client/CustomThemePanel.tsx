@@ -2,6 +2,8 @@ import { useEffect, useState, useSyncExternalStore, type ReactNode } from 'react
 import type { PropsLocale } from '@deepseek-ai/dsh-client-ui-slots'
 
 import type { CustomThemeController, CustomThemeScheme } from './custom-theme-controller.ts'
+import { SegmentGroup } from './SegmentGroup.tsx'
+import { StepperControl } from './StepperControl.tsx'
 import css from './skin-center.module.css'
 
 type ColorKey = 'accent' | 'background' | 'foreground'
@@ -134,26 +136,15 @@ export function CustomThemeCard(props: CustomThemeCardProps): ReactNode {
 
       {expanded && (
         <div className={css.customThemeEditor}>
-          <div className={css.customThemeScheme} role="group" aria-label={t('customThemeMode')}>
+          <div className={css.customThemeScheme}>
             <span className={css.themeLabel}>{t('customThemeMode')}</span>
-            <button
-              type="button"
-              aria-pressed={scheme === 'light'}
-              className={`${css.themeButton} ${scheme === 'light' ? css.themeButtonActive : ''}`}
-              disabled={disabled}
-              onClick={() => { setScheme('light') }}
-            >
-              {t('customThemeLight')}
-            </button>
-            <button
-              type="button"
-              aria-pressed={scheme === 'dark'}
-              className={`${css.themeButton} ${scheme === 'dark' ? css.themeButtonActive : ''}`}
-              disabled={disabled}
-              onClick={() => { setScheme('dark') }}
-            >
-              {t('customThemeDark')}
-            </button>
+            <SegmentGroup
+              label={t('customThemeMode')}
+              options={[
+                { key: 'light', label: t('customThemeLight'), active: scheme === 'light', disabled, onSelect: () => { setScheme('light') } },
+                { key: 'dark', label: t('customThemeDark'), active: scheme === 'dark', disabled, onSelect: () => { setScheme('dark') } },
+              ]}
+            />
           </div>
 
           <div className={css.customThemeFields}>
@@ -162,24 +153,22 @@ export function CustomThemeCard(props: CustomThemeCardProps): ReactNode {
             {colorField('foreground', t('customThemeForeground'))}
           </div>
 
-          <label className={css.customThemeContrast}>
+          <div className={css.customThemeContrast}>
             <span className={css.backgroundHead}>
               <span className={css.customThemeFieldLabel}>{t('customThemeContrast')}</span>
-              <span className={css.backgroundValue} aria-hidden="true">{profile.contrast}</span>
+              <StepperControl
+                id="skin-center-custom-theme-contrast"
+                min={0}
+                max={100}
+                step={1}
+                unit="%"
+                value={profile.contrast}
+                disabled={disabled}
+                ariaLabel={t('customThemeContrast')}
+                onChange={(value) => { customTheme.setProfileValue(scheme, 'contrast', value) }}
+              />
             </span>
-            <input
-              className={css.backgroundRange}
-              type="range"
-              min="0"
-              max="100"
-              step="1"
-              value={profile.contrast}
-              aria-label={t('customThemeContrast')}
-              aria-valuetext={String(profile.contrast)}
-              disabled={disabled}
-              onChange={(event) => { customTheme.setProfileValue(scheme, 'contrast', Number(event.target.value)) }}
-            />
-          </label>
+          </div>
 
           <div className={css.customThemeFooter}>
             <span className={css.backgroundHintMuted}>{t('customThemeResetHint')}</span>

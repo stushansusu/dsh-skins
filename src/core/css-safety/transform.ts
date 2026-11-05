@@ -29,44 +29,22 @@
  * the text-level pass sidesteps entirely. A side benefit: the output keeps
  * the author's formatting and values byte-for-byte outside selector heads.
  *
- * NOTE: this module runs host-side (node) in the M2 loader. lightningcss is
- * a native dependency and must stay OUT of the browser bundle (external in
- * tsdown.config.ts).
- * @module @linxin666/dsh-client-ui-skin-center/css-safety
+ * NOTE: this module runs in the CSS safety worker process, never in the
+ * DSH host process (issue #98): lightningcss is a native dependency, and a
+ * host that imports it maps the addon into its own process, which blocks
+ * package installs on Windows. The host half reaches this algorithm through
+ * the ./css-safety bundle; the browser bundle never carries it.
+ * @module @linxin666/dsh-client-ui-skin-center/css-safety/transform
  */
 
 import { transform } from 'lightningcss'
 
+import { SkinCssSafetyError } from './errors.ts'
 import { deriveFallbackTokens, derivePrimaryActionFallbacks } from './fallback.ts'
+import type { SkinCssTransformOptions, SkinCssTransformResult } from './types.ts'
 
-export interface SkinCssTransformOptions {
-  /** Manifest id; becomes the html[data-dsh-skin="<id>"] scope value. */
-  skinId: string
-  /** Logical filename for error messages (e.g. "skin.css" / "patches.css"). */
-  filename?: string
-  /**
-   * Append automatic fallback tints for official tokens the skin does not
-   * remap (see ./fallback.ts). Only the main stylesheet derives; patches
-   * must not re-derive or their partial token view would override the
-   * skin's real values.
-   */
-  deriveFallbacks?: boolean
-}
-
-export interface SkinCssTransformResult {
-  code: string
-  warnings: string[]
-}
-
-/** Violation of the CSS whitelist. Always fatal (fail-closed). */
-export class SkinCssSafetyError extends Error {
-  override readonly name = 'SkinCssSafetyError'
-  readonly violations: string[]
-  constructor(message: string, violations: string[]) {
-    super(message)
-    this.violations = violations
-  }
-}
+export { SkinCssSafetyError }
+export type { SkinCssTransformOptions, SkinCssTransformResult }
 
 interface RuleSpan {
   /** Byte/char offset of the selector start in the source. */

@@ -41,9 +41,9 @@
   --dsw-alias-interactive-bg-hover-solid: #e5e9f4;
   --dsw-alias-label-primary: #2a3450;
   --dsw-alias-label-primary-bluish: #37446a;
-  --dsw-alias-label-secondary: #525f80;
-  --dsw-alias-label-tertiary: #6f7b99;
-  --dsw-alias-label-caption: #8b94aa;
+  --dsw-alias-label-secondary: #3a4361;
+  --dsw-alias-label-tertiary: #48526f;
+  --dsw-alias-label-caption: #56617c;
   --dsw-alias-state-business-primary: #5b6ba0;
   --dsw-alias-state-business-tertiary: #e2e7f5;
   --dsw-shadow-lv2: var(--phoebe-shadow);
@@ -80,7 +80,7 @@ body[data-ds-dark-theme] {
   --dsw-alias-label-primary-bluish: #d5dff3;
   --dsw-alias-label-secondary: #bdc9e3;
   --dsw-alias-label-tertiary: #96a6c9;
-  --dsw-alias-label-caption: #7f90b4;
+  --dsw-alias-label-caption: #899cc2;
   --dsw-alias-state-business-primary: #9bb0e1;
   --dsw-alias-state-business-tertiary: #293d73;
   --dsw-specific-input-major: rgba(17, 30, 66, 0.88);
@@ -917,6 +917,12 @@ body
     [data-phoebe-sidebar-footer]
     [data-slot='sidebar.settings']
     > :is(button, [role='button']) {
+  /* The settings trigger paints its own navy plate, so it keeps the porcelain
+     ink this seat used to hand every card. */
+  --dsw-alias-label-primary: #f8f3e8;
+  --dsw-alias-label-secondary: #d7def0;
+  --dsw-alias-label-tertiary: #b5c1dd;
+  --dsw-alias-label-caption: #96a8ce;
   position: relative;
   z-index: 1;
   width: 100%;
@@ -1113,18 +1119,17 @@ body
   margin-top: 0;
 }
 
-/* sidebar.footer.action is the host's extension boundary. Keep its surface
-   and label tokens on the same navy palette so third-party cards cannot pair
-   the sidebar's porcelain text with the light application's panel fills. */
+/* sidebar.footer.action is the host's extension boundary, and in the light
+   theme it sits on the ivory pilaster below, not on the retired navy panel.
+   The near-white label palette that used to blanket this root now belongs to
+   the two leaf controls that paint a navy plate themselves; the root carries
+   the light-surface ink, so a card that inherits its text instead of painting
+   it lands readable navy on ivory rather than porcelain on ivory. */
 body [data-slot='sidebar.footer.action'] {
   --dsw-alias-bg-base: rgba(5, 14, 43, 0.96);
   --dsw-alias-bg-layer-1: rgba(16, 36, 86, 0.94);
   --dsw-alias-bg-layer-2: rgba(11, 25, 66, 0.97);
   --dsw-alias-bg-layer-3: rgba(24, 40, 80, 0.98);
-  --dsw-alias-label-primary: #f8f3e8;
-  --dsw-alias-label-secondary: #d7def0;
-  --dsw-alias-label-tertiary: #b5c1dd;
-  --dsw-alias-label-caption: #96a8ce;
   --dsw-alias-border-l1: rgba(225, 207, 170, 0.2);
   --dsw-alias-border-l2: rgba(225, 207, 170, 0.32);
   --dsw-alias-interactive-bg-hover: rgba(255, 252, 243, 0.1);
@@ -1132,7 +1137,23 @@ body [data-slot='sidebar.footer.action'] {
   color: var(--dsw-alias-label-primary);
 }
 
+/* The plate above is ivory only in the light theme; the dark theme paints the
+   sidebar as a night gallery, so the porcelain ink stays correct there and the
+   light-surface ink is scoped to the theme that renders it. */
+body:not([data-ds-dark-theme]) [data-slot='sidebar.footer.action'] {
+  --dsw-alias-label-primary: #17284f;
+  --dsw-alias-label-secondary: #3a4361;
+  --dsw-alias-label-tertiary: #48526f;
+  --dsw-alias-label-caption: #56617c;
+}
+
+/* Cordis mounts a badge into the same seat and paints its own navy plate, so
+   the porcelain ink it inherited from the seat root is re-declared here. */
 body [data-cordis-badge] {
+  --dsw-alias-label-primary: #f8f3e8;
+  --dsw-alias-label-secondary: #d7def0;
+  --dsw-alias-label-tertiary: #b5c1dd;
+  --dsw-alias-label-caption: #96a8ce;
   min-height: 49px;
   color: #f4e3bf;
   border: 1px solid rgba(225, 191, 124, 0.58);
@@ -1140,6 +1161,15 @@ body [data-cordis-badge] {
   box-shadow:
     inset 0 0 0 2px rgba(5, 15, 45, 0.64),
     0 4px 11px rgba(1, 7, 24, 0.24);
+}
+
+/* The wide badge carries its label across the plate, so the light end of the
+   gradient is under text. At 0.74 the porcelain ink measured 3.70:1 on the
+   brightest ivory plate; the light theme deepens that stop to 0.84, which puts
+   every resting pixel of the badge at 4.79:1 or better. The dark theme keeps
+   the original plate, where the porcelain ink already clears the floor. */
+body:not([data-ds-dark-theme]) [data-cordis-badge] {
+  background: linear-gradient(145deg, rgba(44, 68, 132, 0.84), rgba(8, 23, 59, 0.92));
 }
 
 body [data-cordis-badge]:is(:hover, :focus-visible, [data-active]) {
@@ -1168,9 +1198,9 @@ body [data-cordis-panel] {
   min-width: min(300px, calc(100vw - var(--phoebe-sidebar-width, 280px) - 24px));
   --dsw-alias-bg-base: rgba(230, 237, 250, 0.96);
   --dsw-alias-label-primary: #17284f;
-  --dsw-alias-label-secondary: #304875;
-  --dsw-alias-label-tertiary: #526789;
-  --dsw-alias-label-caption: #6a7895;
+  --dsw-alias-label-secondary: #3a4361;
+  --dsw-alias-label-tertiary: #48526f;
+  --dsw-alias-label-caption: #56617c;
   --dsw-alias-border-l1: rgba(190, 153, 82, 0.72);
   --dsw-alias-border-l2: rgba(83, 105, 158, 0.34);
   --dsw-alias-interactive-bg-hover: rgba(86, 112, 174, 0.16);
@@ -1256,9 +1286,9 @@ body [data-dsh-better-sidebar] {
   --dsw-alias-bg-overlay: rgba(248, 250, 255, 0.98);
   --dsw-alias-label-primary: #172347;
   --dsw-alias-label-primary-bluish: #243866;
-  --dsw-alias-label-secondary: #4d5d7f;
-  --dsw-alias-label-tertiary: #6f7c99;
-  --dsw-alias-label-caption: #8a94aa;
+  --dsw-alias-label-secondary: #3a4361;
+  --dsw-alias-label-tertiary: #48526f;
+  --dsw-alias-label-caption: #56617c;
   --dsw-alias-border-l1: rgba(71, 91, 145, 0.18);
   --dsw-alias-border-l2-darkmode-thin: rgba(71, 91, 145, 0.25);
   --dsw-alias-border-l2: rgba(71, 91, 145, 0.3);
@@ -1293,7 +1323,7 @@ body[data-ds-dark-theme] [data-dsh-better-sidebar] {
   --dsw-alias-label-primary-bluish: #d5dff3;
   --dsw-alias-label-secondary: #bdc9e3;
   --dsw-alias-label-tertiary: #96a6c9;
-  --dsw-alias-label-caption: #7f90b4;
+  --dsw-alias-label-caption: #899cc2;
   --dsw-alias-border-l1: rgba(151, 169, 216, 0.2);
   --dsw-alias-border-l2-darkmode-thin: rgba(151, 169, 216, 0.3);
   --dsw-alias-border-l2: rgba(151, 169, 216, 0.34);
@@ -2004,6 +2034,69 @@ body[data-ds-dark-theme]
 body[data-ds-dark-theme] [class*='headline'] [class*='fish'] {
   color: var(--phoebe-indigo);
   filter: drop-shadow(0 2px 4px rgba(255, 255, 255, 0.42));
+}
+
+/* Phones: the desktop content floor (560px) is wider than a 390px viewport, so
+   the three-column hero had to push its title and its preview badge into the
+   same space. Drop the floor to the viewport, shrink the crest, and give the
+   badge a centered row of its own so nothing hangs outside the content box. */
+@media (max-width: 480px) {
+  body [data-phase='hero'] {
+    --dsh-chat-content-width: 100%;
+    --dsh-composer-card-max-width: 100%;
+  }
+
+  body [data-phase='hero'] [class*='headline']:has(> [class*='fish']) {
+    box-sizing: border-box;
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+    row-gap: 22px;
+    column-gap: 22px;
+    font-size: clamp(20px, 5.4vw, 27px);
+    transform: translateY(-2px);
+  }
+
+  body [data-phase='hero']
+      [class*='headline']:has(> [class*='fish']) > [class*='fish'] {
+    width: 56px;
+    height: 56px;
+  }
+
+  /* The centered hairline rides the crest, which is 56px at this width. */
+  body [data-phase='hero']
+      [class*='headline']:has(> [class*='fish'])::before {
+    top: 28px;
+  }
+
+  body [data-phase='hero'] [class*='previewBadge'] {
+    grid-column: 1 / -1;
+    grid-row: 3;
+    justify-self: center;
+    box-sizing: border-box;
+    max-width: 100%;
+    white-space: normal;
+  }
+
+  /* The two column-resize handles place themselves from the content width:
+     left: calc(50% + var(--dsh-chat-content-width) / 2 + 24px). The desktop
+     axis floors that token at 680px in the active phase, so on a 390px screen
+     the right strip lands past the viewport and its own width math goes
+     negative (invalid), which leaves a hit area outside the page. Two pointer
+     drag affordances have no meaning on touch, so the phone layout drops them
+     instead of leaving them mispositioned. */
+  body [data-width-handle] {
+    display: none;
+  }
+
+  /* The dock band is a centered flex line whose chips are nowrap and do not
+     shrink, so a wide strip pushed the page sideways instead of wrapping. Wrap
+     only engages when the line does not fit, and nothing is hidden or clipped —
+     the collapsing dock keeps every chip and its own state. */
+  body [data-composer-dock] {
+    flex-wrap: wrap;
+    row-gap: 4px;
+  }
 }
 
 body button[class*='workspace'][aria-expanded],
@@ -2729,8 +2822,8 @@ body header[class*='header'] {
 body [data-terminal] {
   --dsw-alias-markdown-code-block: rgba(249, 250, 253, 0.97);
   --dsw-alias-label-primary: #172347;
-  --dsw-alias-label-secondary: #4d5d7f;
-  --dsw-alias-label-tertiary: #6f7c99;
+  --dsw-alias-label-secondary: #3a4361;
+  --dsw-alias-label-tertiary: #48526f;
   color: #172347;
   text-shadow: none;
 }
@@ -3065,8 +3158,8 @@ body[data-ds-dark-theme] [data-phoebe-table-close]::after {
    turning the compact disclosure list into a stack of message cards. */
 body:not([data-ds-dark-theme])
   :is([data-variant], [data-chat-flow-kind='context']) {
-  --dsw-alias-label-secondary: #2f4778;
-  --dsw-alias-label-tertiary: #405273;
+  --dsw-alias-label-secondary: #3a4361;
+  --dsw-alias-label-tertiary: #48526f;
 }
 
 body[data-ds-dark-theme]
@@ -3366,8 +3459,8 @@ body [data-state='running'] :is([class*='runState'], [class*='stateDot']) {
 body:not([data-ds-dark-theme])
   [data-slot='conversation.session.header.actions'] [role='tree'] {
   --dsw-alias-label-primary: #233763;
-  --dsw-alias-label-secondary: #40557f;
-  --dsw-alias-label-tertiary: #596b8e;
+  --dsw-alias-label-secondary: #3a4361;
+  --dsw-alias-label-tertiary: #48526f;
   --dsw-alias-label-dimmed: #8995ad;
   --dsw-alias-border-l2: rgba(95, 117, 169, 0.4);
   --dsw-alias-interactive-bg-hover: rgba(103, 126, 183, 0.14);
@@ -3437,9 +3530,9 @@ body[data-ds-dark-theme]
 body [data-question-key] {
   --dsw-alias-label-primary: #142044;
   --dsw-alias-label-primary-bluish: #233663;
-  --dsw-alias-label-secondary: #344a75;
-  --dsw-alias-label-tertiary: #50638c;
-  --dsw-alias-label-caption: #6d7994;
+  --dsw-alias-label-secondary: #3a4361;
+  --dsw-alias-label-tertiary: #48526f;
+  --dsw-alias-label-caption: #56617c;
   --dsw-alias-label-dimmed: #a1a8b8;
   --dsw-alias-label-primary-foreground: #fffaf0;
   --dsw-alias-border-l1: rgba(116, 91, 47, 0.22);
@@ -3591,9 +3684,9 @@ body[data-ds-dark-theme] [data-question-key] footer > :last-child button:first-c
    so its summary and expanded items stay readable over character artwork. */
 body [data-testid='todo-panel'] {
   --dsw-alias-label-primary: #172347;
-  --dsw-alias-label-secondary: #344b78;
-  --dsw-alias-label-tertiary: #52658c;
-  --dsw-alias-label-caption: #74809a;
+  --dsw-alias-label-secondary: #3a4361;
+  --dsw-alias-label-tertiary: #48526f;
+  --dsw-alias-label-caption: #56617c;
   border-color: rgba(190, 153, 82, 0.56);
   background: rgba(252, 250, 245, 0.94);
   color: #172347;
@@ -3650,9 +3743,9 @@ body :is([role='dialog'], [role='menu'], [data-radix-popper-content-wrapper] > *
   color: var(--dsw-alias-label-primary, #172347);
   --dsw-alias-label-primary: #172347;
   --dsw-alias-label-primary-bluish: #243866;
-  --dsw-alias-label-secondary: #4d5d7f;
-  --dsw-alias-label-tertiary: #6f7c99;
-  --dsw-alias-label-caption: #8a94aa;
+  --dsw-alias-label-secondary: #3a4361;
+  --dsw-alias-label-tertiary: #48526f;
+  --dsw-alias-label-caption: #56617c;
   --dsw-alias-border-l1: rgba(71, 91, 145, 0.18);
   --dsw-alias-border-l2-darkmode-thin: rgba(71, 91, 145, 0.25);
   --dsw-alias-border-l2: rgba(71, 91, 145, 0.3);
@@ -3673,7 +3766,7 @@ body[data-ds-dark-theme] :is([role='dialog'], [role='menu'], [data-radix-popper-
   --dsw-alias-label-primary-bluish: #d5dff3;
   --dsw-alias-label-secondary: #bdc9e3;
   --dsw-alias-label-tertiary: #96a6c9;
-  --dsw-alias-label-caption: #7f90b4;
+  --dsw-alias-label-caption: #899cc2;
   --dsw-alias-border-l1: rgba(151, 169, 216, 0.2);
   --dsw-alias-border-l2-darkmode-thin: rgba(151, 169, 216, 0.3);
   --dsw-alias-border-l2: rgba(151, 169, 216, 0.34);
@@ -4416,7 +4509,16 @@ body:not([data-ds-dark-theme]) [data-phoebe-session-row]:hover:not([aria-selecte
 }
 
 /* ---------- 底部按钮文字随主题 ---------- */
-body:not([data-ds-dark-theme]) [data-phoebe-sidebar-footer] [data-slot='sidebar.footer.action'] button {
+/* The Cordis badge is a button too, but it is not one of the seat's plain
+   triggers: it paints its own navy plate and its own porcelain label, set on
+   [data-cordis-badge] above. Without the exclusion this rule out-specifies that
+   one (0,3,2 against 0,1,1) and repaints the badge's text in the trigger's
+   dark gold, which measured about 1.1:1 on the badge's own plate. The dark
+   rule below stays as it is: #e9d7ae already clears the floor on the badge. */
+body:not([data-ds-dark-theme])
+    [data-phoebe-sidebar-footer]
+    [data-slot='sidebar.footer.action']
+    button:not([data-cordis-badge]) {
   color: #8a6b2f;
 }
 

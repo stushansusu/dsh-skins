@@ -2,8 +2,8 @@
  * External Wallpaper Engine plugin pointer (issue #39, migration round).
  *
  * Wallpaper support no longer ships inside the skin center: it is delegated to
- * `dsh-plugin-wallpaper-engine`. This card occupies the place the wallpaper
- * controls used to, so the feature stays discoverable where users expect it.
+ * `dsh-plugin-wallpaper-engine`. This card leads the skin page beside the
+ * delegated-skin cards, so the feature stays discoverable where users look.
  * The plugin is a recommended Workshop item, so the card offers a ONE-CLICK
  * INSTALL through whichever plugin-management face the host publishes
  * (see external-wallpaper-install.ts) and falls back to the copy-command line
@@ -138,21 +138,29 @@ export function ExternalWallpaperNotice({ t }: { t: PropsLocale<'skinCenter'>['t
     void copyText(state.installCommand).then((ok) => { setNotice(ok ? 'copied' : 'failed') })
   }
 
+  // The same card shape as the delegated-skin row beside it: the plugin's
+  // name, one line naming the state, the body, then the actions.
   return (
-    <div className={css.externalWallpaperNotice} role="status">
-      <div className={css.externalWallpaperTitle}>
+    <div className={`${css.card} ${css.pluginLookCard}`} role="status" data-external-wallpaper="">
+      <div className={css.cardHead}>
+        <span className={`${css.swatch} ${css.pluginLookMark}`} aria-hidden="true" />
+        <span className={css.cardName}>{t('externalWallpaperName')}</span>
+        {!state.installed && (
+          <span className={css.headPills}>
+            <span className={css.delegatedBadge}>{t('externalWallpaperRecommended')}</span>
+          </span>
+        )}
+      </div>
+      <div className={css.cardTagline}>
         {state.installed ? t('externalWallpaperReadyTitle') : t('externalWallpaperMissingTitle')}
       </div>
-      {!state.installed && (
-        <span className={css.externalWallpaperBadge}>{t('externalWallpaperRecommended')}</span>
-      )}
-      <p className={css.externalWallpaperBody}>
+      <p className={css.delegatedDescription}>
         {state.installed
           ? t('externalWallpaperReadyBody')
           : t('externalWallpaperMissingBody', { package: state.packageName })}
       </p>
       {!state.installed && (
-        <div className={css.externalWallpaperActions}>
+        <div className={css.actions}>
           {canInstall && (
             <button
               type="button"
@@ -172,12 +180,12 @@ export function ExternalWallpaperNotice({ t }: { t: PropsLocale<'skinCenter'>['t
         </div>
       )}
       {error !== null && (
-        <p className={css.externalWallpaperError} role="alert">
+        <p className={css.delegatedStatus} role="alert">
           {t('externalWallpaperInstallFailed', { reason: error })}
         </p>
       )}
       <a
-        className={css.externalWallpaperLink}
+        className={css.delegatedLink}
         href={state.repository}
         target="_blank"
         rel="noopener noreferrer"

@@ -30,6 +30,8 @@ unverified. This is not official DeepSeek artwork. See [NOTICE](NOTICE) and
 [ARTWORK.json](ARTWORK.json) for reference, generation and font details.
 The older Koe illustrations and all personal photo folders are excluded.
 
+The illustrations and character artwork bundled with this skin are for personal, non-commercial use only. Character and other third-party rights remain with their respective holders; this notice grants no third-party rights or official authorization.
+
 ## Compatibility and limits
 
 Skin manifest v2, optional SkinHooks v1alpha1. The host only executes approved

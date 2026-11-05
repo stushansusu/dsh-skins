@@ -279,3 +279,59 @@ describe('shell rendering dark-theme badge correction', () => {
     expect(offenders).toEqual([])
   })
 })
+
+/**
+ * #102: the fullscreen right-sidebar panel is a 100vw overlay whose inner
+ * surfaces all inherit a translucent fill from the skin (--dsw-alias-bg-base at
+ * roughly 10%, plus [data-dockkit-content] at ~34% in four skins), so the
+ * conversation text read straight through the document preview. The settings
+ * dialog has the same problem through --dsw-alias-bg-layer-2 (42%..96% alpha
+ * across skins). Both corrections take the skin's own colour at full alpha.
+ */
+describe('shell rendering opaque overlay surfaces', () => {
+  const FULLSCREEN = '[data-sidebar-right-panel="fullscreen"][data-sidebar-right-open]'
+  const SETTINGS = '[data-shortcut-modal="settings"]'
+
+  it('scopes the fullscreen panel correction under every active visual head', () => {
+    const css = shellRenderingCss()
+    expect(css).toContain('html[data-dsh-skin] ' + FULLSCREEN)
+    expect(css).toContain('html[data-dsh-custom-theme]:not([data-dsh-skin]) ' + FULLSCREEN)
+  })
+
+  it('scopes the settings dialog correction under every active visual head', () => {
+    const css = shellRenderingCss()
+    expect(css).toContain('html[data-dsh-skin] ' + SETTINGS)
+    expect(css).toContain('html[data-dsh-custom-theme]:not([data-dsh-skin]) ' + SETTINGS)
+  })
+
+  it('states an explicit opaque alpha and keeps a fallback', () => {
+    const css = shellRenderingCss()
+    // The relative-colour line is what makes the surface opaque; the plain
+    // declaration before it is the engine fallback.
+    expect(css).toContain('background-color: rgb(from var(--dsw-alias-bg-base, #05070d) r g b / 1) !important')
+    expect(css).toContain('background-color: var(--dsw-alias-bg-base, #05070d) !important')
+    expect(css).toContain('background-color: rgb(from var(--dsw-alias-bg-layer-2, #ffffff) r g b / 1) !important')
+    expect(css).toContain('background-color: var(--dsw-alias-bg-layer-2, #ffffff) !important')
+  })
+
+  it('never paints a collapsed panel', () => {
+    // The panel stays mounted and keeps its fullscreen attribute while
+    // collapsed; an unqualified rule would plate the viewport behind the
+    // conversation (black bands in the gaps).
+    const css = shellRenderingCss()
+    expect(css).not.toContain('[data-sidebar-right-panel="fullscreen"] {')
+    expect(css).toContain('[data-sidebar-right-panel="fullscreen"][data-sidebar-right-open]')
+  })
+
+  it('never touches the docked push mode', () => {
+    // A see-through column beside the artwork is the intended docked look; only
+    // the fullscreen overlay is a bug.
+    const rules = shellRenderingCss().split('}')
+    for (const rule of rules) {
+      const head = rule.split('{')[0] ?? ''
+      if (!head.includes('data-sidebar-right-panel')) continue
+      expect(head).not.toContain('"push"')
+      expect(head).not.toContain("'push'")
+    }
+  })
+})

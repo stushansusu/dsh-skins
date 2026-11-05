@@ -34,7 +34,9 @@ import { fetchMarketVersions, planVersionRows } from './bulk.ts'
 import { readJsonBody } from './http.ts'
 import { defaultActiveStatePath, readActiveState, writeActiveState } from './active-state.ts'
 import { sanitizeSkinBackground, type SkinBackgroundConfig } from './core/background.ts'
-import { transformSkinCss, SkinCssSafetyError } from './core/css-safety/transform.ts'
+import { SkinCssOverloadedError, SkinCssSafetyError } from './core/css-safety/errors.ts'
+import { defaultSkinCssTransform } from './core/css-safety/host-transform.ts'
+import type { SkinCssTransformOptions, SkinCssTransformResult } from './core/css-safety/types.ts'
 import { canServeSkinHooks, findSkin, loadSkinCatalog, repairSkin, resolveInsideSkin, shippedSkinIds, uninstallUserSkin, verifyAllSkinsIntegrity, verifyAndRepairAllSkins } from './skin-repo.ts'
 import { MARKET_PROVENANCE_FILENAME } from './provenance.ts'
 import { detectExternalWallpaperEngine, type ExternalWallpaperReport } from './external-wallpaper.ts'
@@ -86,6 +88,15 @@ export interface RoutesV2Deps {
    * builder probes this profile per registry entry; tests hand in fixed rows.
    */
   listDelegatedSkins?: () => DelegatedSkinRow[]
+  /**
+   * The CSS safety transform (issue #98).
+   *
+   * A plugin mount injects the transform of ITS OWN scheduler, so the mount
+   * that owns these routes also owns the worker that serves them; disposing
+   * one mount can never disable another. Without an injected transform the
+   * shared fallback pipeline is used.
+   */
+  transformCss?: (css: string, options: SkinCssTransformOptions) => Promise<SkinCssTransformResult>
 }
 
 /**
@@ -111,13 +122,24 @@ function sendCss(res: ServerResponse, status: number, code: string): void {
   res.end(code)
 }
 
-/** Serve one manifest-referenced stylesheet through the safety pipeline. */
-function serveStylesheet(
+/**
+ * Serve one manifest-referenced stylesheet through the safety pipeline.
+ *
+ * The transform runs in a short-lived worker process (issue #98), so this
+ * handler awaits it: the response is written only after the worker has
+ * answered and exited.
+ * @param res - the HTTP response.
+ * @param entry - the catalog row of the skin being served.
+ * @param relPath - the manifest-relative stylesheet path.
+ * @param filename - the logical filename used in pipeline diagnostics.
+ */
+async function serveStylesheet(
   res: ServerResponse,
   entry: SkinCatalogEntry,
   relPath: string,
   filename: string,
-): void {
+  transformCss: (css: string, options: SkinCssTransformOptions) => Promise<SkinCssTransformResult>,
+): Promise<void> {
   const abs = resolveInsideSkin(entry, relPath)
   if (!abs || !existsSync(abs)) {
     writeJson(res, 404, { ok: false, error: 'stylesheet-not-found' })
@@ -127,7 +149,7 @@ function serveStylesheet(
     // Warnings are diagnostic surface (catalog/CLI), not transport: HTTP
     // headers reject non-Latin1 bytes and skin warnings can embed selector
     // fragments with CJK text.
-    const { code } = transformSkinCss(readFileSync(abs, 'utf8'), {
+    const { code } = await transformCss(readFileSync(abs, 'utf8'), {
       skinId: entry.manifest.id,
       filename,
       // Only the main stylesheet derives fallback tints; patches re-deriving
@@ -138,6 +160,11 @@ function serveStylesheet(
   } catch (error) {
     if (error instanceof SkinCssSafetyError) {
       writeJson(res, 422, { ok: false, error: 'css-whitelist-violation', violations: error.violations })
+      return
+    }
+    if (error instanceof SkinCssOverloadedError) {
+      // The pipeline holds as many requests as it may; the caller may retry.
+      writeJson(res, 503, { ok: false, error: 'css-transform-overloaded', detail: (error as Error)?.message ?? String(error) })
       return
     }
     writeJson(res, 500, { ok: false, error: 'css-transform-failed', detail: (error as Error)?.message ?? String(error) })
@@ -184,6 +211,7 @@ function serveAsset(req: IncomingMessage, res: ServerResponse, entry: SkinCatalo
  */
 export function makeSkinCenterV2Routes(deps: RoutesV2Deps = {}): WebRoute[] {
   const loadCatalog = deps.loadCatalog ?? (() => loadSkinCatalog())
+  const transformCss = deps.transformCss ?? defaultSkinCssTransform
   const activeStatePath = deps.activeStatePath ?? defaultActiveStatePath()
   // Installed-only catalog (market/store separation): user dirs are always
   // installed, builtins only when the package ships them (files whitelist).
@@ -371,7 +399,7 @@ export function makeSkinCenterV2Routes(deps: RoutesV2Deps = {}): WebRoute[] {
       return
     }
     if (sub === 'stylesheet') {
-      serveStylesheet(res, entry, entry.manifest.contributes.stylesheet, 'skin.css')
+      await serveStylesheet(res, entry, entry.manifest.contributes.stylesheet, 'skin.css', transformCss)
       return
     }
     if (sub === 'patches') {
@@ -380,7 +408,7 @@ export function makeSkinCenterV2Routes(deps: RoutesV2Deps = {}): WebRoute[] {
         writeJson(res, 404, { ok: false, error: 'no-patches' })
         return
       }
-      serveStylesheet(res, entry, patches, 'patches.css')
+      await serveStylesheet(res, entry, patches, 'patches.css', transformCss)
       return
     }
     if (sub === 'hooks.mjs') {

@@ -1,7 +1,7 @@
 {
   "name": "@linxin666/dsh-client-ui-skin-center",
   "description": "In-GUI skin center for the dsh web GUI — the single skin package: skins are pure asset directories (built-in plus $DSH_HOME/skins) loaded and rendered only by the skin center; live try-on and one-click apply switch atomically in the page (no reload, no cordis.patch.yml rewrite, no restart)",
-  "version": "0.4.8",
+  "version": "0.4.15",
   "publishConfig": {
     "access": "public"
   },
@@ -11,12 +11,13 @@
   "exports": {
     ".": "./lib/index.js",
     "./client": "./lib/client.js",
+    "./css-safety": "./lib/css-safety.js",
     "./src/*": "./src/*",
     "./package.json": "./package.json"
   },
   "dsh": {
     "engines": {
-      "dsh": ">=0.2.1-rc.2"
+      "dsh": ">=0.2.2-rc.1"
     },
     "bundle": {
       "patch": "./cordis.patch.yml"
@@ -45,24 +46,24 @@
   },
   "license": "Apache-2.0",
   "dependencies": {
-    "@deepseek-ai/schemastery": "^3.18.5",
+    "@deepseek-ai/schemastery": "^3.19.0",
     "lightningcss": "^1.32.0"
   },
   "peerDependencies": {
-    "@deepseek-ai/dsh": ">=0.2.1-rc.2",
+    "@deepseek-ai/dsh": ">=0.2.2-rc.1",
     "react": "^18.2.0"
   },
   "devDependencies": {
-    "@deepseek-ai/cordis": "^4.0.5",
-    "@deepseek-ai/dsh-api-remotes": "0.2.1-rc.2",
-    "@deepseek-ai/dsh-api-workspace-controller": "0.2.1-rc.2",
-    "@deepseek-ai/dsh-client-locale": "0.2.1-rc.2",
-    "@deepseek-ai/dsh-client-ui-renderer": "0.2.1-rc.2",
-    "@deepseek-ai/dsh-client-ui-settings": "0.2.1-rc.2",
-    "@deepseek-ai/dsh-client-ui-slots": "0.2.1-rc.2",
-    "@deepseek-ai/dsh-client-ui-theme": "0.2.1-rc.2",
-    "@deepseek-ai/dsh-host-webserver": "0.2.1-rc.2",
-    "@deepseek-ai/dsh-settings": "0.2.1-rc.2",
+    "@deepseek-ai/cordis": "^4.1.0",
+    "@deepseek-ai/dsh-api-remotes": "0.2.2-rc.1",
+    "@deepseek-ai/dsh-api-workspace-controller": "0.2.2-rc.1",
+    "@deepseek-ai/dsh-client-locale": "0.2.2-rc.1",
+    "@deepseek-ai/dsh-client-ui-renderer": "0.2.2-rc.1",
+    "@deepseek-ai/dsh-client-ui-settings": "0.2.2-rc.1",
+    "@deepseek-ai/dsh-client-ui-slots": "0.2.2-rc.1",
+    "@deepseek-ai/dsh-client-ui-theme": "0.2.2-rc.1",
+    "@deepseek-ai/dsh-host-webserver": "0.2.2-rc.1",
+    "@deepseek-ai/dsh-settings": "0.2.2-rc.1",
     "@types/node": "^22.20.0",
     "@types/react": "^18.3.0",
     "@types/react-dom": "^18.3.0",

@@ -93,11 +93,6 @@ export const SEMANTIC_RULES_V1: readonly SemanticRule[] = [
     note: 'ssh panel (the sidebar row is shell-owned: its glyph carries data-dsh-panel-entry and the family rule below stamps the row)',
   },
   {
-    selector: '[data-gitgraph-chip-anchor], [data-gitgraph-dialog]',
-    attrs: [['data-dsh-plugin', 'git-graph']],
-    note: 'git-graph chip/dialog',
-  },
-  {
     selector: '[data-dsh-pet-root]',
     attrs: [['data-dsh-plugin', 'pet']],
     note: 'pet global root',
@@ -132,8 +127,6 @@ const ANCHOR_ATTRIBUTES: readonly string[] = [
   'data-dsh-taskboard-board',
   'data-dsh-ssh-view',
   'data-dsh-pet-root',
-  'data-gitgraph-chip-anchor',
-  'data-gitgraph-dialog',
   'data-decoration',
   'data-streaming',
   'data-side',
