@@ -68,8 +68,14 @@ body[data-ds-dark-theme] {
  * So the picture keeps its composition and the *interface* gets its own local
  * scrim: the same cream veil as everywhere else, painted above the media and
  * under the text, thick over the conversation column, the composer and the
- * header band, faded out toward the right edge and the picture-only corners.
- * No new colour enters the palette.
+ * header band. No new colour enters the palette.
+ *
+ * The veil is a band, not a wash over the whole frame (2026-11-05 intake note:
+ * the first cut faded out too late, so the picture-only columns left and right
+ * of the interface were veiled as well and the illustration went milky). The
+ * band is 980 px wide, centred like the shell's content column, and dies inside
+ * a 10 % ramp at each end; everything outside it keeps the illustration's own
+ * detail, so the scrim's boundary is visible and the painting stays a painting.
  */
 body [data-dsh-skin-layer='background'] > img,
 body [data-dsh-skin-layer='background'] > video {
@@ -79,11 +85,17 @@ body [data-dsh-skin-layer='background'] > video {
 body [data-dsh-skin-layer='background']::after {
   content: '';
   position: absolute;
-  inset: 0;
+  top: 0;
+  bottom: 0;
+  left: 50%;
+  width: min(100%, 980px);
+  transform: translateX(-50%);
   pointer-events: none;
   background:
-    radial-gradient(120% 92% at 46% 46%, rgba(250, 249, 245, 0.62) 0%, rgba(250, 249, 245, 0.42) 46%, rgba(250, 249, 245, 0.10) 74%, rgba(250, 249, 245, 0) 88%),
+    radial-gradient(120% 92% at 50% 46%, rgba(250, 249, 245, 0.62) 0%, rgba(250, 249, 245, 0.42) 46%, rgba(250, 249, 245, 0.10) 74%, rgba(250, 249, 245, 0) 88%),
     linear-gradient(180deg, rgba(250, 249, 245, 0.30) 0%, rgba(250, 249, 245, 0.14) 22%, rgba(250, 249, 245, 0.14) 78%, rgba(250, 249, 245, 0.34) 100%);
+  -webkit-mask-image: linear-gradient(90deg, transparent 0%, #000 10%, #000 90%, transparent 100%);
+  mask-image: linear-gradient(90deg, transparent 0%, #000 10%, #000 90%, transparent 100%);
 }
 
 /* ── canvas: the theme's ground ──────────────────────────────────────────── */

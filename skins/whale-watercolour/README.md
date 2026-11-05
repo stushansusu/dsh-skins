@@ -77,11 +77,24 @@ high-detail region for another under the text - a zoomed-out recentre still leav
 
 So the picture keeps its composition and the **interface gets its own local scrim**:
 the conversation column, the composer and the header band carry one extra cream layer
-(radial 0.62 -> 0.42 -> 0.10 -> 0, over a 0.30 / 0.14 / 0.34 vertical wash) that fades
-out toward the right edge and the picture-only corner. Gaussian high-pass detail
-energy inside the interface column drops from 17.45 to 7.23; the picture-only upper
-right corner measures 0.4 under the same instrument, so where she is left alone she
-stays as clear as before.
+(radial 0.62 -> 0.42 -> 0.10 -> 0, over a 0.30 / 0.14 / 0.34 vertical wash).
+
+The layer is a **band, not a wash over the frame** (2026-11-05 intake note: the first cut
+faded out too late, so the picture-only columns either side of the interface were veiled
+too and the illustration went milky). The band is 980 px wide, centred like the shell's
+content column, and dies inside a 10 % ramp at each end. Measured on the running shell at
+1280x800 under a Laplacian high-pass (mean `|4N - N|` per pixel over the region), same
+layout, same frame:
+
+| region | no scrim | this band | the first full-frame wash |
+| --- | --- | --- | --- |
+| interface band, 250-1030 px | 27.58 | 16.27 | 15.98 |
+| picture column, left 0-150 px | 9.53 | 9.56 | 7.74 |
+| picture column, right 1140-1280 px | 4.88 | 4.94 | 3.96 |
+
+The interface lands at the same softening the review accepted, while the picture columns
+sit on the no-scrim baseline instead of losing a fifth of their detail, and the scrim's
+own edge is now visible in the frame.
 
 Each value was **reverse-solved** against real pixels, and the sampling method
 matters: taking "the darkest 1 % of the box" as the paper reads **the text itself**
@@ -124,6 +137,27 @@ are **the same bytes** — `preview/light.jpg` and `preview/dark.jpg` share a sh
 (`32758B56…3429C4`) — and a dark-mode user who switches to it gets the same light
 interface. That is the intent, not a missing file.
 
+## Evidence
+
+Four files under `evidence/`, all captured on the running shell (:19387) at a
+**1280x800 viewport, device pixel ratio 1**, committed as captured — no scaling, no
+resampling:
+
+| file | what it shows |
+| --- | --- |
+| `whale-watercolour-home.jpg` | the empty-session home page — the "Let's start building" title, the workspace and branch chips and the centred composer over her face, i.e. the composition the 2026-10-28 note named, now under the local scrim |
+| `whale-watercolour-light.jpg` | a session with a real question and answer, long text sitting on her dark blue hair |
+| `whale-watercolour-dark.jpg` | the light capture, byte for byte — see the note below |
+| `whale-watercolour-theme-parity.png` | three labelled panels: light, dark, and the absolute difference of the two scaled by 16 |
+
+`preview/light.jpg` and `preview/dark.jpg` are byte-identical to their evidence twins.
+
+**The dark entry is the light file itself, and it is declared rather than passed off as a
+second theme.** This skin pins every token to the light palette, so a dark-theme render can
+only come out as the same pixels; the parity panel says so in one labelled line
+(`0 of 196,000 sampled pixels differ`) instead of leaving the reader to guess. The store's
+dark tier therefore shows one image, which is the intent already recorded in the manifest.
+
 ## Verification
 
 Everything above was measured on the running shell (:19387) and on the official
@@ -134,7 +168,7 @@ market try-on page, not estimated:
 | every custom property the shell declares on `body`, light vs dark | **0 / 553 differ** |
 | every visible element's computed style, light vs dark, on the live shell (8 scenes: hero, session, right pane, settings, menu, composer focus, composer menu, hover card) | **0 differences** (the only residuals were rows of new streaming output the live session created between the two snapshots, plus one entry animation caught mid-flight) |
 | the light side, after pinning vs before pinning | **36 / 36 token values unchanged** |
-| official try-on page render, light vs dark, 1680x1000 | **0 of 1,680,000 pixels differ** |
+| official try-on page render, light vs dark, 1280x800 | **0 of 1,024,000 pixels differ** |
 | control: the same harness on a dual-theme skin | 99.999 % of pixels differ (so the harness really switches themes) |
 
 ## Attribution and licence
