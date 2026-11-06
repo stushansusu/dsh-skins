@@ -134,7 +134,7 @@ set of values under `body[data-ds-dark-theme]`:
 
 Because the skin is light-only, a store's dark tier shows two preview images that
 are **the same bytes** — `preview/light.jpg` and `preview/dark.jpg` share a sha256
-(`32758B56…3429C4`) — and a dark-mode user who switches to it gets the same light
+(`9ED3843B…12999D`) — and a dark-mode user who switches to it gets the same light
 interface. That is the intent, not a missing file.
 
 ## Evidence
@@ -145,17 +145,23 @@ resampling:
 
 | file | what it shows |
 | --- | --- |
-| `whale-watercolour-home.jpg` | the empty-session home page — the "Let's start building" title, the workspace and branch chips and the centred composer over her face, i.e. the composition the 2026-10-28 note named, now under the local scrim |
+| `whale-watercolour-home.jpg` | the empty-session home page — the welcome title (in this capture the shell's Chinese UI, "探索未至之境"), the workspace and preset chips and the centred composer over her face, i.e. the composition the 2026-10-28 note named, now under the local scrim |
 | `whale-watercolour-light.jpg` | a session with a real question and answer, long text sitting on her dark blue hair |
 | `whale-watercolour-dark.jpg` | the light capture, byte for byte — see the note below |
 | `whale-watercolour-theme-parity.png` | three labelled panels: light, dark, and the absolute difference of the two scaled by 16 |
 
-`preview/light.jpg` and `preview/dark.jpg` are byte-identical to their evidence twins.
+`preview/light.jpg` and `preview/dark.jpg` are byte-identical to `evidence/whale-watercolour-home.jpg`:
+the store cover is the clean home frame, not the session frame.
+
+All four images were re-shot after the 2026-11-05 review with **the desktop-pet plugin closed and
+the host's "background blur when there is content" slider at zero**, so no floating pet window sits
+over the answer text or the message toolbar, and the image columns beside the column are the
+unblurred artwork — the scrim's edge is visible.
 
 **The dark entry is the light file itself, and it is declared rather than passed off as a
 second theme.** This skin pins every token to the light palette, so a dark-theme render can
 only come out as the same pixels; the parity panel says so in one labelled line
-(`0 of 196,000 sampled pixels differ`) instead of leaving the reader to guess. The store's
+(`0 of 1,024,000 sampled pixels differ`) instead of leaving the reader to guess. The store's
 dark tier therefore shows one image, which is the intent already recorded in the manifest.
 
 ## Verification
